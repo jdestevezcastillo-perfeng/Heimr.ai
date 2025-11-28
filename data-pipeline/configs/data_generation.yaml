@@ -1,0 +1,40 @@
+# Training Data Generation Configuration
+
+# Chaos Generator Settings
+chaos_api_url: "http://localhost:8000"
+prometheus_url: "http://localhost:9090"
+
+# Scenarios to generate data for
+scenarios:
+  - healthy
+  - latency_spike
+  - bimodal_latency
+  - gradual_degradation
+  - error_spike
+  - intermittent
+  - rate_limited
+  - connection_exhaustion
+  - cpu_bound
+  - cascade_failure
+
+# Data Generation Settings
+samples_per_scenario: 10  # Number of examples per scenario
+test_duration_seconds: 300  # 5 minutes per test
+cooldown_seconds: 60  # 1 minute cooldown between tests
+
+# Load Test Settings
+load_test:
+  requests_per_second: 50
+  concurrent_users: 10
+  duration_seconds: 300
+
+# Output Settings
+output_dir: "./datasets"
+dataset_name: "training_data"
+
+# Train/Val/Test Split
+split_ratios:
+  train: 0.7
+  val: 0.15
+  test: 0.15
+  random_seed: 42
