@@ -3,6 +3,7 @@
 ## 🎯 Project Overview
 
 Build an AI-powered performance analysis system that can:
+
 1. **Detect** performance bottlenecks in LLM inference systems
 2. **Diagnose** root causes of performance issues
 3. **Recommend** optimization strategies
@@ -11,7 +12,7 @@ Build an AI-powered performance analysis system that can:
 
 ## 🏗️ POC Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    PERFORMANCE ANALYZER AI POC                   │
 └─────────────────────────────────────────────────────────────────┘
@@ -37,6 +38,7 @@ Build an AI-powered performance analysis system that can:
 **Status**: Working chaos generator with 10 failure scenarios
 
 **Components**:
+
 - `chaos-generator/` - FastAPI service with chaos injection
 - **Observability Stack**:
   - Prometheus (Metrics)
@@ -47,19 +49,20 @@ Build an AI-powered performance analysis system that can:
 - k6 load testing scripts
 
 **Output**:
+
 - Time-series metrics (Prometheus format)
 - Request/response logs
 - Labeled chaos scenarios
 
 ---
 
-### 2. Data Storage (� IN PROGRESS)
+### 2. Data Storage (🚧 IN PROGRESS)
 
 **Purpose**: Store and organize training data
 
 **Components**:
 
-```
+```text
 data-pipeline/
 ├── collectors/
 │   ├── prometheus_exporter.py    # Export Prometheus metrics
@@ -78,6 +81,7 @@ data-pipeline/
 ```
 
 **Data Schema**:
+
 ```python
 {
     "timestamp": datetime,
@@ -112,6 +116,7 @@ data-pipeline/
 **Model Selection Options**:
 
 #### Option A: Fine-tuned LLM (Recommended for POC)
+
 - **Base Model**: Llama-3.1-8B or Mistral-7B
 - **Training Method**: LoRA/QLoRA fine-tuning
 - **Task**: Multi-task learning
@@ -120,30 +125,36 @@ data-pipeline/
   - Generation: Explain root cause + recommendations
 
 **Pros**:
+
 - Leverages your existing LLM infrastructure
 - Can generate natural language explanations
 - Transfer learning from pre-trained knowledge
 
 **Cons**:
+
 - Requires more compute for training
 - Larger model size
 
 #### Option B: Specialized ML Model
+
 - **Architecture**: Gradient Boosting (XGBoost/LightGBM) + Small LLM
 - **Detection Model**: XGBoost for bottleneck classification
 - **Explanation Model**: Small fine-tuned LLM (1-3B params)
 
 **Pros**:
+
 - Faster training and inference
 - Better interpretability for metrics
 - Lower resource requirements
 
 **Cons**:
+
 - Two-stage pipeline complexity
 - Less flexible for new scenarios
 
 #### Option C: Hybrid Approach (RECOMMENDED)
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  Stage 1: Detection (XGBoost)                           │
 │  - Input: Time-series metrics                           │
@@ -159,6 +170,7 @@ data-pipeline/
 ```
 
 **Why Hybrid?**:
+
 - Fast, accurate detection with XGBoost
 - Rich explanations from LLM
 - Best of both worlds for POC
@@ -170,7 +182,8 @@ data-pipeline/
 **Purpose**: Real-time performance analysis
 
 **Components**:
-```
+
+```text
 inference-engine/
 ├── api/
 │   ├── main.py                    # FastAPI service
@@ -193,6 +206,7 @@ inference-engine/
 ```
 
 **API Example**:
+
 ```python
 POST /analyze
 {
@@ -225,11 +239,12 @@ Response:
 
 ---
 
-### 5. Evaluation & Validation (� IN PROGRESS)
+### 5. Evaluation & Validation (🚧 IN PROGRESS)
 
 **Purpose**: Measure model performance and benchmark inference engines
 
 **Components**:
+
 - **Benchmarking Suite**:
   - Automated scripts (`run_4_stage_benchmark.sh`)
   - Comparison of vLLM vs TGI
@@ -240,6 +255,7 @@ Response:
   - Explanation Quality: Human evaluation + BLEU/ROUGE scores
 
 **Test Scenarios**:
+
 - Known chaos scenarios (ground truth)
 - Real-world performance data (if available)
 - Edge cases and adversarial examples
@@ -251,7 +267,8 @@ Response:
 **Purpose**: Deploy as a monitoring service
 
 **Architecture**:
-```
+
+```text
 ┌──────────────┐
 │  Prometheus  │──┐
 └──────────────┘  │
@@ -270,7 +287,7 @@ Response:
 
 ## 🗂️ Proposed Directory Structure
 
-```
+```text
 Performange-analyzer-AI/
 ├── chaos-generator/              # ✅ Existing
 │   └── (current chaos generator)
@@ -316,24 +333,28 @@ Performange-analyzer-AI/
 ## 🚀 Implementation Roadmap
 
 ### Phase 1: Data Pipeline (Week 1)
+
 - [ ] Build Prometheus metrics exporter
 - [ ] Create Parquet dataset builder
 - [ ] Define data schema
 - [ ] Generate initial training dataset (1000+ examples)
 
 ### Phase 2: Model Training (Week 2)
+
 - [ ] Train XGBoost bottleneck detector
 - [ ] Fine-tune LLM for explanations (LoRA)
 - [ ] Evaluate model performance
 - [ ] Iterate on feature engineering
 
 ### Phase 3: Inference Engine (Week 3)
+
 - [ ] Build FastAPI inference service
 - [ ] Integrate trained models
 - [ ] Create API endpoints
 - [ ] Add monitoring and logging
 
 ### Phase 4: Integration & Testing (Week 4)
+
 - [ ] Connect to live chaos generator
 - [ ] End-to-end testing
 - [ ] Performance benchmarking
@@ -344,25 +365,33 @@ Performange-analyzer-AI/
 ## 💡 Key Decisions Needed
 
 ### 1. Model Selection
+
 **Question**: Which approach do you prefer?
+
 - **A**: Fine-tuned LLM only (simpler, but slower)
 - **B**: XGBoost + Small LLM (faster, more complex)
 - **C**: Hybrid (recommended)
 
 ### 2. Training Infrastructure
+
 **Question**: What GPU resources do you have?
+
 - Current: NVIDIA 3090 (24GB VRAM)
 - Sufficient for: LoRA fine-tuning of 8B models
 - May need: Quantization (4-bit) for larger models
 
 ### 3. Dataset Size
+
 **Question**: How much training data should we generate?
+
 - **Minimum POC**: 1,000 examples (100 per scenario)
 - **Better POC**: 10,000 examples (1,000 per scenario)
 - **Production**: 100,000+ examples
 
 ### 4. Evaluation Criteria
+
 **Question**: What defines success for the POC?
+
 - Detection accuracy > 90%?
 - Explanation quality (human-rated)?
 - Inference latency < 1 second?
@@ -372,6 +401,7 @@ Performange-analyzer-AI/
 ## 📊 Success Metrics
 
 ### POC Success Criteria
+
 1. ✅ **Data Generation**: 1,000+ labeled examples
 2. ✅ **Model Training**: >85% detection accuracy
 3. ✅ **Inference Speed**: <2 seconds per analysis

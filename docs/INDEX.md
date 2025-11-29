@@ -7,9 +7,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 🎯 Start Here
 
 ### 1. **[README.md](../README.md)** (9.1 KB)
+
 **What it is**: Project overview and quick start guide
 
 **Read this if you want to**:
+
 - Understand what this project does
 - Get a high-level architecture overview
 - See the technology stack
@@ -20,9 +22,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ---
 
 ### 2. **[POC_SUMMARY.md](../POC_SUMMARY.md)** (13 KB)
+
 **What it is**: Complete POC summary with all key decisions
 
 **Read this if you want to**:
+
 - See what's been built so far
 - Understand the hybrid model architecture
 - Review success criteria
@@ -35,9 +39,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 🏗️ Architecture & Design
 
 ### 3. **[POC_ARCHITECTURE.md](../POC_ARCHITECTURE.md)** (14 KB)
+
 **What it is**: Detailed system architecture and component breakdown
 
 **Read this if you want to**:
+
 - Deep dive into system design
 - Understand data flow
 - See component interactions
@@ -47,6 +53,7 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 **Time to read**: 20 minutes
 
 **Key sections**:
+
 - Component breakdown (6 phases)
 - Data schema definition
 - Directory structure
@@ -55,9 +62,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ---
 
 ### 4. **[MODEL_SELECTION.md](docs/MODEL_SELECTION.md)** (7.7 KB)
+
 **What it is**: Model comparison and selection rationale
 
 **Read this if you want to**:
+
 - Understand why we chose the hybrid approach
 - Compare different model architectures
 - See pros/cons of each option
@@ -66,6 +75,7 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 **Time to read**: 10 minutes
 
 **Key sections**:
+
 - Comparison matrix
 - Option A: LLM only
 - Option B: XGBoost + Small LLM
@@ -77,9 +87,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 🛠️ Implementation
 
 ### 5. **[IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md)** (13 KB)
+
 **What it is**: Detailed 4-phase implementation roadmap
 
 **Read this if you want to**:
+
 - See specific tasks for each phase
 - Get code examples and templates
 - Understand training pipelines
@@ -88,6 +100,7 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 **Time to read**: 20 minutes
 
 **Key sections**:
+
 - Phase 1: Data Pipeline (detailed tasks)
 - Phase 2: Model Training (code examples)
 - Phase 3: Inference Engine (API design)
@@ -97,9 +110,11 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ---
 
 ### 6. **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** (17 KB)
+
 **What it is**: Quick reference guide with ASCII diagrams
 
 **Read this if you want to**:
+
 - Visual architecture overview (ASCII art)
 - Quick access to key information
 - Checklist for getting started
@@ -108,6 +123,7 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 **Time to read**: 5 minutes (reference)
 
 **Key sections**:
+
 - ASCII architecture diagram
 - Directory structure
 - Next steps
@@ -118,7 +134,8 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 📖 Reading Order
 
 ### For First-Time Readers
-```
+
+```text
 1. README.md (5 min)
    ↓
 2. POC_SUMMARY.md (10 min)
@@ -135,7 +152,8 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ---
 
 ### For Implementation
-```
+
+```text
 1. QUICK_REFERENCE.md (bookmark this!)
    ↓
 2. IMPLEMENTATION_PLAN.md (detailed tasks)
@@ -148,18 +166,22 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 🎯 Documentation by Purpose
 
 ### Want to understand the project?
+
 - Start: **README.md**
 - Then: **POC_SUMMARY.md**
 
 ### Want to understand the design?
+
 - Read: **POC_ARCHITECTURE.md**
 - Then: **MODEL_SELECTION.md**
 
 ### Want to start building?
+
 - Read: **IMPLEMENTATION_PLAN.md**
 - Bookmark: **QUICK_REFERENCE.md**
 
 ### Want to make decisions?
+
 - Read: **MODEL_SELECTION.md**
 - Review: **POC_SUMMARY.md** (success criteria)
 
@@ -197,30 +219,38 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 
 ## 🔍 Quick Lookup
 
-### Need to find...
+### Need to find
 
 **Architecture diagrams?**
+
 → POC_ARCHITECTURE.md, QUICK_REFERENCE.md
 
 **Data schema?**
+
 → POC_ARCHITECTURE.md (Section 2), IMPLEMENTATION_PLAN.md (Task 1.2)
 
 **Model training code?**
+
 → IMPLEMENTATION_PLAN.md (Phase 2)
 
 **API endpoints?**
+
 → IMPLEMENTATION_PLAN.md (Phase 3)
 
 **Success criteria?**
+
 → POC_SUMMARY.md, POC_ARCHITECTURE.md
 
 **Timeline?**
+
 → IMPLEMENTATION_PLAN.md, POC_SUMMARY.md
 
 **Tech stack?**
+
 → README.md, POC_SUMMARY.md
 
 **Next steps?**
+
 → POC_SUMMARY.md, QUICK_REFERENCE.md
 
 ---
@@ -228,18 +258,22 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 📝 Additional Documentation (Coming Soon)
 
 ### Phase 1: Data Pipeline
+
 - [ ] `data-pipeline/README.md` - Usage instructions
 - [ ] `docs/DATA_SCHEMA.md` - Detailed schema docs
 
 ### Phase 2: Model Training
+
 - [ ] `model-training/README.md` - Training guide
 - [ ] `docs/TRAINING_GUIDE.md` - Best practices
 
 ### Phase 3: Inference Engine
+
 - [ ] `inference-engine/README.md` - API documentation
 - [ ] `docs/API_REFERENCE.md` - Endpoint specs
 
 ### Phase 4: Deployment
+
 - [ ] `docs/DEPLOYMENT_GUIDE.md` - Production deployment
 - [ ] `docs/MONITORING_GUIDE.md` - Observability
 
@@ -248,21 +282,25 @@ Welcome to the Performance Analyzer AI project! This index will guide you throug
 ## 🎓 Learning Path
 
 ### Week 1: Understanding
+
 - [ ] Read all documentation (65 minutes)
 - [ ] Review chaos generator code
 - [ ] Understand data flow
 
 ### Week 2: Data Pipeline
+
 - [ ] Follow IMPLEMENTATION_PLAN.md (Phase 1)
 - [ ] Build exporters and dataset builder
 - [ ] Generate training data
 
 ### Week 3: Model Training
+
 - [ ] Follow IMPLEMENTATION_PLAN.md (Phase 2)
 - [ ] Train XGBoost detector
 - [ ] Fine-tune LLM explainer
 
 ### Week 4: Inference & Demo
+
 - [ ] Follow IMPLEMENTATION_PLAN.md (Phase 3-4)
 - [ ] Build API service
 - [ ] Create end-to-end demo
@@ -285,10 +323,12 @@ Before starting implementation, make sure you've:
 ## 🔗 External Resources
 
 ### Chaos Engineering
+
 - [chaos-generator/README.md](../chaos-generator/README.md)
 - [chaos-generator/QUICKSTART.md](../chaos-generator/QUICKSTART.md)
 
 ### Related Projects
+
 - [vLLM Documentation](https://docs.vllm.ai/)
 - [TGI Documentation](https://huggingface.co/docs/text-generation-inference)
 - [Prometheus Documentation](https://prometheus.io/docs/)
@@ -299,15 +339,19 @@ Before starting implementation, make sure you've:
 ## 📞 Need Help?
 
 ### Understanding the architecture?
+
 → Read **POC_ARCHITECTURE.md** section by section
 
 ### Choosing a model?
+
 → Review **MODEL_SELECTION.md** decision matrix
 
 ### Starting implementation?
+
 → Follow **IMPLEMENTATION_PLAN.md** step by step
 
 ### Quick reference?
+
 → Bookmark **QUICK_REFERENCE.md**
 
 ---
