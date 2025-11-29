@@ -48,13 +48,13 @@ scrape_configs:
           __path__: /var/log/*.log
 
   # Chaos generator application logs
-  - job_name: ratatoskr
+  - job_name: error-generator
     static_configs:
       - targets:
           - localhost
         labels:
-          job: ratatoskr
-          service: ratatoskr
+          job: error-generator
+          service: error-generator
           __path__: /var/lib/docker/containers/*/*.log
     pipeline_stages:
       - json:
