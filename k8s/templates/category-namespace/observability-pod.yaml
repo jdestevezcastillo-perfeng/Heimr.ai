@@ -6,6 +6,7 @@ metadata:
     app: observability
     component: monitoring
 spec:
+  serviceAccountName: prometheus
   containers:
   # Prometheus - Metrics collection
   - name: prometheus
