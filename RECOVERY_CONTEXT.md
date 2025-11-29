@@ -1,7 +1,8 @@
 # Recovery Context: K8s Training Data Setup
 
 **Date**: 2025-11-29  
-**Status**: Ready to build Docker images for K8s deployment
+**Status**: ✅ Phase 1 & 2 Complete - Ready for local testing (Phase 3A)  
+**Commit**: 035bbc2
 
 ## Critical Issue: Antigravity Crashes
 
@@ -10,85 +11,102 @@
 
 ---
 
-## What We Discovered Today
+## Current State
 
-### 1. Architecture Mistakes (Now Fixed)
-- ❌ Deployed Prometheus/Loki/Tempo **inside Kubernetes** (wrong)
-- ❌ Thought we needed 7 simulation pods (wrong)
-- ❌ Thought error-generator was separate (wrong)
-- ✅ **Correct architecture**: Based on `docs/DATA_GENERATION_STRATEGY.md`
+### ✅ Phase 1 Complete: Docker Images Built
+All 6 simulator images built and loaded into minikube:
+1. ✅ `sim-service-agent:latest` (152MB)
+2. ✅ `sim-db:latest` (374MB)
+3. ✅ `sim-cache:latest` (153MB)
+4. ✅ `sim-queue:latest` (156MB)
+5. ✅ `sim-inference:latest` (7.61GB - PyTorch)
+6. ✅ `chaos-controller:latest` (189MB)
 
-### 2. Correct Architecture (Per Category Namespace)
+### ✅ Phase 2 Complete: K8s Manifests Created
+All manifests in: `k8s/templates/category-namespace/`
+- ✅ `observability-pod.yaml` - Multi-container pod (Prometheus, Loki, Tempo, Promtail, OTel, Grafana)
+- ✅ `sim-deployments.yaml` - 6 simulation deployments
+- ✅ `services.yaml` - 8 services (7 ClusterIP + 1 LoadBalancer)
+- ✅ `configmaps/` - 7 ConfigMaps for observability tools
+- ✅ `namespace.yaml` - Template (replace CATEGORY_NAME_PLACEHOLDER)
+- ✅ `README.md` - Deployment instructions
 
-**6 Simulation Pods** (Core Archetypes):
-1. `sim-service-agent` - API/services/security/LB/observability/config
-2. `sim-db` - Database/storage/connection pools (PostgreSQL + sidecar)
-3. `sim-cache` - Caching/CDN (Redis + sidecar)
-4. `sim-queue` - Event-driven/messaging/streaming (Kafka/NATS)
-5. `sim-inference` - AI/ML inference/GPU (PyTorch stub)
-6. `chaos-controller` - Applies faults (does NOT generate traffic)
+### 🔄 Phase 3A: Local Testing (NEXT)
+Deploy test namespace (`sim-api`) on minikube to validate everything works.
 
-**1 Observability Pod** (Multi-container):
+---
+
+## Architecture (Per Category Namespace)
+
+**7 Pods Total:**
+
+### Simulation Pods (6 Core Archetypes)
+1. **sim-service-agent** - API/services/security/LB/observability/config
+2. **sim-db** - Database/storage/connection pools (PostgreSQL + sidecar)
+3. **sim-cache** - Caching/CDN (Redis + sidecar)
+4. **sim-queue** - Event-driven/messaging/streaming (Kafka/NATS)
+5. **sim-inference** - AI/ML inference/GPU (PyTorch stub)
+6. **chaos-controller** - Applies faults (does NOT generate traffic)
+
+### Observability Pod (1 Multi-Container Pod)
+**6 containers in one pod:**
 - Prometheus (scrapes metrics from all 6 sim pods)
 - Loki (log aggregation)
 - Tempo (distributed tracing)
 - Promtail (log shipper)
-- **OpenTelemetry Collector** (receives OTLP traces → Tempo)
+- OpenTelemetry Collector (receives OTLP traces → Tempo)
 - Grafana (dashboards - **ONLY externally exposed component**)
 
 **Network**: All internal ClusterIP services, only Grafana LoadBalancer
 
----
-
-## Current State
-
-### Existing Infrastructure
-- ✅ Docker Compose observability stack validated (`error-generator/docker-compose.yml`)
-- ✅ 156 failure scenarios defined (`docs/data/failure_scenarios.yaml`)
-- ✅ 28 categories identified (API, DB, INF, etc.)
-- ✅ Chaos controller code exists (`error-generator/controllers/chaos-controller/`)
-- ✅ Simulator Dockerfiles exist (`error-generator/simulators/*/Dockerfile`)
-
-### What's Deployed (Minikube - Needs Cleanup)
-- ⚠️ **Wrong setup in K8s**: Prometheus/Loki/Grafana in `heimr-core` namespace
-- ⚠️ `error-generator` pod in `heimr-chaos` (incorrect)
-- ⚠️ Need to clean up and redeploy correctly
+**Resources per namespace**: ~1.35GB RAM, ~1 core (fits t3.small!)
 
 ---
 
 ## Strategy: 28 Namespaces (Not 156)
 
-Instead of 156 namespaces (one per scenario), deploy **28 namespaces** (one per category):
-- Each namespace runs **all scenarios in that category sequentially**
+Deploy **28 namespaces** (one per category), run scenarios sequentially within each:
+- `sim-api` (16 scenarios), `sim-db` (9 scenarios), `sim-inf` (11 scenarios), etc.
+- Each namespace stays up while running all scenarios in that category
 - Just update ChaosScenario CRD between scenarios
 - Much more efficient for AWS EC2 instances
 
-**Example**: `sim-api` namespace runs 16 API scenarios one after another without teardown.
-
 ---
 
-## Implementation Plan
+## Next Steps (Phase 3A - Local Testing)
 
-See detailed plan: `.gemini/antigravity/brain/*/implementation_plan.md`
+1. Deploy test namespace `sim-api` to minikube
+2. Verify all 7 pods start successfully
+3. Port-forward Grafana and check dashboards
+4. Verify Prometheus scraping metrics
+5. Test one scenario (API-001)
 
-### Phase 1: Build Docker Images (NEXT STEP)
-Build images **sequentially** (one at a time):
-1. `sim-service-agent` 
-2. `sim-db`
-3. `sim-cache`
-4. `sim-queue`
-5. `sim-inference`
-6. `chaos-controller` (reuse existing)
-7. `observability-stack` (new multi-container image)
+**Deployment commands:**
+```bash
+# Navigate to template directory
+cd k8s/templates/category-namespace
 
-### Phase 2: Create K8s Manifests
-Template for each category namespace with all 7 pods
+# Create namespace
+cat namespace.yaml | sed 's/CATEGORY_NAME_PLACEHOLDER/sim-api/g' | kubectl apply -f -
 
-### Phase 3: Test on Minikube
-Deploy ONE test namespace (`sim-api`), verify everything works
+# Apply ConfigMaps
+kubectl apply -f configmaps/ -n sim-api
 
-### Phase 4: AWS Deployment
-Deploy to EKS, run data collection, save to Parquet
+# Deploy observability
+kubectl apply -f observability-pod.yaml -n sim-api
+
+# Deploy simulations
+kubectl apply -f sim-deployments.yaml -n sim-api
+
+# Create services
+kubectl apply -f services.yaml -n sim-api
+
+# Check pods
+kubectl get pods -n sim-api -w
+
+# Port-forward Grafana
+kubectl port-forward svc/grafana 3000:3000 -n sim-api
+```
 
 ---
 
@@ -98,44 +116,30 @@ Deploy to EKS, run data collection, save to Parquet
 - `docs/DATA_GENERATION_STRATEGY.md` - Core architecture (6 archetypes)
 - `docs/K8S_MIGRATION_PLAN.md` - Migration strategy
 - `docs/data/failure_scenarios.yaml` - 156 scenarios, 28 categories
+- `RECOVERY_CONTEXT.md` - This file (keep updated!)
 
-### Docker
-- `error-generator/docker-compose.yml` - Validated observability stack
-- `error-generator/simulators/*/Dockerfile` - Simulator images (exist)
+### K8s Manifests
+- `k8s/templates/category-namespace/` - Complete namespace template
+- All manifests ready to deploy
 
-### Kubernetes (To Create)
-- `k8s/templates/category-namespace/` - Namespace template
-- `k8s/base/observability-stack/` - Multi-container observability image
-
-### Data Pipeline
-- `data-pipeline/generate_training_data.py` - Orchestration script (exists, needs update)
+### Data Collection
+- `data-pipeline/generate_training_data.py` - Needs update for new architecture
 
 ---
 
-## AWS Resources (Free Tier)
-- **t3.small** (2 vCPU, 2 GB RAM) - Fits 1 namespace (~1.5 cores, ~2 GB total)
-- Run 1-5 namespaces concurrently depending on budget
-- Batch process all 28 categories
+## Important Notes
 
----
-
-## Next Actions
-
-1. ✅ Build `sim-service-agent` image (sequentially)
-2. Build remaining simulator images (one at a time)
-3. Build observability-stack image
-4. Load images into minikube
-5. Create K8s manifest templates
-6. Deploy test namespace
-7. Verify metrics collection
-8. Scale to all 28 categories
+- **Data Retention**: Observability stack is ephemeral (2-hour retention)
+- **Dataset**: All metrics exported to Parquet after scenario completes
+- **Clean Up**: Delete namespace after data collection
+- **No VictoriaMetrics needed**: Raw metrics deleted after export
+- **Traffic Generation**: `sim-service-agent` calls other services (chaos-controller only applies faults)
 
 ---
 
 ## Remember
 
 - **NEVER run Docker/K8s commands in parallel**
-- Traffic is generated by `sim-service-agent` calling other services
-- `chaos-controller` only applies faults, doesn't generate traffic
-- Observability runs in same namespace as simulations
+- All images already in minikube Docker environment
 - Only Grafana exposed externally per namespace
+- Resource efficient: 1 namespace per t3.small instance
