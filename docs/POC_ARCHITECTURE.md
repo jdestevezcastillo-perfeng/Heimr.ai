@@ -39,7 +39,7 @@ Build an AI-powered performance analysis system that can:
 
 **Components**:
 
-- `ratatoskr/` - FastAPI service with chaos injection
+- `error-generator/` - FastAPI service with chaos injection
 - **Observability Stack**:
   - Prometheus (Metrics)
   - Loki (Logs)
@@ -289,7 +289,7 @@ Response:
 
 ```text
 Performange-analyzer-AI/
-├── ratatoskr/              # ✅ Existing
+├── error-generator/              # ✅ Existing
 │   └── (current chaos generator)
 │
 ├── data-pipeline/                # 🔨 NEW

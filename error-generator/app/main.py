@@ -26,7 +26,7 @@ from app.metrics import (
 def setup_opentelemetry(app: FastAPI):
     """Configure OpenTelemetry to send traces to Tempo."""
     resource = Resource.create(attributes={
-        "service.name": "ratatoskr",
+        "service.name": "error-generator",
         "service.version": "1.0.0"
     })
     tracer_provider = TracerProvider(resource=resource)
@@ -120,7 +120,7 @@ async def root():
     scenario = await chaos_state.get_active_scenario()
     
     return {
-        "service": "ratatoskr",
+        "service": "error-generator",
         "version": "1.0.0",
         "description": "Controllable chaos injection for performance testing",
         "active_scenario": scenario,

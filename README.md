@@ -34,7 +34,7 @@ This project trains an AI model to analyze performance metrics from LLM inferenc
 
 ```
 Performange-analyzer-AI/
-├── ratatoskr/          # ✅ Training data generation
+├── error-generator/          # ✅ Training data generation
 │   ├── app/                  # FastAPI chaos injection service
 │   ├── grafana/              # Visualization dashboards
 │   ├── k6/                   # Load testing scripts
@@ -72,7 +72,7 @@ Performange-analyzer-AI/
 Generate labeled performance data with controlled failure scenarios:
 
 ```bash
-cd ratatoskr
+cd error-generator
 docker-compose up -d
 
 # Access services
@@ -93,7 +93,7 @@ docker-compose up -d
 - Intermittent errors
 - Cascading failures
 
-See [`ratatoskr/README.md`](ratatoskr/README.md) for details.
+See [`error-generator/README.md`](error-generator/README.md) for details.
 
 ---
 
@@ -232,7 +232,7 @@ curl -X POST http://localhost:8080/analyze \
 
 - **[POC Architecture](docs/POC_ARCHITECTURE.md)** - Complete system design
 - **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Detailed roadmap
-- **[Chaos Generator](ratatoskr/README.md)** - Training data generation
+- **[Chaos Generator](error-generator/README.md)** - Training data generation
 - **[Data Pipeline](data-pipeline/README.md)** - Data collection & storage
 - **[Model Training](model-training/README.md)** - ML model details
 - **[Website Preview](website/heimr-homepage.html)** - Heimr.ai homepage

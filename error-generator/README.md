@@ -32,7 +32,7 @@ The Chaos Generator is a "performance testing victim" API that misbehaves in con
 ### Start the Stack
 
 ```bash
-cd ratatoskr
+cd error-generator
 docker-compose up -d
 ```
 
@@ -163,7 +163,7 @@ The dashboard shows:
 
 ```promql
 # Request rate
-rate(http_requests_total{job="ratatoskr"}[1m])
+rate(http_requests_total{job="error-generator"}[1m])
 
 # P95 latency
 histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m]))
@@ -206,7 +206,7 @@ METRICS_ENABLED=true
 ## 📁 Project Structure
 
 ```
-ratatoskr/
+error-generator/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py              # FastAPI app entry point
@@ -268,7 +268,7 @@ This project is designed for learning:
 
 ```bash
 # Check logs
-docker-compose logs ratatoskr
+docker-compose logs error-generator
 
 # Rebuild
 docker-compose up --build
