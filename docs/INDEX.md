@@ -317,9 +317,11 @@ Before starting implementation, make sure you've:
 | Component | Status | Documentation |
 |-----------|--------|---------------|
 | Chaos Generator | ✅ Complete | chaos-generator/README.md |
+| Observability Stack | ✅ Complete | chaos-generator/OBSERVABILITY_STACK.md |
 | Architecture | ✅ Complete | POC_ARCHITECTURE.md |
 | Implementation Plan | ✅ Complete | IMPLEMENTATION_PLAN.md |
-| Data Pipeline | 🔨 Ready to build | IMPLEMENTATION_PLAN.md (Phase 1) |
+| Data Pipeline | 🚧 In Progress | IMPLEMENTATION_PLAN.md (Phase 1) |
+| Benchmarking | 🚧 In Progress | POC_ARCHITECTURE.md (Section 5) |
 | Model Training | ⏳ Planned | IMPLEMENTATION_PLAN.md (Phase 2) |
 | Inference Engine | ⏳ Planned | IMPLEMENTATION_PLAN.md (Phase 3) |
 

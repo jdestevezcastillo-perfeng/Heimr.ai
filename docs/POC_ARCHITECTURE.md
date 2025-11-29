@@ -1,4 +1,4 @@
-# Performance Analyzer AI - POC Architecture
+# Heimr.ai - POC Architecture
 
 ## 🎯 Project Overview
 
@@ -38,7 +38,11 @@ Build an AI-powered performance analysis system that can:
 
 **Components**:
 - `chaos-generator/` - FastAPI service with chaos injection
-- Prometheus metrics collection
+- **Observability Stack**:
+  - Prometheus (Metrics)
+  - Loki (Logs)
+  - Tempo (Traces)
+  - NVIDIA GPU Exporter (GPU Metrics)
 - Grafana visualization
 - k6 load testing scripts
 
@@ -49,7 +53,7 @@ Build an AI-powered performance analysis system that can:
 
 ---
 
-### 2. Data Storage (🔨 TO BUILD)
+### 2. Data Storage (� IN PROGRESS)
 
 **Purpose**: Store and organize training data
 
@@ -221,14 +225,19 @@ Response:
 
 ---
 
-### 5. Evaluation & Validation (🔨 TO BUILD)
+### 5. Evaluation & Validation (� IN PROGRESS)
 
-**Purpose**: Measure model performance
+**Purpose**: Measure model performance and benchmark inference engines
 
-**Metrics**:
-- **Detection Accuracy**: Precision, Recall, F1-score
-- **Severity Prediction**: MAE, RMSE
-- **Explanation Quality**: Human evaluation + BLEU/ROUGE scores
+**Components**:
+- **Benchmarking Suite**:
+  - Automated scripts (`run_4_stage_benchmark.sh`)
+  - Comparison of vLLM vs TGI
+  - Performance metrics (Latency, Throughput, GPU Utilization)
+- **Model Evaluation**:
+  - Detection Accuracy: Precision, Recall, F1-score
+  - Severity Prediction: MAE, RMSE
+  - Explanation Quality: Human evaluation + BLEU/ROUGE scores
 
 **Test Scenarios**:
 - Known chaos scenarios (ground truth)
