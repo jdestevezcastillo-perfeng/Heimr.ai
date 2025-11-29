@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-service-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-service-agent
+  template:
+    metadata:
+      labels:
+        app: sim-service-agent
+    spec:
+      containers:
+      - name: sim-service
+        image: sim-service-agent:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-db
+  template:
+    metadata:
+      labels:
+        app: sim-db
+    spec:
+      containers:
+      - name: sim-db
+        image: sim-db:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-cache
+  template:
+    metadata:
+      labels:
+        app: sim-cache
+    spec:
+      containers:
+      - name: sim-cache
+        image: sim-cache:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-queue
+  template:
+    metadata:
+      labels:
+        app: sim-queue
+    spec:
+      containers:
+      - name: sim-queue
+        image: sim-queue:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-inference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-inference
+  template:
+    metadata:
+      labels:
+        app: sim-inference
+    spec:
+      containers:
+      - name: sim-inference
+        image: sim-inference:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-controller
+  template:
+    metadata:
+      labels:
+        app: chaos-controller
+    spec:
+      containers:
+      - name: chaos-controller
+        image: chaos-controller:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
