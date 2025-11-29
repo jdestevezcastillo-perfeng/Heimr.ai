@@ -272,9 +272,9 @@ def main():
     ]
     
     # Configuration
-    SAMPLES_PER_SCENARIO = 10  # Start with 10 samples per scenario (100 total)
-    DURATION_SECONDS = 300     # 5 minutes per test
-    COOLDOWN_SECONDS = 60      # 1 minute cooldown
+    SAMPLES_PER_SCENARIO = 25  # Increased to 25 samples per scenario (250 total)
+    DURATION_SECONDS = 120     # Reduced to 2 minutes per test (sufficient for metrics)
+    COOLDOWN_SECONDS = 30      # Reduced to 30s cooldown
     
     # Initialize generator
     generator = TrainingDataGenerator(

@@ -4,6 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from app.config import settings
 from app.chaos.injector import ChaosMiddleware
@@ -15,6 +21,20 @@ from app.metrics import (
     chaos_cpu_work_iterations,
     chaos_response_size_bytes,
 )
+
+
+def setup_opentelemetry(app: FastAPI):
+    """Configure OpenTelemetry to send traces to Tempo."""
+    resource = Resource.create(attributes={
+        "service.name": "chaos-generator",
+        "service.version": "1.0.0"
+    })
+    tracer_provider = TracerProvider(resource=resource)
+    # Send traces to Tempo (OTLP gRPC)
+    processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://tempo:4317", insecure=True))
+    tracer_provider.add_span_processor(processor)
+    trace.set_tracer_provider(tracer_provider)
+    FastAPIInstrumentor.instrument_app(app)
 
 
 @asynccontextmanager
@@ -80,6 +100,9 @@ app.add_middleware(ChaosMiddleware)
 # Configure Prometheus instrumentation
 if settings.metrics_enabled:
     Instrumentator().instrument(app).expose(app)
+
+# Configure OpenTelemetry
+setup_opentelemetry(app)
 
 # Register routers
 app.include_router(health.router, tags=["health"])
