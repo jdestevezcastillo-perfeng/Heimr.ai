@@ -17,6 +17,9 @@ spec:
       labels:
         app: {{ .name }}
         type: sim-cache-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       containers:
         # Main Redis Container
@@ -27,7 +30,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ $.Values.global.imageRegistry }}/sim-cache-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-cache-agent:latest"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: REDIS_HOST

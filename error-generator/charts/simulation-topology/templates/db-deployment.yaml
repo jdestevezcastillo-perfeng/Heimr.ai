@@ -17,6 +17,9 @@ spec:
       labels:
         app: {{ .name }}
         type: sim-db-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       containers:
         # Main DB Container
@@ -32,7 +35,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ $.Values.global.imageRegistry }}/sim-db-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-db-agent:latest"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: DB_HOST

@@ -2,8 +2,8 @@
 
 # Global settings
 global:
-  imageRegistry: "heimr-registry:5000"
-  imagePullPolicy: IfNotPresent
+  imageRegistry: "docker.io/library"
+  imagePullPolicy: Never
 
 # List of services to deploy
 services: []

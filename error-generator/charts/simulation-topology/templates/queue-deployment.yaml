@@ -17,6 +17,9 @@ spec:
       labels:
         app: {{ .name }}
         type: sim-queue-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       containers:
         # Kafka (using Redpanda for simplicity/speed in simulation)
@@ -38,7 +41,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ $.Values.global.imageRegistry }}/sim-queue-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-queue-agent:latest"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
