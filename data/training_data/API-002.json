@@ -1,0 +1,5 @@
+{"timestamp": "2025-11-29T19:53:14.450102", "scenario_id": "API-002", "metrics": {"latency_p99": 599, "error_rate": 0.05}, "label": "GC pauses, noisy neighbors."}
+{"timestamp": "2025-11-29T20:05:26.214590", "scenario_id": "API-002", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "GC pauses, noisy neighbors."}
+{"timestamp": "2025-11-29T20:11:55.570582", "scenario_id": "API-002", "metrics": {"latency_p99": 585, "error_rate": 0.05}, "label": "GC pauses, noisy neighbors."}
+{"timestamp": "2025-11-29T20:15:23.620085", "scenario_id": "API-002", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "GC pauses, noisy neighbors."}
+{"timestamp": "2025-11-29T20:20:10.154471", "scenario_id": "API-002", "metrics": {"latency_p99": 594, "error_rate": 0.05}, "label": "GC pauses, noisy neighbors."}

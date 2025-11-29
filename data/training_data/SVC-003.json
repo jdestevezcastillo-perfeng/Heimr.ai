@@ -1,0 +1,2 @@
+{"timestamp": "2025-11-29T20:07:43.564179", "scenario_id": "SVC-003", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "CoreDNS/Consul issue."}
+{"timestamp": "2025-11-29T20:17:51.203879", "scenario_id": "SVC-003", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "CoreDNS/Consul issue."}
