@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: error-generator
+  namespace: heimr-chaos
+  labels:
+    app: error-generator
+    component: chaos-generator
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: error-generator
+  namespaceSelector:
+    matchNames:
+    - heimr-chaos
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
+    scrapeTimeout: 10s

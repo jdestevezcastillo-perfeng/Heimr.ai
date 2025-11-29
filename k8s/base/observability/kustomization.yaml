@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - crds/crds.yaml
+  - dashboards.yaml
 
 helmCharts:
   - name: kube-prometheus-stack

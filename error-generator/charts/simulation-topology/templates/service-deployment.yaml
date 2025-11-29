@@ -41,6 +41,8 @@ spec:
   selector:
     app: {{ .name }}
   ports:
-    - port: 8000
+    - protocol: TCP
+      port: 80
       targetPort: 8000
+      name: http
 {{- end }}

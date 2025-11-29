@@ -30,7 +30,7 @@ check_service() {
 # Check each service
 echo "=== Core Services ==="
 check_service "Chaos Generator" "http://localhost:8000/health" "200"
-check_service "Prometheus" "http://localhost:9090/-/healthy" "200"
+check_service "Prometheus" "http://localhost:9091/-/healthy" "200"
 check_service "Grafana" "http://localhost:3000/api/health" "200"
 
 echo ""
@@ -59,7 +59,7 @@ else
 fi
 
 # Test Prometheus API
-prom_query=$(curl -s 'http://localhost:9090/api/v1/query?query=up' 2>/dev/null | jq -r '.status' 2>/dev/null)
+prom_query=$(curl -s 'http://localhost:9091/api/v1/query?query=up' 2>/dev/null | jq -r '.status' 2>/dev/null)
 if [ "$prom_query" = "success" ]; then
     echo -e "${GREEN}✅ Prometheus API${NC} - Responding"
 else
@@ -68,7 +68,7 @@ fi
 
 echo ""
 echo "=== Prometheus Targets ==="
-targets=$(curl -s http://localhost:9090/api/v1/targets 2>/dev/null | jq -r '.data.activeTargets[] | "\(.labels.job): \(.health)"' 2>/dev/null)
+targets=$(curl -s http://localhost:9091/api/v1/targets 2>/dev/null | jq -r '.data.activeTargets[] | "\(.labels.job): \(.health)"' 2>/dev/null)
 if [ -n "$targets" ]; then
     echo "$targets" | while read line; do
         if [[ $line == *"up"* ]]; then
@@ -85,7 +85,7 @@ echo ""
 echo "=== Summary ==="
 echo "Access URLs:"
 echo "  • Grafana: http://localhost:3000 (admin/admin)"
-echo "  • Prometheus: http://localhost:9090"
+echo "  • Prometheus: http://localhost:9091"
 echo "  • Loki: http://localhost:3100"
 echo "  • Tempo: http://localhost:3200"
 echo "  • Chaos API: http://localhost:8000"

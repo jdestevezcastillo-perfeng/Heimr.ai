@@ -1,0 +1,2 @@
+{"timestamp": "2025-11-29T20:06:34.369464", "scenario_id": "API-007", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Unreleased objects."}
+{"timestamp": "2025-11-29T20:16:36.338306", "scenario_id": "API-007", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Unreleased objects."}
