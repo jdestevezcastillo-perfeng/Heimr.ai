@@ -324,8 +324,8 @@ Before starting implementation, make sure you've:
 
 ### Chaos Engineering
 
-- [chaos-generator/README.md](../chaos-generator/README.md)
-- [chaos-generator/QUICKSTART.md](../chaos-generator/QUICKSTART.md)
+- [ratatoskr/README.md](../ratatoskr/README.md)
+- [ratatoskr/QUICKSTART.md](../ratatoskr/QUICKSTART.md)
 
 ### Related Projects
 
@@ -360,8 +360,8 @@ Before starting implementation, make sure you've:
 
 | Component | Status | Documentation |
 |-----------|--------|---------------|
-| Chaos Generator | ✅ Complete | chaos-generator/README.md |
-| Observability Stack | ✅ Complete | chaos-generator/OBSERVABILITY_STACK.md |
+| Chaos Generator | ✅ Complete | ratatoskr/README.md |
+| Observability Stack | ✅ Complete | ratatoskr/OBSERVABILITY_STACK.md |
 | Architecture | ✅ Complete | POC_ARCHITECTURE.md |
 | Implementation Plan | ✅ Complete | IMPLEMENTATION_PLAN.md |
 | Data Pipeline | 🚧 In Progress | IMPLEMENTATION_PLAN.md (Phase 1) |

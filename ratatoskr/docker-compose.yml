@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  chaos-generator:
+  ratatoskr:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: chaos-generator
+    container_name: ratatoskr
     ports:
       - "8000:8000"
     environment:
@@ -24,7 +24,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=chaos-generator"
+        labels: "service=ratatoskr"
 
   # NVIDIA DCGM Exporter for GPU metrics (official NVIDIA exporter)
   dcgm-exporter:

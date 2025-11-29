@@ -257,5 +257,5 @@ The system is ready to generate high-quality training data for the AI Performanc
 - **API Documentation**: http://localhost:8000/docs
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3000
-- **Quick Reference**: [QUICKSTART.md](file:///home/lostborion/Performange-analyzer-AI/chaos-generator/QUICKSTART.md)
-- **Full Documentation**: [README.md](file:///home/lostborion/Performange-analyzer-AI/chaos-generator/README.md)
+- **Quick Reference**: [QUICKSTART.md](file:///home/lostborion/Performange-analyzer-AI/ratatoskr/QUICKSTART.md)
+- **Full Documentation**: [README.md](file:///home/lostborion/Performange-analyzer-AI/ratatoskr/README.md)

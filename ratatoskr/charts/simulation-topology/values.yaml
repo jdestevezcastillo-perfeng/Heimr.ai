@@ -1,0 +1,36 @@
+# Default values for simulation-topology.
+
+# Global settings
+global:
+  imageRegistry: "heimr-registry:5000"
+  imagePullPolicy: IfNotPresent
+
+# List of services to deploy
+services: []
+  # - name: frontend
+  #   type: sim-service-agent
+  #   replicas: 1
+  #   env:
+  #     UPSTREAM_URL: "http://backend:8000"
+
+# List of databases
+databases: []
+  # - name: primary-db
+  #   type: sim-db-agent
+  #   storage: 1Gi
+
+# List of caches
+caches: []
+  # - name: redis-cache
+  #   type: sim-cache-agent
+
+# List of queues
+queues: []
+  # - name: kafka-cluster
+  #   type: sim-queue-agent
+
+# List of inference nodes
+inference: []
+  # - name: llm-worker
+  #   type: sim-inference
+  #   gpu: true

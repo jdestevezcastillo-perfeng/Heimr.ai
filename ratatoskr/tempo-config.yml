@@ -34,7 +34,7 @@ metrics_generator:
   registry:
     external_labels:
       source: tempo
-      cluster: chaos-generator
+      cluster: ratatoskr
   storage:
     path: /var/tempo/generator/wal
     remote_write:

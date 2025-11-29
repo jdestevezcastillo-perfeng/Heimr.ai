@@ -126,7 +126,7 @@ Performange-analyzer-AI/
 ├── 📄 POC_ARCHITECTURE.md          # Full architecture design
 ├── 📄 IMPLEMENTATION_PLAN.md       # Detailed roadmap
 │
-├── ✅ chaos-generator/             # COMPLETE
+├── ✅ ratatoskr/             # COMPLETE
 │   ├── app/                        # FastAPI chaos service
 │   ├── grafana/                    # Dashboards
 │   ├── k6/                         # Load tests
