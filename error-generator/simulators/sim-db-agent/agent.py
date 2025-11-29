@@ -14,6 +14,14 @@ logger = logging.getLogger("sim-db-agent")
 
 app = FastAPI(title="Heimr.ai DB Chaos Agent")
 
+from prometheus_client import make_asgi_app, Gauge
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+DB_CONNECTIONS = Gauge('db_active_connections', 'Number of active DB connections leaked by chaos', ['db_host'])
+DB_LOCKS = Gauge('db_locked_tables', 'Number of tables currently locked', ['db_host'])
+
+
 # DB Config
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
@@ -112,6 +120,9 @@ async def set_chaos(config: ChaosConfig):
             state.io_burn_active = False
             if state.io_thread:
                 state.io_thread.join()
+
+    DB_CONNECTIONS.labels(db_host=DB_HOST).set(len(state.active_connections))
+    DB_LOCKS.labels(db_host=DB_HOST).set(len(state.locked_tables))
 
     return {"status": "updated", "state": {
         "connections": len(state.active_connections),

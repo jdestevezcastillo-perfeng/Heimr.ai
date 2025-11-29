@@ -15,6 +15,16 @@ logger = logging.getLogger("sim-inference")
 
 app = FastAPI(title="Heimr.ai Inference Simulator")
 
+from prometheus_client import make_asgi_app, Gauge, Histogram, Counter
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+# Metrics
+GPU_MEMORY_USAGE = Gauge('gpu_memory_usage_mb', 'Current GPU memory usage in MB', ['device'])
+INFERENCE_LATENCY = Histogram('inference_latency_seconds', 'Time spent processing inference', ['model'])
+INFERENCE_REQUESTS = Counter('inference_requests_total', 'Total inference requests', ['model', 'status'])
+
+
 # Device Detection
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 logger.info(f"Running on device: {DEVICE}")
@@ -129,12 +139,27 @@ async def reset_chaos():
 @app.post("/v1/chat/completions")
 async def mock_inference():
     """Simulates an LLM inference endpoint."""
+    start_time = time.time()
+    INFERENCE_REQUESTS.labels(model="sim-model-7b", status="processing").inc()
+    
+    # Update VRAM metric
+    if torch.cuda.is_available():
+        # Mocking real VRAM usage if we can't get it easily, or use the allocated tensor size
+        allocated_mb = sum([t.element_size() * t.nelement() for t in state.allocated_tensors]) / (1024 * 1024)
+        GPU_MEMORY_USAGE.labels(device=DEVICE).set(allocated_mb)
+    else:
+        GPU_MEMORY_USAGE.labels(device="cpu").set(0)
+
     # Simulate processing time
     delay = state.inference_latency_ms + random.randint(0, state.inference_jitter_ms)
     
     # If compute load is high, real latency might naturally increase, 
     # but we add artificial delay to control it precisely.
     await asyncio.sleep(delay / 1000.0)
+    
+    duration = time.time() - start_time
+    INFERENCE_LATENCY.labels(model="sim-model-7b").observe(duration)
+    INFERENCE_REQUESTS.labels(model="sim-model-7b", status="success").inc()
     
     return {
         "id": "chatcmpl-mock",

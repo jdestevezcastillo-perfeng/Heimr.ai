@@ -14,6 +14,14 @@ logger = logging.getLogger("sim-queue-agent")
 
 app = FastAPI(title="Heimr.ai Queue Chaos Agent")
 
+from prometheus_client import make_asgi_app, Gauge
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+QUEUE_LAG = Gauge('kafka_consumer_lag', 'Consumer group lag', ['group', 'topic'])
+QUEUE_MESSAGES = Gauge('kafka_messages_total', 'Total messages processed', ['topic'])
+
+
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 TOPIC_NAME = os.getenv("TOPIC_NAME", "chaos-topic")
 

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-controller
+  namespace: heimr-chaos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-controller
+  template:
+    metadata:
+      labels:
+        app: chaos-controller
+    spec:
+      serviceAccountName: chaos-controller-sa
+      containers:
+        - name: controller
+          image: chaos-controller:latest
+          imagePullPolicy: Never
+          env:
+            - name: KOPF_VERBOSE
+              value: "1"

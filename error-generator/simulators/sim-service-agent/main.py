@@ -14,6 +14,9 @@ logger = logging.getLogger("sim-service")
 
 app = FastAPI(title="Heimr.ai Simulation Service")
 
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app)
+
 # Global State for Chaos
 class ChaosState:
     latency_ms: int = 0

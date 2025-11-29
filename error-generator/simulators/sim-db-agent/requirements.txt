@@ -1,4 +1,5 @@
 fastapi==0.109.0
 uvicorn==0.27.0
 psycopg2-binary==2.9.9
+prometheus-client
 pydantic==2.6.0

@@ -17,10 +17,13 @@ spec:
       labels:
         app: {{ .name }}
         type: sim-service-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       containers:
         - name: app
-          image: "{{ $.Values.global.imageRegistry }}/sim-service-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-service-agent:latest"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           ports:
             - containerPort: 8000

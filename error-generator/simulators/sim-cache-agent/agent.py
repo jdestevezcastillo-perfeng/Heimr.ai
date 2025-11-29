@@ -14,6 +14,14 @@ logger = logging.getLogger("sim-cache-agent")
 
 app = FastAPI(title="Heimr.ai Cache Chaos Agent")
 
+from prometheus_client import make_asgi_app, Gauge
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
+CACHE_OPERATIONS = Gauge('cache_operations_total', 'Total cache operations', ['type', 'status'])
+CACHE_MEMORY_USAGE = Gauge('cache_memory_usage_bytes', 'Current cache memory usage', ['host'])
+
+
 # Redis Config
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
