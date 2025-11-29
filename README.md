@@ -1,4 +1,4 @@
-# Performance Analyzer AI
+# Heimr.ai
 
 > AI-powered performance analysis system that detects bottlenecks in LLM inference systems, diagnoses root causes, and recommends optimization strategies.
 

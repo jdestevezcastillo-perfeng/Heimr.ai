@@ -8,15 +8,19 @@ You now have a **complete architecture and plan** for building an AI-powered per
 
 ## ✅ What's Complete
 
-### 1. Chaos Generator (Training Data Source)
+### 1. Chaos Generator & Observability (Training Data Source)
 - ✅ FastAPI service with 10 failure scenarios
-- ✅ Prometheus metrics collection
-- ✅ Grafana visualization dashboards
+- ✅ **Enhanced Observability Stack**:
+  - **Prometheus**: Metrics collection (Application + System)
+  - **Loki**: Log aggregation (Container + Application logs)
+  - **Tempo**: Distributed tracing
+  - **NVIDIA GPU Exporter**: Detailed GPU metrics (Utilization, Temp, Power)
+- ✅ Grafana visualization dashboards (Chaos + GPU)
 - ✅ k6 load testing scripts
 - ✅ Docker Compose deployment
-- ✅ Validated with live testing
 
 **Location**: `chaos-generator/`
+**Documentation**: `chaos-generator/OBSERVABILITY_STACK.md`
 
 ---
 
@@ -26,19 +30,20 @@ You now have a **complete architecture and plan** for building an AI-powered per
 - ✅ **IMPLEMENTATION_PLAN.md** - Detailed 4-phase roadmap
 - ✅ **docs/MODEL_SELECTION.md** - Model comparison and recommendation
 - ✅ **docs/QUICK_REFERENCE.md** - Quick reference guide
+- ✅ **chaos-generator/OBSERVABILITY_STACK.md** - Observability guide
 
 ---
 
 ### 3. Directory Structure
-- ✅ **data-pipeline/** - For data collection and storage
+- ✅ **data-pipeline/** - Initial scripts for data generation (`start_generation.sh`)
 - ✅ **model-training/** - For training XGBoost and LLM
 - ✅ **inference-engine/** - For FastAPI inference service
 - ✅ **evaluation/** - For testing and validation
 
 ```
 Performange-analyzer-AI/
-├── chaos-generator/          ✅ Complete
-├── data-pipeline/            🔨 Ready to build
+├── chaos-generator/          ✅ Complete (with Observability)
+├── data-pipeline/            🚧 In Progress (Scripts available)
 ├── model-training/           🔨 Ready to build
 ├── inference-engine/         🔨 Ready to build
 ├── evaluation/               🔨 Ready to build

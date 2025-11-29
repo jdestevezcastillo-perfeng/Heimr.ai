@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 Performance Analyzer AI - Training Data Generation"
+echo "🚀 Heimr.ai - Training Data Generation"
 echo "======================================================"
 echo ""
 
