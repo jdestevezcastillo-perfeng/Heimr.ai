@@ -101,32 +101,6 @@ spec:
         memory: "128Mi"
         cpu: "100m"
   
-  # OpenTelemetry Collector
-  - name: otel-collector
-    image: otel/opentelemetry-collector:0.91.0
-    ports:
-    - name: otlp-grpc-in
-      containerPort: 4317
-      protocol: TCP
-    - name: otlp-http-in
-      containerPort: 4318
-      protocol: TCP
-    - name: metrics
-      containerPort: 8888
-      protocol: TCP
-    volumeMounts:
-    - name: otel-config
-      mountPath: /etc/otel
-    args:
-    - '--config=/etc/otel/otel-collector-config.yaml'
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "200m"
-  
   # Grafana - Dashboards
   - name: grafana
     image: grafana/grafana:10.2.2
@@ -177,9 +151,6 @@ spec:
       name: promtail-config
   - name: varlog
     emptyDir: {}
-  - name: otel-config
-    configMap:
-      name: otel-collector-config
   - name: grafana-datasources
     configMap:
       name: grafana-datasources

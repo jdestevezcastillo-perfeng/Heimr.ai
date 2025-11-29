@@ -8,6 +8,7 @@ data:
 
     server:
       http_listen_port: 3100
+      grpc_listen_port: 0
 
     ingester:
       lifecycler:
@@ -18,6 +19,9 @@ data:
           replication_factor: 1
       chunk_idle_period: 5m
       chunk_retain_period: 30s
+      wal:
+        enabled: true
+        dir: /loki/wal
 
     schema_config:
       configs:
@@ -42,3 +46,7 @@ data:
       reject_old_samples: true
       reject_old_samples_max_age: 168h
       retention_period: 2h
+
+    compactor:
+      working_directory: /loki/compactor
+      shared_store: filesystem
