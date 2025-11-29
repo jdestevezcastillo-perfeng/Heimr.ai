@@ -54,3 +54,11 @@ scrape_configs:
       - targets: ['tempo:3200']
         labels:
           service: 'tempo'
+
+  # Node Exporter metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          instance: 'localhost'

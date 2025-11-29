@@ -11,8 +11,8 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 # Configuration
-DATA_DIR = Path("../data-pipeline/datasets/training")
-MODEL_DIR = Path("../model-training/models")
+DATA_DIR = Path("data-pipeline/datasets/training")
+MODEL_DIR = Path("model-training/models")
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_data():
@@ -128,8 +128,13 @@ def main():
     # 3. Train
     clf = train_model(X, y)
     
-    # 4. Evaluate
-    evaluate_model(clf, X, y, le)
+    # 4. Evaluate on Test Set
+    print("\n🧪 Loading test data...")
+    test_df = pd.read_parquet(DATA_DIR / "test.parquet")
+    X_test, y_test, _, _, _ = preprocess_data(test_df)
+    
+    print("\n📊 Evaluating on TEST set...")
+    evaluate_model(clf, X_test, y_test, le)
     
     # Print Feature Importance with names
     print("\n   Top 10 Features:")

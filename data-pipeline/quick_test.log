@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/home/lostborion/Performange-analyzer-AI/data-pipeline/scripts/quick_test.py", line 9, in <module>
-    from scripts.generate_training_data import TrainingDataGenerator
-  File "/home/lostborion/Performange-analyzer-AI/data-pipeline/scripts/generate_training_data.py", line 13, in <module>
-    from storage.dataset_builder import DatasetBuilder
-  File "/home/lostborion/Performange-analyzer-AI/data-pipeline/storage/dataset_builder.py", line 11, in <module>
-    from schema import (
-ModuleNotFoundError: No module named 'schema'

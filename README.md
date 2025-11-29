@@ -230,10 +230,12 @@ curl -X POST http://localhost:8080/analyze \
 
 ## 📚 Documentation
 
-- **[POC Architecture](POC_ARCHITECTURE.md)** - Complete system design
+- **[POC Architecture](docs/POC_ARCHITECTURE.md)** - Complete system design
 - **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Detailed roadmap
 - **[Chaos Generator](chaos-generator/README.md)** - Training data generation
-- **[Data Schema](docs/DATA_SCHEMA.md)** - Dataset structure (coming soon)
+- **[Data Pipeline](data-pipeline/README.md)** - Data collection & storage
+- **[Model Training](model-training/README.md)** - ML model details
+- **[Website Preview](website/heimr-homepage.html)** - Heimr.ai homepage
 
 ---
 
@@ -242,8 +244,8 @@ curl -X POST http://localhost:8080/analyze \
 | Phase | Status | Timeline |
 |-------|--------|----------|
 | **Phase 0**: Chaos Generator | ✅ Complete | Week 0 |
-| **Phase 1**: Data Pipeline | 🔨 In Progress | Week 1 |
-| **Phase 2**: Model Training | ⏳ Planned | Week 2 |
+| **Phase 1**: Data Pipeline | ✅ Complete | Week 1 |
+| **Phase 2**: Model Training | ✅ Complete | Week 2 |
 | **Phase 3**: Inference Engine | ⏳ Planned | Week 3 |
 | **Phase 4**: Integration & Testing | ⏳ Planned | Week 4 |
 
