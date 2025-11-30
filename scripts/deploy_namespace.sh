@@ -53,5 +53,18 @@ kubectl apply -f $BUILD_DIR/observability-pod.yaml -n $NAMESPACE
 kubectl apply -f $BUILD_DIR/sim-deployments.yaml -n $NAMESPACE
 kubectl apply -f $BUILD_DIR/services.yaml -n $NAMESPACE
 
+# 3. Copy GCS Secret
+echo "Copying GCS credentials..."
+kubectl get secret gcs-credentials -n sim-api -o yaml | sed "s/namespace: sim-api/namespace: $NAMESPACE/" | kubectl apply -f -
+
+# 4. Deploy Generator
+echo "Deploying Data Generator..."
+# We need to prepare the generator manifest too
+cp k8s/templates/category-namespace/generator-deployment.yaml $BUILD_DIR/
+# Replace placeholder if it exists, but we also rely on env vars. 
+# However, the manifest has CATEGORY_NAME_PLACEHOLDER in metadata.namespace
+sed -i "s/CATEGORY_NAME_PLACEHOLDER/$NAMESPACE/g" $BUILD_DIR/generator-deployment.yaml
+kubectl apply -f $BUILD_DIR/generator-deployment.yaml -n $NAMESPACE
+
 echo "Deployment to $NAMESPACE complete!"
 kubectl get pods -n $NAMESPACE
