@@ -7,7 +7,7 @@ import asyncio
 import json
 import requests
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import subprocess
 
 # Configure logging
@@ -17,6 +17,8 @@ logger = logging.getLogger("gke-generator")
 SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "docs/data/failure_scenarios.yaml")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "data/training_data")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9090")
+LOKI_URL = os.getenv("LOKI_URL", "http://observability:3100")
+TEMPO_URL = os.getenv("TEMPO_URL", "http://observability:3200")
 NAMESPACE = "sim-api"
 
 async def run_command(cmd):
@@ -100,24 +102,181 @@ def query_prometheus(query):
         logger.error(f"Prometheus query failed: {e}")
         return 0.0
 
-async def collect_metrics(scenario, duration=60):
-    logger.info(f"Collecting metrics for {scenario['id']}...")
+def query_loki_logs(namespace, start_time, end_time):
+    """Query Loki for logs during scenario execution."""
+    url = f"{LOKI_URL}/loki/api/v1/query_range"
     
-    # Wait for chaos to manifest
-    # We can poll every 10s
-    start_time = time.time()
+    # Query for error logs
+    query = f'{{namespace="{namespace}"}} |~ "(?i)(error|exception|fatal|panic|traceback)"'
+    
+    params = {
+        "query": query,
+        "start": int(start_time.timestamp() * 1e9),  # nanoseconds
+        "end": int(end_time.timestamp() * 1e9),
+        "limit": 1000
+    }
+    
+    try:
+        resp = requests.get(url, params=params, timeout=5)
+        resp.raise_for_status()
+        results = resp.json().get("data", {}).get("result", [])
+    except Exception as e:
+        logger.warning(f"Loki query failed: {e}")
+        return {
+            "log_total_count": 0, "log_error_count": 0, "log_exception_count": 0,
+            "log_unique_errors": 0, "log_error_rate": 0.0,
+            "log_error_samples": "[]", "log_warning_samples": "[]", "log_context": "[]"
+        }
+    
+    # Extract log features
+    log_features = {
+        "total_logs": 0,
+        "error_count": 0,
+        "exception_count": 0,
+        "unique_error_types": set(),
+        "error_samples": [],
+        "warning_samples": [],
+        "context_samples": []
+    }
+    
+    for stream in results:
+        for entry in stream["values"]:
+            timestamp, log_line = entry
+            log_features["total_logs"] += 1
+            
+            log_lower = log_line.lower()
+            if "error" in log_lower:
+                log_features["error_count"] += 1
+                if len(log_features["error_samples"]) < 5:
+                    log_features["error_samples"].append(log_line[:200]) # Truncate
+            elif "warn" in log_lower:
+                if len(log_features["warning_samples"]) < 5:
+                    log_features["warning_samples"].append(log_line[:200])
+            else:
+                if len(log_features["context_samples"]) < 5:
+                    log_features["context_samples"].append(log_line[:200])
+
+            if "exception" in log_lower or "traceback" in log_lower:
+                log_features["exception_count"] += 1
+                if ":" in log_line:
+                    exc_type = log_line.split(":")[0].strip()
+                    log_features["unique_error_types"].add(exc_type)
+    
+    return {
+        "log_total_count": log_features["total_logs"],
+        "log_error_count": log_features["error_count"],
+        "log_exception_count": log_features["exception_count"],
+        "log_unique_errors": len(log_features["unique_error_types"]),
+        "log_error_rate": log_features["error_count"] / max(log_features["total_logs"], 1),
+        "log_error_samples": json.dumps(log_features["error_samples"]),
+        "log_warning_samples": json.dumps(log_features["warning_samples"]),
+        "log_context": json.dumps(log_features["context_samples"])
+    }
+
+def query_tempo_traces(namespace, start_time, end_time):
+    """Query Tempo for distributed traces."""
+    url = f"{TEMPO_URL}/api/search"
+    
+    params = {
+        "tags": f"namespace={namespace}",
+        "start": int(start_time.timestamp()),
+        "end": int(end_time.timestamp())
+    }
+    
+    try:
+        resp = requests.get(url, params=params, timeout=5)
+        resp.raise_for_status()
+        traces = resp.json().get("traces", [])
+    except Exception as e:
+        logger.warning(f"Tempo query failed: {e}")
+        return {
+            "trace_count": 0, "trace_span_count": 0, "trace_error_spans": 0,
+            "trace_max_duration_ms": 0.0, "trace_avg_duration_ms": 0.0,
+            "trace_p95_duration_ms": 0.0, "trace_error_rate": 0.0,
+            "trace_slowest_json": "{}", "trace_error_json": "{}", "trace_dependencies": "[]"
+        }
+    
+    trace_features = {
+        "total_traces": len(traces),
+        "span_count": 0,
+        "error_spans": 0,
+        "durations": [],
+        "slowest_trace_id": None,
+        "max_duration": -1,
+        "error_trace_id": None
+    }
+    
+    for trace in traces:
+        trace_id = trace["traceID"]
+        # In search results, we might not get full spans, but let's assume we get basic info
+        # For full details we'd need to query each trace, but that's too slow.
+        # We'll just query the slowest one and one error one.
+        
+        # Tempo search result usually has 'startTimeUnixNano' and 'durationMs'
+        duration_ms = float(trace.get("durationMs", 0))
+        trace_features["durations"].append(duration_ms)
+        
+        if duration_ms > trace_features["max_duration"]:
+            trace_features["max_duration"] = duration_ms
+            trace_features["slowest_trace_id"] = trace_id
+            
+        # Check for error tag if available in search results (often not, but let's try)
+        # If not, we might skip detailed error check for all to save time, 
+        # or just query details for the slowest one.
+    
+    # Calculate stats
+    stats = {
+        "trace_count": trace_features["total_traces"],
+        "trace_span_count": 0, # Placeholder as we don't fetch all spans
+        "trace_error_spans": 0,
+        "trace_max_duration_ms": max(trace_features["durations"]) if trace_features["durations"] else 0,
+        "trace_avg_duration_ms": sum(trace_features["durations"]) / len(trace_features["durations"]) if trace_features["durations"] else 0,
+        "trace_p95_duration_ms": sorted(trace_features["durations"])[int(len(trace_features["durations"]) * 0.95)] if trace_features["durations"] else 0,
+        "trace_error_rate": 0.0,
+        "trace_slowest_json": "{}",
+        "trace_error_json": "{}",
+        "trace_dependencies": "[]"
+    }
+
+    # Fetch details for slowest trace
+    if trace_features["slowest_trace_id"]:
+        try:
+            trace_url = f"{TEMPO_URL}/api/traces/{trace_features['slowest_trace_id']}"
+            t_resp = requests.get(trace_url, timeout=2)
+            if t_resp.status_code == 200:
+                full_trace = t_resp.json()
+                stats["trace_slowest_json"] = json.dumps(full_trace)[:5000] # Truncate
+                
+                # Extract dependencies
+                services = set()
+                for span in full_trace.get("spans", []):
+                    stats["trace_span_count"] += 1
+                    if "service.name" in span.get("attributes", {}): # OpenTelemetry convention
+                         services.add(span["attributes"]["service.name"])
+                    # Check for errors
+                    if span.get("status", {}).get("code") == "STATUS_CODE_ERROR":
+                         stats["trace_error_spans"] += 1
+                
+                stats["trace_dependencies"] = json.dumps(list(services))
+        except Exception:
+            pass
+
+    return stats
+
+async def collect_metrics(scenario, duration=60):
+    logger.info(f"Collecting metrics, logs, and traces for {scenario['id']}...")
+    
+    start_time_collection = datetime.now()
     data_points = []
     
-    while time.time() - start_time < duration:
-        timestamp = datetime.now().isoformat()
+    # Collect for 'duration' seconds
+    while (datetime.now() - start_time_collection).total_seconds() < duration:
+        timestamp = datetime.now()
         
-        # Query ALL metrics for the namespace (Bulk Ingestion)
-        # We fetch everything matching the relevant jobs to capture Postgres, Redis, Kafka, GPU, etc.
-        # Note: App metrics don't have 'namespace' label, so we query by job name.
+        # 1. Prometheus Metrics (existing)
         query = '{job=~"sim-.*|chaos-controller|kubelet-cadvisor|kube-state-metrics|node-exporter"}'
-        
         try:
-            response = requests.get(f"{PROMETHEUS_URL}/api/v1/query", params={'query': query})
+            response = requests.get(f"{PROMETHEUS_URL}/api/v1/query", params={'query': query}, timeout=5)
             response.raise_for_status()
             results = response.json()['data']['result']
         except Exception as e:
@@ -125,40 +284,60 @@ async def collect_metrics(scenario, duration=60):
             results = []
 
         collected_metrics = {}
+        ignored_labels = ['__name__', 'pod', 'instance', 'job', 'namespace', 'uid', 'container_id', 'image', 'id', 'endpoint', 'service']
+        
         for result in results:
             metric_info = result['metric']
-            name = metric_info.get('__name__')
-            if not name: continue
+            name = metric_info.get('__name__', '')
             
-            # Filter out high-cardinality/unstable labels to ensure consistent Parquet schema
-            # We drop 'pod', 'instance', 'uid', etc. so columns don't change on every restart
-            ignored_labels = ['__name__', 'pod', 'instance', 'job', 'namespace', 'uid', 'container_id', 'image', 'id', 'endpoint', 'service']
+            # Filter by namespace if possible, but bulk query gets everything. 
+            # We should filter by the namespace we are targeting if the metric has it.
+            # Many metrics don't have namespace, but job name often contains it (e.g. sim-api-15)
+            # The current script runs in a specific namespace context? 
+            # The NAMESPACE var is global.
+            
+            # Check if metric belongs to our namespace
+            metric_ns = metric_info.get('namespace')
+            metric_job = metric_info.get('job', '')
+            
+            # Heuristic: if namespace label exists, must match. If not, check job name.
+            if metric_ns and metric_ns != NAMESPACE:
+                continue
+            if not metric_ns and NAMESPACE not in metric_job and "kube" not in metric_job and "node" not in metric_job:
+                 # Keep node/kube metrics as they are shared, but maybe filter?
+                 # For now, let's keep the logic simple as before.
+                 pass
+
             labels = {k: v for k, v in metric_info.items() if k not in ignored_labels}
-            
-            # Construct flat column name: metric_name|label1=val1|label2=val2
             if labels:
-                # Sort labels for deterministic naming
                 label_str = "|".join([f"{k}={v}" for k, v in sorted(labels.items())])
                 key = f"{name}|{label_str}"
             else:
                 key = name
-                
+            
             try:
                 collected_metrics[key] = float(result['value'][1])
             except (ValueError, IndexError):
                 continue
-        
-        logger.info(f"Collected {len(collected_metrics)} metrics for {scenario['id']}")
 
+        # 2. Loki Logs (NEW)
+        log_features = query_loki_logs(NAMESPACE, timestamp - timedelta(seconds=10), timestamp)
+        
+        # 3. Tempo Traces (NEW)
+        trace_features = query_tempo_traces(NAMESPACE, timestamp - timedelta(seconds=10), timestamp)
+        
         data_point = {
-            "timestamp": timestamp,
+            "timestamp": timestamp.isoformat(),
             "scenario_id": scenario['id'],
             "label": scenario['root_cause'],
-            **collected_metrics
+            **collected_metrics,
+            **log_features,
+            **trace_features
         }
+        
         data_points.append(data_point)
         await asyncio.sleep(10)
-        
+    
     return data_points
 
 async def process_scenario(scenario):
