@@ -1,0 +1,5 @@
+{"timestamp": "2025-11-29T19:54:22.410906", "scenario_id": "API-004", "metrics": {"latency_p99": 599, "error_rate": 0.05}, "label": "Bug, downstream failure."}
+{"timestamp": "2025-11-29T20:05:28.171152", "scenario_id": "API-004", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Bug, downstream failure."}
+{"timestamp": "2025-11-29T20:13:08.864899", "scenario_id": "API-004", "metrics": {"latency_p99": 585, "error_rate": 0.05}, "label": "Bug, downstream failure."}
+{"timestamp": "2025-11-29T20:15:25.635223", "scenario_id": "API-004", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Bug, downstream failure."}
+{"timestamp": "2025-11-29T20:21:23.171320", "scenario_id": "API-004", "metrics": {"latency_p99": 594, "error_rate": 0.05}, "label": "Bug, downstream failure."}

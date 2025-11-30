@@ -1,0 +1,1 @@
+{"timestamp": "2025-11-29T20:08:49.534992", "scenario_id": "SVC-005", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "NTP failure."}

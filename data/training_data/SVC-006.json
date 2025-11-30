@@ -1,0 +1,1 @@
+{"timestamp": "2025-11-29T20:08:50.131013", "scenario_id": "SVC-006", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Circular dependency."}

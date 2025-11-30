@@ -1,0 +1,2 @@
+{"timestamp": "2025-11-29T20:06:34.428286", "scenario_id": "API-008", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Infinite loop, crypto mining."}
+{"timestamp": "2025-11-29T20:16:36.542289", "scenario_id": "API-008", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Infinite loop, crypto mining."}

@@ -12,7 +12,7 @@ echo ""
 echo "📡 Checking chaos generator..."
 if ! curl -s http://localhost:8000/health > /dev/null 2>&1; then
     echo "❌ Chaos generator is not running!"
-    echo "   Start it with: cd ../chaos-generator && docker-compose up -d"
+    echo "   Start it with: cd ../error-generator && docker-compose up -d"
     exit 1
 fi
 echo "✅ Chaos generator is running"
@@ -21,7 +21,7 @@ echo "✅ Chaos generator is running"
 echo "📡 Checking Prometheus..."
 if ! curl -s http://localhost:9090/-/healthy > /dev/null 2>&1; then
     echo "❌ Prometheus is not running!"
-    echo "   Start it with: cd ../chaos-generator && docker-compose up -d"
+    echo "   Start it with: cd ../error-generator && docker-compose up -d"
     exit 1
 fi
 echo "✅ Prometheus is running"

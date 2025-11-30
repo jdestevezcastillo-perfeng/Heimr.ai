@@ -1,0 +1,66 @@
+{{- range .Values.queues }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
+    type: sim-queue-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+        type: sim-queue-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      containers:
+        # Kafka (using Redpanda for simplicity/speed in simulation)
+        - name: redpanda
+          image: docker.redpanda.com/redpandadata/redpanda:v23.3.3
+          command:
+            - redpanda
+            - start
+            - --smp 1 
+            - --memory 512M
+            - --reserve-memory 0M
+            - --overprovisioned
+            - --node-id 0
+            - --check=false
+            - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+            - --advertise-kafka-addr=PLAINTEXT://{{ .name }}:9092
+          ports:
+            - containerPort: 9092
+        
+        # Chaos Sidecar Agent
+        - name: chaos-agent
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-queue-agent:instrumented"
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "localhost:9092"
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+spec:
+  selector:
+    app: {{ .name }}
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: 9092
+    - name: chaos-api
+      port: 8000
+      targetPort: 8000
+{{- end }}
