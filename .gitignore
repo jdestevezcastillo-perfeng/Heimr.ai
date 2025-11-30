@@ -5,3 +5,5 @@ __pycache__/
 .env
 CLAUDE.md
 .claude/
+google-cloud-sdk/
+POC docs/
