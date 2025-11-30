@@ -381,7 +381,15 @@ async def main():
     args = parser.parse_args()
     
     global NAMESPACE, PROMETHEUS_URL
-    NAMESPACE = args.namespace
+    
+    # Support for Kubernetes Indexed Jobs
+    job_index = os.getenv("JOB_COMPLETION_INDEX")
+    if job_index is not None:
+        NAMESPACE = f"sim-api-{job_index}"
+        logger.info(f"Running in Indexed Job mode. Target Namespace: {NAMESPACE}")
+    else:
+        NAMESPACE = args.namespace
+
     PROMETHEUS_URL = args.prometheus_url
     
     with open(SCENARIOS_FILE, "r") as f:
