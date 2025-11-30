@@ -4,15 +4,69 @@ import os
 import random
 import time
 import httpx
+import json
+import sys
 from fastapi import FastAPI, HTTPException, Response, Request
 from pydantic import BaseModel
 from typing import Optional
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# OpenTelemetry imports
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+# JSON Logging Formatter
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_obj = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "namespace": os.getenv("NAMESPACE", "unknown"),
+            "pod": os.getenv("HOSTNAME", "unknown"),
+            "service": "sim-service-agent"
+        }
+        if record.exc_info:
+            log_obj["exception"] = self.formatException(record.exc_info)
+            log_obj["error"] = True
+        return json.dumps(log_obj)
+
+# Configure JSON logging
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logging.root.handlers = []
+logging.root.addHandler(handler)
+logging.root.setLevel(logging.INFO)
 logger = logging.getLogger("sim-service")
 
+# Configure OpenTelemetry
+resource = Resource.create({
+    "service.name": "sim-service-agent",
+    "namespace": os.getenv("NAMESPACE", "unknown")
+})
+trace.set_tracer_provider(TracerProvider(resource=resource))
+tracer = trace.get_tracer(__name__)
+
+# Export to Tempo via OTLP
+try:
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="http://observability:4317",
+        insecure=True
+    )
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+    logger.info("OpenTelemetry tracing configured successfully")
+except Exception as e:
+    logger.warning(f"Failed to configure OpenTelemetry: {e}")
+
 app = FastAPI(title="Heimr.ai Simulation Service")
+
+# Instrument FastAPI with OpenTelemetry
+FastAPIInstrumentor.instrument_app(app)
 
 from prometheus_fastapi_instrumentator import Instrumentator
 Instrumentator().instrument(app).expose(app)
@@ -56,6 +110,7 @@ async def chaos_middleware(request: Request, call_next):
 
     # 4. Error Injection
     if state.error_rate > 0 and random.random() < state.error_rate:
+        logger.error(f"Chaos injection: returning 500 error (error_rate={state.error_rate})")
         return Response(content="Chaos Injection: 500 Internal Server Error", status_code=500)
 
     response = await call_next(request)
@@ -101,12 +156,18 @@ async def health():
 @app.get("/proxy")
 async def proxy(url: str):
     """Call an upstream service."""
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url)
-            return {"status": resp.status_code, "data": resp.json()}
-        except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Upstream call failed: {str(e)}")
+    with tracer.start_as_current_span("proxy_request") as span:
+        span.set_attribute("upstream.url", url)
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url)
+                span.set_attribute("http.status_code", resp.status_code)
+                return {"status": resp.status_code, "data": resp.json()}
+            except Exception as e:
+                logger.error(f"Upstream call failed: url={url}, error={str(e)}", exc_info=True)
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise HTTPException(status_code=502, detail=f"Upstream call failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

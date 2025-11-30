@@ -41,7 +41,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-queue-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-queue-agent:instrumented"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS

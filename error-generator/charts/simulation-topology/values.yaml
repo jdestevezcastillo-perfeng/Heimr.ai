@@ -2,8 +2,8 @@
 
 # Global settings
 global:
-  imageRegistry: "docker.io/library"
-  imagePullPolicy: Never
+  imageRegistry: "asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr"
+  imagePullPolicy: Always
 
 # List of services to deploy
 services: []

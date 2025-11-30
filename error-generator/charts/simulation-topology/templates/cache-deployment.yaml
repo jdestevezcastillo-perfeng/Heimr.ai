@@ -30,7 +30,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-cache-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-cache-agent:instrumented"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: REDIS_HOST
