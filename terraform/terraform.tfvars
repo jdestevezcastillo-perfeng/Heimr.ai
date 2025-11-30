@@ -1,0 +1,6 @@
+project_id   = "tokyo-snow-479722-a2"
+region       = "asia-northeast1"
+zone         = "us-central1-a"
+cluster_name = "heimr-cluster"
+repo_name    = "heimr"
+bucket_name  = "heimr-data-tokyo-snow-479722-a2"

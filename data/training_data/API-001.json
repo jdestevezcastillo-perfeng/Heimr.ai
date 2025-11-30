@@ -5,3 +5,4 @@
 {"timestamp": "2025-11-29T20:11:55.594406", "scenario_id": "API-001", "metrics": {"latency_p99": 585, "error_rate": 0.05}, "label": "N/A"}
 {"timestamp": "2025-11-29T20:15:23.556226", "scenario_id": "API-001", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "N/A"}
 {"timestamp": "2025-11-29T20:20:10.189483", "scenario_id": "API-001", "metrics": {"latency_p99": 594, "error_rate": 0.05}, "label": "N/A"}
+{"timestamp": "2025-11-30T19:15:53.956042", "scenario_id": "API-001", "metrics": {"latency_p99": 548, "error_rate": 0.05}, "label": "N/A"}
