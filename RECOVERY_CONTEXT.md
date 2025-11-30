@@ -61,25 +61,37 @@ Deploy test namespace (`sim-api`) on minikube to validate everything works.
 
 **Resources per namespace**: ~1.35GB RAM, ~1 core (fits t3.small!)
 
----
-
 ## Strategy: 28 Namespaces (Not 156)
 
 Deploy **28 namespaces** (one per category), run scenarios sequentially within each:
 - `sim-api` (16 scenarios), `sim-db` (9 scenarios), `sim-inf` (11 scenarios), etc.
-- Each namespace stays up while running all scenarios in that category
-- Just update ChaosScenario CRD between scenarios
-- Much more efficient for AWS EC2 instances
+- Each namespace stays up# Recovery Context
 
----
+## Current Status
+**Phase 3B Complete: Production Metrics Implemented**
+- All simulators (`sim-db`, `sim-cache`, `sim-queue`, `sim-inference`) now expose comprehensive, production-ready metrics.
+- Metrics are tied to simulated background activity and actual HTTP traffic.
+- Docker images rebuilt and pods redeployed.
+- Verification confirmed metrics are flowing for all components.
 
-## Next Steps (Phase 3A - Local Testing)
+## Architecture
+- **Namespace**: `sim-api`
+- **Pods**: 7 (6 simulators + 1 observability stack)
+- **Observability**: Prometheus, Loki, Tempo, Promtail, Grafana
+- **Metrics**:
+    - **System**: node-exporter (CPU, Mem, Disk, Net)
+    - **Container**: cAdvisor (Per-container resources)
+    - **K8s**: kube-state-metrics (Pod/Deployment status)
+    - **PostgreSQL**: 25+ metrics (Connections, Transactions, Queries, Locks, Cache, Replication)
+    - **Redis**: 20+ metrics (Commands, Hits/Misses, Memory, Keys, Evictions)
+    - **Kafka**: 20+ metrics (Producer/Consumer rates, Lag, Partitions, Brokers)
+    - **NVIDIA GPU**: 25+ metrics (Util, Memory, Power, Temp, Clocks, PCIe, NVLink)
 
-1. Deploy test namespace `sim-api` to minikube
-2. Verify all 7 pods start successfully
-3. Port-forward Grafana and check dashboards
-4. Verify Prometheus scraping metrics
-5. Test one scenario (API-001)
+## Next Steps
+1. **Grafana Dashboards**: Create/Update dashboards to visualize these new metrics.
+2. **Chaos Scenarios**: Test how chaos injection affects these specific metrics.
+3. **Data Export**: Verify Parquet export includes all these new metric columns.
+ (API-001)
 
 **Deployment commands:**
 ```bash

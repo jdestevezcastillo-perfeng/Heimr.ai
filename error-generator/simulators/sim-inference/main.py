@@ -23,36 +23,37 @@ app.mount("/metrics", metrics_app)
 # COMPREHENSIVE NVIDIA GPU METRICS
 # ========================================
 
-# GPU Utilization
+# --- DCGM Enterprise Metrics (H100 Style) ---
+DCGM_TEMP = Gauge('DCGM_FI_DEV_GPU_TEMP', 'GPU temperature (C)', ['device', 'uuid'])
+DCGM_POWER = Gauge('DCGM_FI_DEV_POWER_USAGE', 'Power usage (W)', ['device', 'uuid'])
+DCGM_UTIL = Gauge('DCGM_FI_DEV_GPU_UTIL', 'GPU utilization (%)', ['device', 'uuid'])
+DCGM_MEM_USED = Gauge('DCGM_FI_DEV_FB_USED', 'Framebuffer used (MiB)', ['device', 'uuid'])
+DCGM_MEM_FREE = Gauge('DCGM_FI_DEV_FB_FREE', 'Framebuffer free (MiB)', ['device', 'uuid'])
+DCGM_SM_CLOCK = Gauge('DCGM_FI_DEV_SM_CLOCK', 'SM clock (MHz)', ['device', 'uuid'])
+DCGM_MEM_CLOCK = Gauge('DCGM_FI_DEV_MEM_CLOCK', 'Memory clock (MHz)', ['device', 'uuid'])
+
+# --- Nvidia-SMI Consumer Metrics (Requested Style) ---
+SMI_TEMP = Gauge('nvidia_smi_temperature_gpu', 'GPU temperature (C)', ['device', 'uuid'])
+SMI_POWER = Gauge('nvidia_smi_power_draw_watts', 'Power draw (W)', ['device', 'uuid'])
+SMI_UTIL = Gauge('nvidia_smi_utilization_gpu', 'GPU utilization (%)', ['device', 'uuid'])
+SMI_MEM_USED = Gauge('nvidia_smi_memory_used_bytes', 'Memory used (Bytes)', ['device', 'uuid'])
+SMI_MEM_FREE = Gauge('nvidia_smi_memory_free_bytes', 'Memory free (Bytes)', ['device', 'uuid'])
+SMI_CLOCK_GRAPHICS = Gauge('nvidia_smi_clocks_graphics_mhz', 'Graphics clock (MHz)', ['device', 'uuid'])
+SMI_CLOCK_MEM = Gauge('nvidia_smi_clocks_mem_mhz', 'Memory clock (MHz)', ['device', 'uuid'])
+
+# --- Standard Exporter Metrics (Common) ---
 GPU_UTIL_COMPUTE = Gauge('nvidia_gpu_utilization_compute', 'GPU compute utilization %', ['device', 'uuid'])
 GPU_UTIL_MEMORY = Gauge('nvidia_gpu_utilization_memory', 'GPU memory controller utilization %', ['device', 'uuid'])
-
-# Memory Metrics
 GPU_MEM_TOTAL = Gauge('nvidia_gpu_memory_total_bytes', 'Total GPU memory', ['device', 'uuid'])
 GPU_MEM_USED = Gauge('nvidia_gpu_memory_used_bytes', 'Used GPU memory', ['device', 'uuid'])
 GPU_MEM_FREE = Gauge('nvidia_gpu_memory_free_bytes', 'Free GPU memory', ['device', 'uuid'])
-GPU_MEM_RESERVED = Gauge('nvidia_gpu_memory_reserved_bytes', 'Reserved GPU memory', ['device', 'uuid'])
-
-# Temperature & Power
 GPU_TEMP_GPU = Gauge('nvidia_gpu_temperature_celsius', 'GPU core temperature', ['device', 'uuid'])
-GPU_TEMP_MEM = Gauge('nvidia_gpu_temperature_memory_celsius', 'GPU memory temperature', ['device', 'uuid'])
 GPU_POWER_DRAW = Gauge('nvidia_gpu_power_draw_watts', 'Current power draw', ['device', 'uuid'])
-GPU_POWER_LIMIT = Gauge('nvidia_gpu_power_limit_watts', 'Power limit', ['device', 'uuid'])
 GPU_FAN_SPEED = Gauge('nvidia_gpu_fan_speed_percent', 'Fan speed %', ['device', 'uuid'])
-
-# Clocks
-GPU_CLOCK_GRAPHICS = Gauge('nvidia_gpu_clock_graphics_mhz', 'Graphics clock speed', ['device', 'uuid'])
-GPU_CLOCK_SM = Gauge('nvidia_gpu_clock_sm_mhz', 'SM clock speed', ['device', 'uuid'])
-GPU_CLOCK_MEM = Gauge('nvidia_gpu_clock_mem_mhz', 'Memory clock speed', ['device', 'uuid'])
-
-# PCIe & NVLink
 GPU_PCIE_TX = Gauge('nvidia_gpu_pcie_tx_bytes_per_sec', 'PCIe TX throughput', ['device', 'uuid'])
 GPU_PCIE_RX = Gauge('nvidia_gpu_pcie_rx_bytes_per_sec', 'PCIe RX throughput', ['device', 'uuid'])
 GPU_NVLINK_BW = Gauge('nvidia_gpu_nvlink_bandwidth_bytes_per_sec', 'NVLink bandwidth', ['device', 'uuid'])
-
-# Health
-GPU_ECC_ERRORS = Counter('nvidia_gpu_ecc_errors_total', 'ECC errors', ['device', 'uuid', 'type']) # type: volatile/aggregate
-GPU_THROTTLED = Gauge('nvidia_gpu_throttled', '1 if throttled (thermal/power)', ['device', 'uuid'])
+GPU_ECC_ERRORS = Counter('nvidia_gpu_ecc_errors_total', 'ECC errors', ['device', 'uuid', 'type'])
 
 # ========================================
 # INFERENCE METRICS
@@ -134,11 +135,15 @@ async def simulate_gpu_activity():
         state.util_compute = state.util_compute * 0.8 + target_util * 0.2 # Smooth transition
         state.util_mem = state.util_compute * random.uniform(0.8, 1.1)
         
+        # --- Standard ---
         GPU_UTIL_COMPUTE.labels(device=DEVICE, uuid=GPU_UUID).set(min(100, state.util_compute))
         GPU_UTIL_MEMORY.labels(device=DEVICE, uuid=GPU_UUID).set(min(100, state.util_mem))
+        # --- DCGM ---
+        DCGM_UTIL.labels(device=DEVICE, uuid=GPU_UUID).set(min(100, state.util_compute))
+        # --- SMI ---
+        SMI_UTIL.labels(device=DEVICE, uuid=GPU_UUID).set(min(100, state.util_compute))
         
         # Memory Usage
-        # Base usage + allocated tensors + random fluctuation
         allocated_mb = 0
         if torch.cuda.is_available():
              allocated_mb = sum([t.element_size() * t.nelement() for t in state.allocated_tensors]) / (1024 * 1024)
@@ -146,42 +151,62 @@ async def simulate_gpu_activity():
         # Simulate model weights taking up memory (e.g., 40GB for large model)
         model_weights_mb = 40000 
         current_used_mb = model_weights_mb + allocated_mb + (load_factor * 5000) # Dynamic activation memory
+        current_used_bytes = current_used_mb * 1024 * 1024
+        total_bytes = TOTAL_MEM_MB * 1024 * 1024
+        free_bytes = total_bytes - current_used_bytes
         
-        GPU_MEM_TOTAL.labels(device=DEVICE, uuid=GPU_UUID).set(TOTAL_MEM_MB * 1024 * 1024)
-        GPU_MEM_USED.labels(device=DEVICE, uuid=GPU_UUID).set(current_used_mb * 1024 * 1024)
-        GPU_MEM_FREE.labels(device=DEVICE, uuid=GPU_UUID).set((TOTAL_MEM_MB - current_used_mb) * 1024 * 1024)
+        # --- Standard ---
+        GPU_MEM_TOTAL.labels(device=DEVICE, uuid=GPU_UUID).set(total_bytes)
+        GPU_MEM_USED.labels(device=DEVICE, uuid=GPU_UUID).set(current_used_bytes)
+        GPU_MEM_FREE.labels(device=DEVICE, uuid=GPU_UUID).set(free_bytes)
+        # --- DCGM (MiB) ---
+        DCGM_MEM_USED.labels(device=DEVICE, uuid=GPU_UUID).set(current_used_mb)
+        DCGM_MEM_FREE.labels(device=DEVICE, uuid=GPU_UUID).set(TOTAL_MEM_MB - current_used_mb)
+        # --- SMI (Bytes) ---
+        SMI_MEM_USED.labels(device=DEVICE, uuid=GPU_UUID).set(current_used_bytes)
+        SMI_MEM_FREE.labels(device=DEVICE, uuid=GPU_UUID).set(free_bytes)
         
         # Temperature (delayed reaction to load)
         target_temp = 35.0 + (load_factor * 50.0) # Max ~85C
         state.gpu_temp = state.gpu_temp * 0.9 + target_temp * 0.1
-        state.mem_temp = state.gpu_temp * 0.95 # Slightly cooler
         
+        # --- Standard ---
         GPU_TEMP_GPU.labels(device=DEVICE, uuid=GPU_UUID).set(state.gpu_temp)
-        GPU_TEMP_MEM.labels(device=DEVICE, uuid=GPU_UUID).set(state.mem_temp)
+        # --- DCGM ---
+        DCGM_TEMP.labels(device=DEVICE, uuid=GPU_UUID).set(state.gpu_temp)
+        # --- SMI ---
+        SMI_TEMP.labels(device=DEVICE, uuid=GPU_UUID).set(state.gpu_temp)
         
         # Power
         target_power = 100.0 + (load_factor * 600.0) # Max 700W
         state.power_draw = state.power_draw * 0.8 + target_power * 0.2
         
+        # --- Standard ---
         GPU_POWER_DRAW.labels(device=DEVICE, uuid=GPU_UUID).set(state.power_draw)
-        GPU_POWER_LIMIT.labels(device=DEVICE, uuid=GPU_UUID).set(POWER_LIMIT_W)
+        # --- DCGM ---
+        DCGM_POWER.labels(device=DEVICE, uuid=GPU_UUID).set(state.power_draw)
+        # --- SMI ---
+        SMI_POWER.labels(device=DEVICE, uuid=GPU_UUID).set(state.power_draw)
         
-        # Fan Speed (reactive to temp)
+        # Fan Speed
         target_fan = max(30.0, (state.gpu_temp - 30.0) * 2.0)
         state.fan_speed = state.fan_speed * 0.9 + target_fan * 0.1
         GPU_FAN_SPEED.labels(device=DEVICE, uuid=GPU_UUID).set(min(100.0, state.fan_speed))
         
-        # Clocks (throttle if hot)
+        # Clocks
         throttle_factor = 1.0
         if state.gpu_temp > 80.0:
             throttle_factor = 0.8
-            GPU_THROTTLED.labels(device=DEVICE, uuid=GPU_UUID).set(1)
-        else:
-            GPU_THROTTLED.labels(device=DEVICE, uuid=GPU_UUID).set(0)
             
-        GPU_CLOCK_GRAPHICS.labels(device=DEVICE, uuid=GPU_UUID).set(MAX_CLOCK_GRAPHICS * throttle_factor * random.uniform(0.95, 1.0))
-        GPU_CLOCK_SM.labels(device=DEVICE, uuid=GPU_UUID).set(MAX_CLOCK_GRAPHICS * throttle_factor * random.uniform(0.95, 1.0))
-        GPU_CLOCK_MEM.labels(device=DEVICE, uuid=GPU_UUID).set(MAX_CLOCK_MEM * random.uniform(0.99, 1.0))
+        graphics_clock = MAX_CLOCK_GRAPHICS * throttle_factor * random.uniform(0.95, 1.0)
+        mem_clock = MAX_CLOCK_MEM * random.uniform(0.99, 1.0)
+        
+        # --- DCGM ---
+        DCGM_SM_CLOCK.labels(device=DEVICE, uuid=GPU_UUID).set(graphics_clock)
+        DCGM_MEM_CLOCK.labels(device=DEVICE, uuid=GPU_UUID).set(mem_clock)
+        # --- SMI ---
+        SMI_CLOCK_GRAPHICS.labels(device=DEVICE, uuid=GPU_UUID).set(graphics_clock)
+        SMI_CLOCK_MEM.labels(device=DEVICE, uuid=GPU_UUID).set(mem_clock)
         
         # PCIe & NVLink
         pcie_activity = load_factor * 1024 * 1024 * 1024 * 10 # Up to 10 GB/s
