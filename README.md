@@ -1,281 +1,257 @@
-# Heimr.ai
+# Heimr.ai - AI-Powered Performance Bottleneck Analyzer
 
-> AI-powered performance analysis system that detects bottlenecks in LLM inference systems, diagnoses root causes, and recommends optimization strategies.
+[![Status](https://img.shields.io/badge/status-in%20development-yellow)](https://github.com/jdestevezcastillo-perfeng/Heimr.ai)
+[![GKE](https://img.shields.io/badge/deployed-GKE-blue)](https://cloud.google.com/kubernetes-engine)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
----
+**Heimr.ai** is an AI-powered system that analyzes performance metrics from distributed systems and automatically detects, explains, and recommends fixes for performance bottlenecks.
 
-## 🎯 Project Overview
+## 🎯 What We've Built
 
-This project trains an AI model to analyze performance metrics from LLM inference engines (vLLM, TGI) and automatically:
-- **Detect** performance bottlenecks (latency spikes, errors, resource constraints)
-- **Diagnose** root causes with natural language explanations
-- **Recommend** actionable optimization strategies
+### Phase 0-1: Chaos Engineering & Data Generation (✅ Complete)
 
----
+We've created a **production-grade chaos engineering platform** that generates high-fidelity training data for our ML models:
+
+#### Chaos Generator Infrastructure
+-   **50+ Failure Scenarios** across 8 categories (API, Database, Cache, Queue, GPU, Network, Security, Infrastructure)
+-   **6 Microservice Simulators**:
+    -   `sim-service` (HTTP/gRPC API simulator)
+    -   `sim-db` (PostgreSQL simulator with 25+ metrics)
+    -   `sim-cache` (Redis simulator with 20+ metrics)
+    -   `sim-queue` (Kafka simulator with 20+ metrics)
+    -   `sim-inference` (GPU inference simulator with NVIDIA DCGM metrics)
+    -   `chaos-controller` (CRD-based chaos injection)
+
+#### Observability Stack
+-   **Prometheus** - 650+ metrics per scenario
+-   **Loki** - Centralized logging
+-   **Tempo** - Distributed tracing
+-   **Grafana** - Real-time dashboards (Chaos Dashboard, GPU Metrics, System Metrics)
+
+#### Massive Scale Data Generation (GKE)
+-   **15 Parallel Streams** generating data on Google Cloud Platform
+-   **3 `e2-standard-4` nodes** (~$0.40/hour)
+-   **650+ metrics per Parquet file** (880KB each)
+-   **~150 scenarios/hour throughput**
+-   **50/50 healthy-to-failure ratio** for balanced training
+
+## 📊 Current Data Status
+
+-   **Files Generated**: 650+ Parquet files in GCS
+-   **Total Samples**: ~4,000 time-series observations
+-   **Feature Dimensions**: 650+ metrics per sample
+-   **Target**: 10,000+ examples for production training
+-   **Storage**: `gs://heimr-data-tokyo-snow-479722-a2`
 
 ## 🏗️ Architecture
 
+### Training Data Pipeline
+
 ```
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│  Chaos Generator │─────▶│  Data Pipeline   │─────▶│  Model Training  │
-│  (Training Data) │      │  (Parquet)       │      │  (XGBoost + LLM) │
-└──────────────────┘      └──────────────────┘      └──────────────────┘
-                                                              │
-                                                              ▼
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│  Production      │◀─────│  Evaluation      │◀─────│  Inference API   │
-│  Deployment      │      │  & Validation    │      │  (FastAPI)       │
-└──────────────────┘      └──────────────────┘      └──────────────────┘
+Kubernetes (GKE)
+  ├─ 15x Simulation Namespaces (sim-api, sim-api-2...15)
+  │   ├─ Chaos Scenarios (API-001 to GPU-004)
+  │   ├─ Prometheus (650+ metrics)
+  │   └─ Data Generator (Python)
+  │
+  └─ Google Cloud Storage
+      └─ Parquet Files (balanced dataset)
 ```
 
----
+### Planned Inference Architecture (Phase 2)
+
+```
+Prometheus Metrics
+    ↓
+XGBoost Detector (Fast Classification)
+    ↓
+Llama-3.1-8B Explainer (Root Cause Analysis)
+    ↓
+Actionable Recommendations
+```
+
+## 🚀 What We're Building Next
+
+### Phase 2: Hybrid AI Model Training
+
+**Approach**: XGBoost + Fine-tuned Llama-3.1-8B (Option C - Hybrid)
+
+1.  **XGBoost Bottleneck Detector**
+    -   Fast binary classification (healthy vs failure)
+    -   Input: 650+ aggregated metrics
+    -   Target: >85% accuracy, <10ms inference
+    -   Purpose: Real-time detection
+
+2.  **Llama-3.1-8B Explainer** (LoRA Fine-tuned)
+    -   Root cause analysis
+    -   Actionable recommendations
+    -   Human-readable explanations
+    -   Target: <2s inference with 4-bit quantization
+
+### Phase 3: Production Deployment
+
+-   FastAPI inference service
+-   Prometheus integration
+-   Real-time alerting
+-   Grafana dashboard integration
 
 ## 📂 Project Structure
 
 ```
-Performange-analyzer-AI/
-├── chaos-generator/          # ✅ Training data generation
-│   ├── app/                  # FastAPI chaos injection service
-│   ├── grafana/              # Visualization dashboards
-│   ├── k6/                   # Load testing scripts
-│   └── docker-compose.yml    # Full stack deployment
+Heimr.ai/
+├── data-pipeline/          # Data generation & processing
+│   ├── collectors/         # Prometheus exporters
+│   ├── storage/            # Dataset builders & schemas
+│   ├── run_gke_generation.py # GKE data generator
+│   └── Dockerfile          # Containerized generator
 │
-├── data-pipeline/            # 🔨 Data collection & storage
-│   ├── collectors/           # Prometheus exporters
-│   ├── storage/              # Parquet dataset builders
-│   └── datasets/             # Training data
+├── k8s/                    # Kubernetes manifests
+│   ├── templates/          # Namespace templates
+│   └── build/              # Generated configs (15 namespaces)
 │
-├── model-training/           # 🔨 ML model training
-│   ├── scripts/              # Training scripts
-│   │   ├── train_detector.py     # XGBoost classifier
-│   │   └── train_explainer.py    # LLM fine-tuning
-│   └── models/               # Saved model artifacts
+├── model-training/         # ML training pipeline
+│   ├── quick_validation.py # Pipeline validation
+│   └── sample_data/        # 20 sample Parquet files
 │
-├── inference-engine/         # 🔨 Real-time analysis API
-│   ├── api/                  # FastAPI service
-│   ├── detectors/            # Bottleneck detection
-│   └── explainers/           # LLM-based explanations
+├── error-generator/        # Chaos engineering stack
+│   ├── services/           # 6 microservice simulators
+│   ├── chaos_controller/   # CRD-based chaos injection
+│   └── grafana/            # Dashboards
 │
-└── docs/
-    ├── POC_ARCHITECTURE.md   # Full architecture design
-    └── IMPLEMENTATION_PLAN.md # Detailed implementation plan
+├── scripts/                # Deployment automation
+│   ├── deploy_to_gke.sh    # GKE deployment script
+│   └── deploy_namespace.sh # Namespace deployment
+│
+└── docs/                   # Documentation
+    └── data/               # Scenario definitions
 ```
 
-**Legend**: ✅ Complete | 🔨 In Progress | ⏳ Planned
+## 🔧 Quick Start
 
----
+### Prerequisites
+-   Python 3.11+
+-   Docker & Kubernetes (Minikube for local, GKE for scale)
+-   Google Cloud SDK (for GCP deployment)
+-   NVIDIA GPU (for model training - 3090 24GB recommended)
 
-## 🚀 Quick Start
-
-### 1. Chaos Generator (Training Data)
-
-Generate labeled performance data with controlled failure scenarios:
+### Local Development (Minikube)
 
 ```bash
-cd chaos-generator
-docker-compose up -d
+# Start Minikube
+minikube start --driver=docker --cpus=4 --memory=8192
 
-# Access services
-# - Chaos API: http://localhost:8000
-# - Prometheus: http://localhost:9090
-# - Grafana: http://localhost:3000
+# Deploy chaos stack
+kubectl apply -f k8s/templates/category-namespace/
+
+# Access Grafana
+kubectl port-forward svc/grafana 3000:3000 -n sim-api
+# Visit http://localhost:3000 (admin/admin)
 ```
 
-**Available Chaos Scenarios**:
-- Healthy baseline
-- Latency spikes (p99 anomalies)
-- Error spikes (5xx errors)
-- Bimodal latency (cache hit/miss)
-- Gradual degradation
-- Rate limiting (429 errors)
-- CPU-bound operations
-- Memory leaks
-- Intermittent errors
-- Cascading failures
-
-See [`chaos-generator/README.md`](chaos-generator/README.md) for details.
-
----
-
-### 2. Data Pipeline (Coming Soon)
-
-Export Prometheus metrics and build training datasets:
+### GCP Deployment (15 Parallel Streams)
 
 ```bash
-cd data-pipeline
-python scripts/generate_training_data.py
+# Set up GCP infrastructure
+./scripts/setup_gcp_infra.sh
+
+# Deploy to GKE
+./scripts/deploy_to_gke.sh us-central1-a tokyo-snow-479722-a2
+
+# Deploy 15 namespaces
+for i in {2..15}; do
+    ./scripts/deploy_namespace.sh sim-api-$i us-central1-a
+done
+
+# Monitor data generation
+gsutil ls -l gs://heimr-data-tokyo-snow-479722-a2 | wc -l
 ```
 
----
-
-### 3. Model Training (Coming Soon)
-
-Train the hybrid AI model:
+### Model Training Validation
 
 ```bash
+# Install dependencies
 cd model-training
+python -m venv venv
+source venv/bin/activate
+pip install pandas pyarrow scikit-learn
 
-# Train bottleneck detector (XGBoost)
-python scripts/train_detector.py
+# Download sample data
+gsutil cp "gs://heimr-data-tokyo-snow-479722-a2/*.parquet" sample_data/
 
-# Fine-tune explanation generator (LLM)
-python scripts/train_explainer.py
+# Run validation
+python quick_validation.py
 ```
 
----
+## 📈 Metrics Collected
 
-### 4. Inference Engine (Coming Soon)
+### Application Metrics
+-   Request rates, latency percentiles (p50, p95, p99, p999)
+-   Error rates (5xx, 429, total)
+-   Concurrent requests
 
-Deploy the analysis API:
+### Database Metrics (PostgreSQL)
+-   Connections, transactions, query duration
+-   Cache hits/misses, locks, replication lag
 
-```bash
-cd inference-engine
-docker-compose up -d
+### Cache Metrics (Redis)
+-   Command latency, memory usage
+-   Hit/miss ratios, evictions, key counts
 
-# Analyze metrics
-curl -X POST http://localhost:8080/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "metrics": {
-      "p50_latency": 45.2,
-      "p95_latency": 120.5,
-      "p99_latency": 3500.0,
-      "error_rate": 0.02
-    }
-  }'
-```
+### Message Queue (Kafka)
+-   Producer/consumer rates, lag
+-   Partition metrics, broker health
 
----
+### GPU Metrics (NVIDIA DCGM)
+-   Utilization, temperature, power draw
+-   VRAM usage, clocks, PCIe throughput
 
-## 📊 Model Architecture
+### Kubernetes Metrics
+-   Pod/container resource usage (CPU, memory, network)
+-   Node metrics, autoscaling events
 
-### Hybrid Approach (Recommended)
+## 🎓 Key Learnings
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Stage 1: Bottleneck Detection (XGBoost)                │
-│  - Input: Time-series metrics (p50, p95, p99, errors)   │
-│  - Output: Bottleneck type + confidence score           │
-│  - Inference: <10ms                                     │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│  Stage 2: Root Cause Explanation (Fine-tuned LLM)       │
-│  - Base Model: Llama-3.1-8B or Mistral-7B              │
-│  - Training: LoRA/QLoRA fine-tuning                     │
-│  - Output: Natural language explanation + fixes        │
-│  - Inference: <2 seconds                                │
-└─────────────────────────────────────────────────────────┘
-```
+### Data Quality
+✅ **No data leakage detected** (validated with mutual information analysis)  
+✅ **Zero NULL values** across 650+ metrics  
+✅ **91% non-zero metrics** (9% all-zero are expected - scenario-specific)  
+✅ **50/50 class balance** achieved through interleaving
 
-**Why Hybrid?**
-- **Fast detection** with XGBoost (10ms)
-- **Rich explanations** from fine-tuned LLM
-- **Best accuracy** for POC demonstration
+### Validation Results (Random Forest Baseline)
+-   **Test Accuracy**: 91.67%
+-   **Precision (Failure)**: 96%
+-   **Recall (Failure)**: 93%
+-   **Feature Importance**: Scrape durations, latency buckets, query durations, GPU temp
 
----
+### Infrastructure Insights
+-   **Cost**: ~$10/day for 15 parallel streams (~3,600 scenarios)
+-   **Throughput**: 150 scenarios/hour
+-   **File Size**: ~880KB per Parquet file (650+ columns, 6 time-series rows)
 
-## 📈 Training Data Schema
+## 🗺️ Roadmap
 
-```python
-{
-    "timestamp": datetime,
-    "scenario": str,              # Ground truth label
-    "metrics": {
-        "request_rate": float,
-        "p50_latency": float,
-        "p95_latency": float,
-        "p99_latency": float,
-        "error_rate": float,
-        "cpu_usage": float,
-        "memory_usage": float
-    },
-    "labels": {
-        "has_bottleneck": bool,
-        "bottleneck_type": str,   # "latency", "errors", "resources"
-        "severity": str,           # "low", "medium", "high", "critical"
-        "root_cause": str,         # Human-readable explanation
-        "recommendations": list[str]
-    }
-}
-```
-
----
-
-## 🎯 POC Success Criteria
-
-- [x] **Data Generation**: Chaos generator with 10 scenarios
-- [ ] **Dataset**: 1,000+ labeled training examples
-- [ ] **Detection Accuracy**: >85% on test set
-- [ ] **Inference Speed**: <2 seconds per analysis
-- [ ] **Explanation Quality**: Human-validated actionable insights
-- [ ] **Integration**: Works with live Prometheus metrics
-
----
-
-## 🛠️ Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| **Data Generation** | FastAPI, Prometheus, Grafana, k6 |
-| **Data Storage** | Apache Parquet, Pandas |
-| **Detection Model** | XGBoost, scikit-learn |
-| **Explanation Model** | Llama-3.1-8B, Transformers, LoRA |
-| **Inference API** | FastAPI, Uvicorn |
-| **Infrastructure** | Docker, Docker Compose |
-| **GPU** | NVIDIA 3090 (24GB VRAM) |
-
----
-
-## 📚 Documentation
-
-- **[POC Architecture](docs/POC_ARCHITECTURE.md)** - Complete system design
-- **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Detailed roadmap
-- **[Chaos Generator](chaos-generator/README.md)** - Training data generation
-- **[Data Pipeline](data-pipeline/README.md)** - Data collection & storage
-- **[Model Training](model-training/README.md)** - ML model details
-- **[Website Preview](website/heimr-homepage.html)** - Heimr.ai homepage
-
----
-
-## 🗓️ Roadmap
-
-| Phase | Status | Timeline |
-|-------|--------|----------|
-| **Phase 0**: Chaos Generator | ✅ Complete | Week 0 |
-| **Phase 1**: Data Pipeline | ✅ Complete | Week 1 |
-| **Phase 2**: Model Training | ✅ Complete | Week 2 |
-| **Phase 3**: Inference Engine | ⏳ Planned | Week 3 |
-| **Phase 4**: Integration & Testing | ⏳ Planned | Week 4 |
-
----
+- [x] **Phase 0**: Chaos Generator (50+ scenarios)
+- [x] **Phase 1**: Data Pipeline (650+ metrics, GKE deployment)
+- [ ] **Phase 2**: Model Training (XGBoost + Llama-3.1-8B)
+- [ ] **Phase 3**: Inference Engine (FastAPI service)
+- [ ] **Phase 4**: Production Deployment (Prometheus integration)
 
 ## 🤝 Contributing
 
-This is a learning project focused on AI performance engineering. Key areas:
-- LLM inference optimization (vLLM, TGI)
-- Performance metrics analysis
-- ML model training and fine-tuning
-- Real-time anomaly detection
-
----
+This is currently a research project. Documentation and examples will be added as the project matures.
 
 ## 📝 License
 
-MIT License - See LICENSE file for details
+MIT License - See [LICENSE](LICENSE) for details.
+
+## 🔗 Resources
+
+-   [Failure Scenarios](docs/data/failure_scenarios.yaml) - Complete list of 50+ chaos scenarios
+-   [Training Data Schema](data-pipeline/storage/schema.py) - Parquet data structure
+-   [Grafana Dashboards](error-generator/grafana/dashboards/) - Real-time monitoring
 
 ---
 
-## 🔗 Related Projects
+**Status**: Currently generating training data on GKE. Model training pipeline development in progress.
 
-- [vLLM](https://github.com/vllm-project/vllm) - High-throughput LLM inference
-- [Text Generation Inference](https://github.com/huggingface/text-generation-inference) - HuggingFace TGI
-- [Prometheus](https://prometheus.io/) - Metrics collection
-- [Grafana](https://grafana.com/) - Visualization
-
----
-
-**Status**: 🔨 Active Development | **POC Target**: 4 weeks | **Current Phase**: Data Pipeline
-
-Built with ❤️ for AI Performance Engineering
+**Next Milestone**: Reach 10,000 training examples, then begin XGBoost + LLM training.

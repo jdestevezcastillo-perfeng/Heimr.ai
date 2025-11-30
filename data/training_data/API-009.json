@@ -1,0 +1,2 @@
+{"timestamp": "2025-11-29T20:06:34.531013", "scenario_id": "API-009", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Blocking I/O."}
+{"timestamp": "2025-11-29T20:16:36.912544", "scenario_id": "API-009", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Blocking I/O."}

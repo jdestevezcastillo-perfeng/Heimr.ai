@@ -3,3 +3,8 @@ __pycache__/
 *.pyc
 .DS_Store
 .env
+CLAUDE.md
+.claude/
+google-cloud-sdk/
+POC docs/
+.venv/
