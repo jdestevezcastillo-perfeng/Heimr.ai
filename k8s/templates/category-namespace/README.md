@@ -5,6 +5,7 @@ This directory contains Kubernetes manifest templates for deploying a training d
 ## Structure
 
 Each category namespace contains:
+
 - **1 observability pod** (6 containers: Prometheus, Loki, Tempo, Promtail, OTel Collector, Grafana)
 - **6 simulation pods** (sim-service-agent, sim-db, sim-cache, sim-queue, sim-inference, chaos-controller)
 
