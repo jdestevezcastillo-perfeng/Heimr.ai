@@ -48,11 +48,12 @@ kubectl get svc grafana -n sim-api
 kubectl port-forward svc/grafana 3000:3000 -n sim-api
 ```
 
-Then access at: http://localhost:3000 (admin/admin)
+Then access at: <http://localhost:3000> (admin/admin)
 
 ## Resource Requirements
 
 Per namespace:
+
 - **Observability pod**: ~650MB RAM, ~0.5 cores
 - **Simulation pods**: ~700MB RAM, ~0.5 cores
 - **Total**: ~1.35GB RAM, ~1 core
