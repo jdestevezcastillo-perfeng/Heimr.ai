@@ -2,6 +2,24 @@
 
 A controllable FastAPI service that produces predictable failure modes for performance testing and AI analysis validation.
 
+### Simulators
+- **sim-db**: Simulates a PostgreSQL database.
+  - Metrics: Connections, Transactions, Cache Hit Ratio, Locks.
+  - Chaos: Connection leaks, Table locks, Latency.
+- **sim-cache**: Simulates a Redis cache.
+  - Metrics: Commands, Memory, Keyspace Hits/Misses.
+  - Chaos: Memory leaks, Flush all, Latency.
+- **sim-queue**: Simulates a Kafka broker.
+  - Metrics: Producer/Consumer rates, Lag, Broker messages.
+  - Chaos: Message flooding, Consumer lag injection.
+- **sim-inference**: Simulates an ML Inference Service (NVIDIA GPU).
+  - Metrics: GPU Temp/Power/Util (DCGM/SMI), Inference Latency/Throughput.
+  - Chaos: Compute load (GPU overheat), VRAM fill (OOM), Latency.
+
+### Chaos Controller
+Orchestrates chaos scenarios using Custom Resource Definitions (CRDs).
+- **Actions**: `latency`, `cpu-burn`, `memory-leak`, `error-injection`, `connection-leak`, `lock-table`, `flush-redis`, `kafka-flood`, `compute-load`, `vram-fill`.
+
 ## 🎯 Purpose
 
 The Chaos Generator is a "performance testing victim" API that misbehaves in controllable, educational ways. It produces deterministic failure modes so analysis tools can be validated against known patterns.

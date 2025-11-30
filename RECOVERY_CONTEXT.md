@@ -68,18 +68,30 @@ Deploy **28 namespaces** (one per category), run scenarios sequentially within e
 - Each namespace stays up# Recovery Context
 
 ## Current Status
-**Phase 3B Complete: Production Metrics Implemented**
-- All simulators (`sim-db`, `sim-cache`, `sim-queue`, `sim-inference`) now expose comprehensive, production-ready metrics.
-- Metrics are tied to simulated background activity and actual HTTP traffic.
-- Docker images rebuilt and pods redeployed.
-- Verification confirmed metrics are flowing for all components.
+
+### Phase 3B: Add Production Metrics (Completed)
+
+- **Status**: Completed
+- **Changes**:
+  - Implemented comprehensive application-level metrics for `sim-db` (PostgreSQL), `sim-cache` (Redis), `sim-queue` (Kafka), and `sim-inference` (NVIDIA GPU).
+  - `sim-inference` now exposes GPU metrics using `DCGM_FI_DEV_*` (Enterprise), `nvidia_smi_*` (Consumer), and `nvidia_gpu_*` (Standard) naming conventions.
+  - Updated `chaos-controller` to support `compute-load` and `vram-fill` actions for GPU simulation.
+  - Created "Training Data Inspection (Mega Dashboard)" in Grafana to visualize all new metrics.
+  - Verified end-to-end flow with `gpu-overheat` chaos scenario.
+- **Next Steps**:
+  - Proceed to Phase 4: GCP Deployment Preparation.
+  - Configure Parquet export for training data.
 
 ## Architecture
+
 - **Namespace**: `sim-api`
 - **Pods**: 7 (6 simulators + 1 observability stack)
 - **Observability**: Prometheus, Loki, Tempo, Promtail, Grafana
 - **Metrics**:
-    - **System**: node-exporter (CPU, Mem, Disk, Net)
+  - **System**: node-exporter (CPU, Mem, Disk, Net)
+  - **K8s**: kube-state-metrics, cAdvisor
+  - **App**: Custom metrics from all simulators (PostgreSQL, Redis, Kafka, GPU)
+
     - **Container**: cAdvisor (Per-container resources)
     - **K8s**: kube-state-metrics (Pod/Deployment status)
     - **PostgreSQL**: 25+ metrics (Connections, Transactions, Queries, Locks, Cache, Replication)

@@ -32,7 +32,7 @@ async def create_fn(spec, name, namespace, **kwargs):
     try:
         if action == 'pod-delete':
             delete_pods(api, namespace, target)
-        elif action in ['latency', 'cpu-burn', 'memory-leak', 'error-injection', 'connection-leak', 'lock-table', 'flush-redis', 'kafka-flood']:
+        elif action in ['latency', 'cpu-burn', 'memory-leak', 'error-injection', 'connection-leak', 'lock-table', 'flush-redis', 'kafka-flood', 'compute-load', 'vram-fill']:
             await inject_application_fault(api, namespace, target, action, config)
         else:
             raise kopf.PermanentError(f"Unknown action: {action}")
@@ -93,6 +93,10 @@ async def inject_application_fault(api, namespace, target, action, config):
         payload = {"flush_all": True}
     elif action == 'kafka-flood':
         payload = {"flood_messages_per_sec": config.get('rate', 100)}
+    elif action == 'compute-load':
+        payload = {"compute_load": True}
+    elif action == 'vram-fill':
+        payload = {"allocate_vram_mb": config.get('mb', 1000)}
     
     # Send to all matching pods (or random subset if specified)
     async with aiohttp.ClientSession() as session:
