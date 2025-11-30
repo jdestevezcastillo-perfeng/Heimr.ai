@@ -33,6 +33,10 @@ async def run_command(cmd):
 
 async def inject_fault(scenario):
     """Applies the ChaosScenario CRD to the existing namespace."""
+    if "healthy" in scenario['name'].lower():
+        logger.info(f"Skipping fault injection for healthy scenario: {scenario['id']}")
+        return True
+
     logger.info(f"Injecting fault for {scenario['id']} in {NAMESPACE}")
     
     # Map scenario to ChaosScenario spec (simplified logic)
@@ -107,19 +111,50 @@ async def collect_metrics(scenario, duration=60):
     while time.time() - start_time < duration:
         timestamp = datetime.now().isoformat()
         
-        # Query key metrics
-        # Adjust queries based on your actual metric names
-        latency = query_prometheus('rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])')
-        error_rate = query_prometheus('rate(http_requests_total{status=~"5.."}[1m]) / rate(http_requests_total[1m])')
-        cpu_usage = query_prometheus('sum(rate(container_cpu_usage_seconds_total{namespace="sim-api"}[1m]))')
+        # Query ALL metrics for the namespace (Bulk Ingestion)
+        # We fetch everything matching the relevant jobs to capture Postgres, Redis, Kafka, GPU, etc.
+        # Note: App metrics don't have 'namespace' label, so we query by job name.
+        query = '{job=~"sim-.*|chaos-controller|kubelet-cadvisor|kube-state-metrics|node-exporter"}'
         
+        try:
+            response = requests.get(f"{PROMETHEUS_URL}/api/v1/query", params={'query': query})
+            response.raise_for_status()
+            results = response.json()['data']['result']
+        except Exception as e:
+            logger.error(f"Prometheus query failed: {e}")
+            results = []
+
+        collected_metrics = {}
+        for result in results:
+            metric_info = result['metric']
+            name = metric_info.get('__name__')
+            if not name: continue
+            
+            # Filter out high-cardinality/unstable labels to ensure consistent Parquet schema
+            # We drop 'pod', 'instance', 'uid', etc. so columns don't change on every restart
+            ignored_labels = ['__name__', 'pod', 'instance', 'job', 'namespace', 'uid', 'container_id', 'image', 'id', 'endpoint', 'service']
+            labels = {k: v for k, v in metric_info.items() if k not in ignored_labels}
+            
+            # Construct flat column name: metric_name|label1=val1|label2=val2
+            if labels:
+                # Sort labels for deterministic naming
+                label_str = "|".join([f"{k}={v}" for k, v in sorted(labels.items())])
+                key = f"{name}|{label_str}"
+            else:
+                key = name
+                
+            try:
+                collected_metrics[key] = float(result['value'][1])
+            except (ValueError, IndexError):
+                continue
+        
+        logger.info(f"Collected {len(collected_metrics)} metrics for {scenario['id']}")
+
         data_point = {
             "timestamp": timestamp,
             "scenario_id": scenario['id'],
-            "label": scenario['root_cause'], # Target label
-            "latency": latency,
-            "error_rate": error_rate,
-            "cpu_usage": cpu_usage
+            "label": scenario['root_cause'],
+            **collected_metrics
         }
         data_points.append(data_point)
         await asyncio.sleep(10)
@@ -178,26 +213,39 @@ async def main():
         
     logger.info(f"Loaded {len(scenarios)} scenarios. Target: {NAMESPACE}, Prometheus: {PROMETHEUS_URL}")
     
+    # Balance the dataset: Interleave "Healthy Baseline" (API-001) with failure scenarios
+    # This ensures a ~50/50 ratio, which is ideal for training (vs the current 1/50 ratio).
+    healthy_scenario = next((s for s in scenarios if s['id'] == 'API-001'), None)
+    
+    if healthy_scenario:
+        failure_scenarios = [s for s in scenarios if s['id'] != 'API-001']
+        balanced_scenarios = []
+        for failure in failure_scenarios:
+            # Add healthy sample before every failure
+            balanced_scenarios.append(healthy_scenario)
+            balanced_scenarios.append(failure)
+        scenarios = balanced_scenarios
+        logger.info(f"Balanced dataset enabled: {len(scenarios)} total runs (50% Healthy).")
+    else:
+        logger.warning("Healthy Baseline (API-001) not found! Running unbalanced.")
+
     all_data = []
     
     # Run sequentially for now to avoid chaos interference
     for s in scenarios:
         data = await process_scenario(s)
-        all_data.extend(data)
-        
-    # Save to Parquet
-    if all_data:
-        df = pd.DataFrame(all_data)
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        filename = f"gke_{NAMESPACE}_{int(time.time())}.parquet"
-        output_file = f"{OUTPUT_DIR}/{filename}"
-        df.to_parquet(output_file)
-        logger.info(f"Saved {len(df)} rows to {output_file}")
-        
-        # Upload to GCS
-        upload_to_gcs(output_file, filename)
-    else:
-        logger.warning("No data collected.")
+        if data:
+            df = pd.DataFrame(data)
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            filename = f"gke_{NAMESPACE}_{s['id']}_{int(time.time())}.parquet"
+            output_file = f"{OUTPUT_DIR}/{filename}"
+            df.to_parquet(output_file)
+            logger.info(f"Saved {len(df)} rows to {output_file}")
+            
+            # Upload to GCS
+            upload_to_gcs(output_file, filename)
+        else:
+            logger.warning(f"No data collected for {s['id']}")
 
 if __name__ == "__main__":
     asyncio.run(main())

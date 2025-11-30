@@ -5,6 +5,8 @@ metadata:
   labels:
     app: observability
     component: monitoring
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 spec:
   serviceAccountName: prometheus
   containers:

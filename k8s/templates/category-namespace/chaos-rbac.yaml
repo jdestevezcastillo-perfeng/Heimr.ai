@@ -12,7 +12,7 @@ metadata:
 rules:
 - apiGroups: ["heimr.ai"]
   resources: ["chaosscenarios"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  verbs: ["create", "list", "watch", "get", "delete", "update", "patch"]
 - apiGroups: [""]
   resources: ["pods", "services", "events", "configmaps", "secrets"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
