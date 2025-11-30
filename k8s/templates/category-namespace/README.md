@@ -2,6 +2,22 @@
 
 This directory contains Kubernetes manifest templates for deploying a training data collection namespace.
 
+### Dashboards
+- **Training Data Inspection (Mega Dashboard)**: A comprehensive view of all simulator metrics, including:
+  - **NVIDIA GPU**: Temperature, Power, Utilization (DCGM, SMI, and Standard metrics).
+  - **PostgreSQL**: Connections, Transactions, Cache Hit Ratio.
+  - **Kafka**: Throughput, Consumer Lag.
+  - **Redis**: Commands, Memory, Cache Hits/Misses.
+- **Chaos Dashboard**: Visualizes chaos events and their impact.
+- **Logs**: Loki dashboard for log inspection.
+- **Traces**: Tempo dashboard for distributed tracing.
+
+### Metrics Exposed
+- **sim-inference**: `DCGM_FI_DEV_*`, `nvidia_smi_*`, `nvidia_gpu_*` (GPU), `model_inference_*` (ML).
+- **sim-db**: `pg_*` (PostgreSQL compatible).
+- **sim-cache**: `redis_*` (Redis compatible).
+- **sim-queue**: `kafka_*` (Kafka compatible).
+
 ## Structure
 
 Each category namespace contains:

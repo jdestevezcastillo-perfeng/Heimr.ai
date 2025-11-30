@@ -1,0 +1,11 @@
+apiVersion: heimr.ai/v1
+kind: ChaosScenario
+metadata:
+  name: gpu-overheat
+  namespace: sim-api
+spec:
+  target:
+    labelSelector: "app=sim-inference"
+  action: compute-load
+  config:
+    duration_ms: 60000

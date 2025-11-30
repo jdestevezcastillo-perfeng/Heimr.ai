@@ -152,6 +152,7 @@ spec:
       labels:
         app: chaos-controller
     spec:
+      serviceAccountName: chaos-controller-sa
       containers:
       - name: chaos-controller
         image: chaos-controller:latest
