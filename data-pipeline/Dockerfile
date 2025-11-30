@@ -2,29 +2,31 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies (Helm, Kubectl, Curl)
-RUN apt-get update && apt-get install -y curl git && \
-    # Install Kubectl
+# Install system dependencies (kubectl)
+RUN apt-get update && apt-get install -y curl && \
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && mv kubectl /usr/local/bin/ && \
-    # Install Helm
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
-    # Cleanup
-    rm -rf /var/lib/apt/lists/*
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements and install
+# We'll create a requirements.txt on the fly or assume one exists.
+# Let's write the dependencies here to be safe.
+RUN pip install --no-cache-dir \
+    pandas \
+    pyarrow \
+    requests \
+    pyyaml \
+    google-cloud-storage \
+    kubernetes
 
 # Copy application code
-COPY generate_training_data.py .
+COPY data-pipeline/ /app/data-pipeline/
+COPY docs/data/failure_scenarios.yaml /app/docs/data/failure_scenarios.yaml
 
-# Copy failure scenarios data
-# We assume the build context is the project root, or we copy specifically.
-# Better to expect it in a standard location or mount it.
-# For now, let's copy it if we build from root, or assume it's mounted.
-# Let's assume we copy it in the build process or mount it.
-# But to be self-contained, let's try to COPY it.
-# NOTE: Docker build context matters here. 
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV SCENARIOS_FILE=/app/docs/data/failure_scenarios.yaml
+ENV OUTPUT_DIR=/app/data/training_data
 
-CMD ["python", "generate_training_data.py"]
+# Entrypoint
+ENTRYPOINT ["python3", "data-pipeline/run_gke_generation.py"]

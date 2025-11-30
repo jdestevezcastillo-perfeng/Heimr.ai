@@ -10,25 +10,27 @@ kind: ClusterRole
 metadata:
   name: chaos-controller-role
 rules:
-  - apiGroups: ["heimr.ai"]
-    resources: ["chaosscenarios"]
-    verbs: ["get", "list", "watch", "patch", "update"]
-  - apiGroups: [""]
-    resources: ["pods", "services", "events"]
-    verbs: ["get", "list", "watch", "patch", "update"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "watch", "patch", "update"]
-
+- apiGroups: ["heimr.ai"]
+  resources: ["chaosscenarios"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods", "services", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "statefulsets"]
+  verbs: ["get", "list", "watch", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: chaos-controller-binding
 subjects:
-  - kind: ServiceAccount
-    name: chaos-controller-sa
-    namespace: sim-api
+- kind: ServiceAccount
+  name: chaos-controller-sa
+  namespace: sim-api
+- kind: ServiceAccount
+  name: chaos-controller-sa
+  namespace: sim-api-2
 roleRef:
   kind: ClusterRole
   name: chaos-controller-role
