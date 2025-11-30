@@ -35,7 +35,7 @@ spec:
         
         # Chaos Sidecar Agent
         - name: chaos-agent
-          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-db-agent:latest"
+          image: "{{ if $.Values.global.imageRegistry }}{{ $.Values.global.imageRegistry }}/{{ end }}sim-db-agent:instrumented"
           imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
           env:
             - name: DB_HOST

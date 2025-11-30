@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: sim-service
-        image: sim-service-agent:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-service-agent:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
@@ -42,8 +42,8 @@ spec:
     spec:
       containers:
       - name: sim-db
-        image: sim-db:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-db-agent:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
@@ -70,8 +70,8 @@ spec:
     spec:
       containers:
       - name: sim-cache
-        image: sim-cache:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-cache-agent:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
@@ -98,8 +98,8 @@ spec:
     spec:
       containers:
       - name: sim-queue
-        image: sim-queue:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-queue-agent:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
@@ -126,8 +126,8 @@ spec:
     spec:
       containers:
       - name: sim-inference
-        image: sim-inference:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-inference:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
@@ -155,8 +155,8 @@ spec:
       serviceAccountName: chaos-controller-sa
       containers:
       - name: chaos-controller
-        image: chaos-controller:latest
-        imagePullPolicy: Never
+        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/chaos-controller:instrumented
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:

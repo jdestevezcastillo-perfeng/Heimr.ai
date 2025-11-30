@@ -27,6 +27,7 @@ kubectl create configmap failure-scenarios \
 # 4. Deploy Data Pipeline RBAC & CronJob
 echo "Deploying Data Pipeline..."
 kubectl apply -f k8s/base/pipeline/rbac.yaml
+kubectl apply -f k8s/base/pipeline/pvc.yaml
 kubectl apply -f k8s/base/pipeline/cronjob.yaml
 
 # 5. Deploy Chaos Controller

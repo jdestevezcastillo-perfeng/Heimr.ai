@@ -6,10 +6,60 @@ import time
 import asyncio
 import aiohttp
 import json
+import os
+import sys
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# OpenTelemetry imports
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+
+# JSON Logging Formatter
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_obj = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "namespace": os.getenv("NAMESPACE", "chaos-system"),
+            "pod": os.getenv("HOSTNAME", "unknown"),
+            "service": "chaos-controller"
+        }
+        if record.exc_info:
+            log_obj["exception"] = self.formatException(record.exc_info)
+            log_obj["error"] = True
+        return json.dumps(log_obj)
+
+# Configure JSON logging
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logging.root.handlers = []
+logging.root.addHandler(handler)
+logging.root.setLevel(logging.INFO)
 logger = logging.getLogger("chaos-controller")
+
+# Configure OpenTelemetry
+resource = Resource.create({
+    "service.name": "chaos-controller",
+    "namespace": os.getenv("NAMESPACE", "chaos-system")
+})
+trace.set_tracer_provider(TracerProvider(resource=resource))
+tracer = trace.get_tracer(__name__)
+
+# Export to Tempo via OTLP
+try:
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="http://observability:4317",
+        insecure=True
+    )
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+    logger.info("OpenTelemetry tracing configured successfully")
+except Exception as e:
+    logger.warning(f"Failed to configure OpenTelemetry: {e}")
 
 @kopf.on.startup()
 def configure(settings: kopf.OperatorSettings, **_):

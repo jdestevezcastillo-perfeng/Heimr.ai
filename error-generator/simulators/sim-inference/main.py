@@ -4,14 +4,64 @@ import os
 import time
 import threading
 import random
+import json
+import sys
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, List
 import torch
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# OpenTelemetry imports
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+
+# JSON Logging Formatter
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_obj = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "namespace": os.getenv("NAMESPACE", "unknown"),
+            "pod": os.getenv("HOSTNAME", "unknown"),
+            "service": "sim-inference"
+        }
+        if record.exc_info:
+            log_obj["exception"] = self.formatException(record.exc_info)
+            log_obj["error"] = True
+        return json.dumps(log_obj)
+
+# Configure JSON logging
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logging.root.handlers = []
+logging.root.addHandler(handler)
+logging.root.setLevel(logging.INFO)
 logger = logging.getLogger("sim-inference")
+
+# Configure OpenTelemetry
+resource = Resource.create({
+    "service.name": "sim-inference",
+    "namespace": os.getenv("NAMESPACE", "unknown")
+})
+trace.set_tracer_provider(TracerProvider(resource=resource))
+tracer = trace.get_tracer(__name__)
+
+# Export to Tempo via OTLP
+try:
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="http://observability:4317",
+        insecure=True
+    )
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+    logger.info("OpenTelemetry tracing configured successfully")
+except Exception as e:
+    logger.warning(f"Failed to configure OpenTelemetry: {e}")
 
 app = FastAPI(title="Heimr.ai Inference Simulator")
 
@@ -111,7 +161,7 @@ def compute_load_task():
             _ = torch.matmul(a, b)
             time.sleep(0.001) 
     except Exception as e:
-        logger.error(f"Compute load failed: {e}")
+        logger.error(f"Compute load failed: {e}", exc_info=True)
     finally:
         logger.info("Stopped compute load.")
 
@@ -273,7 +323,7 @@ async def set_chaos(config: ChaosConfig):
                     
                 logger.info(f"Allocated additional {needed_mb}MB on {DEVICE}")
             except RuntimeError as e:
-                logger.error(f"OOM during allocation: {e}")
+                logger.error(f"OOM during allocation: {e}", exc_info=True)
                 
         elif target_mb < current_mb:
             # Deallocate

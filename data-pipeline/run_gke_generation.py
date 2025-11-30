@@ -377,7 +377,7 @@ async def main():
     parser.add_argument("--limit", type=int, default=0, help="Limit number of scenarios")
     parser.add_argument("--namespace", type=str, default="sim-api", help="Target Kubernetes namespace")
     # Default to internal DNS for in-cluster execution
-    parser.add_argument("--prometheus-url", type=str, default="http://observability:9090", help="Prometheus URL") 
+    parser.add_argument("--prometheus-url", type=str, default=os.getenv("PROMETHEUS_URL", "http://observability:9090"), help="Prometheus URL") 
     args = parser.parse_args()
     
     global NAMESPACE, PROMETHEUS_URL
