@@ -534,7 +534,7 @@ data:
       "timepicker": {},
       "timezone": "",
       "title": "Chaos Generator Dashboard",
-      "uid": "error-generator",
+      "uid": "chaos-generator",
       "version": 1
     }
   gpu-system-dashboard.json: |

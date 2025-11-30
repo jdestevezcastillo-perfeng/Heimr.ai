@@ -23,7 +23,7 @@ SIMULATORS=(
 for sim in "${SIMULATORS[@]}"; do
     echo ""
     echo "📦 Building $sim..."
-    cd error-generator/simulators/$sim
+    cd chaos-generator/simulators/$sim
     
     IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/heimr/${sim}:instrumented"
     
@@ -38,7 +38,7 @@ done
 # Build and push chaos-controller
 echo ""
 echo "📦 Building chaos-controller..."
-cd error-generator/controllers/chaos-controller
+cd chaos-generator/controllers/chaos-controller
 
 IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/heimr/chaos-controller:instrumented"
 

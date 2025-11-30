@@ -14,7 +14,7 @@ logger = logging.getLogger("data-generator")
 
 SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "docs/data/failure_scenarios.yaml")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "data/training_data")
-HELM_CHART = os.getenv("HELM_CHART", "error-generator/charts/simulation-topology")
+HELM_CHART = os.getenv("HELM_CHART", "chaos-generator/charts/simulation-topology")
 
 async def run_command(cmd):
     process = await asyncio.create_subprocess_shell(

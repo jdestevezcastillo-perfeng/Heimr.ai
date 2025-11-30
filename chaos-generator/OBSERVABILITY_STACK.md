@@ -35,7 +35,7 @@ Complete observability stack with metrics, logs, traces, and GPU monitoring.
 ### 1. Stop Existing Stack
 
 ```bash
-cd /home/lostborion/Performange-analyzer-AI/error-generator
+cd /home/lostborion/Performange-analyzer-AI/chaos-generator
 docker-compose down
 ```
 
@@ -167,23 +167,23 @@ rate(chaos_errors_total[1m])
 
 ```logql
 # All chaos generator logs
-{service="error-generator"}
+{service="chaos-generator"}
 
 # Error logs only
-{service="error-generator"} |= "ERROR"
+{service="chaos-generator"} |= "ERROR"
 
 # Logs with latency > 1s
-{service="error-generator"} | json | latency > 1
+{service="chaos-generator"} | json | latency > 1
 
 # Count errors per minute
-sum(count_over_time({service="error-generator"} |= "ERROR" [1m]))
+sum(count_over_time({service="chaos-generator"} |= "ERROR" [1m]))
 ```
 
 ### Tempo (Traces)
 
 ```traceql
-# All traces for error-generator
-{service.name="error-generator"}
+# All traces for chaos-generator
+{service.name="chaos-generator"}
 
 # Slow traces (> 1s)
 {duration > 1s}
@@ -238,7 +238,7 @@ curl 'http://localhost:9090/api/v1/query_range?query=nvidia_smi_utilization_gpu_
 ```bash
 # Export Loki logs
 curl -G -s "http://localhost:3100/loki/api/v1/query_range" \
-  --data-urlencode 'query={service="error-generator"}' \
+  --data-urlencode 'query={service="chaos-generator"}' \
   --data-urlencode "start=$(date -d '1 hour ago' +%s)000000000" \
   --data-urlencode "end=$(date +%s)000000000" | jq .
 ```
@@ -246,7 +246,7 @@ curl -G -s "http://localhost:3100/loki/api/v1/query_range" \
 ### Export Traces
 ```bash
 # Query traces from Tempo
-curl -s "http://localhost:3200/api/search?tags=service.name=error-generator" | jq .
+curl -s "http://localhost:3200/api/search?tags=service.name=chaos-generator" | jq .
 ```
 
 ---
@@ -346,7 +346,7 @@ Estimated resource usage:
 ### 2. Explore Logs
 ```bash
 # Go to Grafana → Explore → Loki
-# Query: {service="error-generator"}
+# Query: {service="chaos-generator"}
 ```
 
 ### 3. Add Tracing to Chaos Generator

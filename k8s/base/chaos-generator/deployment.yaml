@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: error-generator
+  name: chaos-generator
   namespace: heimr-chaos
   labels:
-    app: error-generator
+    app: chaos-generator
     component: chaos-generator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: error-generator
+      app: chaos-generator
   template:
     metadata:
       labels:
-        app: error-generator
+        app: chaos-generator
         component: chaos-generator
       annotations:
         prometheus.io/scrape: "true"
@@ -22,8 +22,8 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - name: error-generator
-        image: error-generator:latest
+      - name: chaos-generator
+        image: chaos-generator:latest
         imagePullPolicy: Never
         ports:
         - name: http

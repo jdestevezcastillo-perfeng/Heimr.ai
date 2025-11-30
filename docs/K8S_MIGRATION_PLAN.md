@@ -8,7 +8,7 @@ Migrate the entire Heimr.ai stack (Data Pipeline, Observability, Dashboard, and 
 ### Current State
 - **Data Pipeline**: Python scripts running locally (`scripts/`).
 - **Observability**: Docker Compose (`prometheus`, `grafana`, `loki`, `tempo`).
-- **Error Generator**: Helm Chart (`error-generator/charts/simulation-topology`) + Controller.
+- **Error Generator**: Helm Chart (`chaos-generator/charts/simulation-topology`) + Controller.
 - **Dashboard**: Next.js app running locally.
 
 ### Target State (Kubernetes)
@@ -56,7 +56,7 @@ k8s/
 │   ├── dev/
 │   └── prod/
 └── charts/                 # Custom Helm charts
-    ├── simulation-topology/ (moved from error-generator)
+    ├── simulation-topology/ (moved from chaos-generator)
     └── heimr-dashboard/
 ```
 

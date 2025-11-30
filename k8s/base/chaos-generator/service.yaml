@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: error-generator
+  name: chaos-generator
   namespace: heimr-chaos
   labels:
-    app: error-generator
+    app: chaos-generator
     component: chaos-generator
 spec:
   type: ClusterIP
@@ -14,4 +14,4 @@ spec:
     targetPort: http
     protocol: TCP
   selector:
-    app: error-generator
+    app: chaos-generator
