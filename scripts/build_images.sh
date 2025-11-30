@@ -8,12 +8,12 @@ REGISTRY="heimr-registry:5000"
 # Define images and their paths
 # Format: "image_name:path"
 IMAGES=(
-    "sim-service-agent:error-generator/simulators/sim-service-agent"
-    "sim-db-agent:error-generator/simulators/sim-db-agent"
-    "sim-cache-agent:error-generator/simulators/sim-cache-agent"
-    "sim-queue-agent:error-generator/simulators/sim-queue-agent"
-    "sim-inference:error-generator/simulators/sim-inference"
-    "chaos-controller:error-generator/controllers/chaos-controller"
+    "sim-service-agent:chaos-generator/simulators/sim-service-agent"
+    "sim-db-agent:chaos-generator/simulators/sim-db-agent"
+    "sim-cache-agent:chaos-generator/simulators/sim-cache-agent"
+    "sim-queue-agent:chaos-generator/simulators/sim-queue-agent"
+    "sim-inference:chaos-generator/simulators/sim-inference"
+    "chaos-controller:chaos-generator/controllers/chaos-controller"
     "data-pipeline:data-pipeline"
 )
 

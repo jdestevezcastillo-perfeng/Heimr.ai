@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ### 2. Start Chaos Generator
 
 ```bash
-cd ../error-generator
+cd ../chaos-generator
 docker-compose up -d
 ```
 
@@ -247,7 +247,7 @@ print(f"File size: {stats['file_size_mb']:.2f} MB")
 curl http://localhost:9090/-/healthy
 
 # Restart if needed
-cd ../error-generator
+cd ../chaos-generator
 docker-compose restart prometheus
 ```
 
@@ -258,7 +258,7 @@ docker-compose restart prometheus
 curl http://localhost:8000/health
 
 # Restart if needed
-docker-compose restart error-generator
+docker-compose restart chaos-generator
 ```
 
 ### No Metrics Data

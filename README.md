@@ -113,7 +113,7 @@ Heimr.ai/
 │   ├── quick_validation.py # Pipeline validation
 │   └── sample_data/        # 20 sample Parquet files
 │
-├── error-generator/        # Chaos engineering stack
+├── chaos-generator/        # Chaos engineering stack
 │   ├── services/           # 6 microservice simulators
 │   ├── chaos_controller/   # CRD-based chaos injection
 │   └── grafana/            # Dashboards
@@ -248,7 +248,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 -   [Failure Scenarios](docs/data/failure_scenarios.yaml) - Complete list of 50+ chaos scenarios
 -   [Training Data Schema](data-pipeline/storage/schema.py) - Parquet data structure
--   [Grafana Dashboards](error-generator/grafana/dashboards/) - Real-time monitoring
+-   [Grafana Dashboards](chaos-generator/grafana/dashboards/) - Real-time monitoring
 
 ---
 

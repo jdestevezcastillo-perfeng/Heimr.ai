@@ -13,5 +13,5 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "service": "error-generator"
+        "service": "chaos-generator"
     }

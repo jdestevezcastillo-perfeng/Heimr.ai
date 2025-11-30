@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  error-generator:
+  chaos-generator:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: error-generator
+    container_name: chaos-generator
     ports:
       - "8000:8000"
     environment:
@@ -24,7 +24,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=error-generator"
+        labels: "service=chaos-generator"
 
   # NVIDIA DCGM Exporter for GPU metrics (official NVIDIA exporter)
   dcgm-exporter:

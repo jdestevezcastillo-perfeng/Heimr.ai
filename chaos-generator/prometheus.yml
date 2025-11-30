@@ -3,16 +3,16 @@ global:
   scrape_interval: 5s
   evaluation_interval: 5s
   external_labels:
-    cluster: 'error-generator'
+    cluster: 'chaos-generator'
     environment: 'local'
 
 scrape_configs:
   # Chaos Generator service
-  - job_name: 'error-generator'
+  - job_name: 'chaos-generator'
     static_configs:
-      - targets: ['error-generator:8000']
+      - targets: ['chaos-generator:8000']
         labels:
-          service: 'error-generator'
+          service: 'chaos-generator'
     metrics_path: '/metrics'
     scrape_interval: 5s
 

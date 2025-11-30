@@ -19,8 +19,8 @@ You now have a **complete architecture and plan** for building an AI-powered per
 - ✅ k6 load testing scripts
 - ✅ Docker Compose deployment
 
-**Location**: `error-generator/`
-**Documentation**: `error-generator/OBSERVABILITY_STACK.md`
+**Location**: `chaos-generator/`
+**Documentation**: `chaos-generator/OBSERVABILITY_STACK.md`
 
 ---
 
@@ -30,7 +30,7 @@ You now have a **complete architecture and plan** for building an AI-powered per
 - ✅ **IMPLEMENTATION_PLAN.md** - Detailed 4-phase roadmap
 - ✅ **docs/MODEL_SELECTION.md** - Model comparison and recommendation
 - ✅ **docs/QUICK_REFERENCE.md** - Quick reference guide
-- ✅ **error-generator/OBSERVABILITY_STACK.md** - Observability guide
+- ✅ **chaos-generator/OBSERVABILITY_STACK.md** - Observability guide
 
 ---
 
@@ -42,7 +42,7 @@ You now have a **complete architecture and plan** for building an AI-powered per
 
 ```
 Performange-analyzer-AI/
-├── error-generator/          ✅ Complete (with Observability)
+├── chaos-generator/          ✅ Complete (with Observability)
 ├── data-pipeline/            🚧 In Progress (Scripts available)
 ├── model-training/           🔨 Ready to build
 ├── inference-engine/         🔨 Ready to build
