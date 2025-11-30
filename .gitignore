@@ -8,3 +8,20 @@ CLAUDE.md
 google-cloud-sdk/
 POC docs/
 .venv/
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+*.tfstate
+*.tfstate.backup
+
+# Batch processing
+batch_queue.log
+nohup.out
+
+# Temporary files
+temp_verification/
+verification_file.parquet
+instrumentation_helper.py

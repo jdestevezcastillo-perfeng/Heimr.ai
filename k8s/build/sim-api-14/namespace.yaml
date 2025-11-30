@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: sim-api-14
-  labels:
-    purpose: training-data-collection
-    category: sim-api-14
