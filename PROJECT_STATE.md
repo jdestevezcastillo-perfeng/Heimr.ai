@@ -73,10 +73,17 @@ known_issues:
     status: "RESOLVED"
 recent_actions:
   - "[2025-12-01] Started parallel data generation (20 namespaces) targeting 10k samples."
-  - "[2025-12-01] Implemented CatBoost training pipeline (`train_model.py`)."
+  - "[2025-12-01] Implemented CatBoost training pipeline (`model_training/train_model.py`)."
   - "[2025-12-01] Created live validation script (`watch_and_validate.py`)."
   - "[2025-12-01] Cleaned up GCS bucket (removed empty files)."
   - "[2025-12-01] Validated content fidelity for API-002, API-003, API-004."
+  - "[2025-12-01] Reorganized model training scripts into `model_training/` directory."
+  - "[2025-12-01] Paused parallel data generation (at ~26% of target) to address stability."
+  - |
+    [2025-12-01] IN PROGRESS: Migrating Data Generation to K8s Job.
+    - Created `data-pipeline/Dockerfile`.
+    - Adapted `run_parallel_generation.py` for in-cluster execution.
+    - PENDING: Build/Push Docker image and deploy K8s Job.
   - "Destroyed and recreated infrastructure to verify reproducibility."
   - "Deployed 12 simulator topologies."
   - "Fixed `observability-pod.yaml` (Promtail hostPath, Tempo memory)."

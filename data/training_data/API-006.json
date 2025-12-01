@@ -1,2 +1,0 @@
-{"timestamp": "2025-11-29T20:06:33.808015", "scenario_id": "API-006", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Cache misses, cold starts."}
-{"timestamp": "2025-11-29T20:15:23.919741", "scenario_id": "API-006", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Cache misses, cold starts."}

@@ -1,5 +1,5 @@
-version: "1.0.0"
-last_updated: "2025-12-01T10:50:00+01:00"
+version: "1.1.0"
+last_updated: "2025-12-01T19:55:00+01:00"
 description: "Single Source of Truth for Heimr.ai Architecture. Update this file whenever architecture components, ports, or configurations change."
 
 infrastructure:
@@ -11,9 +11,31 @@ infrastructure:
     node_count: 3
     machine_type: "e2-standard-4"
     disk_size_gb: 50
-  storage:
-    gcs_bucket: "heimr-data-tokyo-snow-479722-a2"
-    artifact_registry: "heimr (us-central1)"
+# ... (skipping unchanged lines)
+
+data_pipeline:
+  script: "run_gke_generation.py"
+  language: "Python 3.12"
+  orchestrator: "AsyncIO / Kubernetes Jobs"
+  storage: "Google Cloud Storage (Parquet)"
+  features:
+    - "parallel_generation (20 namespaces)"
+    - "live_validation (watch_and_validate.py)"
+    - "filtered_log_collection"
+    - "error_trace_capture"
+
+  model_training:
+    framework: "CatBoost"
+    pipeline: "model_training/train_model.py"
+    features:
+      - "multi_modal_input (metrics + logs + traces)"
+      - "automated_feature_engineering"
+  required_columns:
+    - "metrics"
+    - "logs"
+    - "traces"
+
+
 
 topology:
   namespace_pattern: "sim-api-*"
@@ -94,26 +116,5 @@ topology:
         volume_mount: "/host/var/log/pods (hostPath)"
         security_context: "privileged: true"
 
-data_pipeline:
-  script: "run_gke_generation.py"
-  data_pipeline:
-    language: "Python 3.12"
-    orchestrator: "AsyncIO / Kubernetes Jobs"
-    storage: "Google Cloud Storage (Parquet)"
-    features:
-      - "parallel_generation (20 namespaces)"
-      - "live_validation (watch_and_validate.py)"
-      - "filtered_log_collection"
-      - "error_trace_capture"
-  
-  model_training:
-    framework: "CatBoost"
-    pipeline: "train_model.py"
-    features:
-      - "multi_modal_input (metrics + logs + traces)"
-      - "automated_feature_engineering"
-  required_columns:
-    - "metrics"
-    - "logs"
-    - "traces"
+
 ```

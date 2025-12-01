@@ -1,2 +1,0 @@
-{"timestamp": "2025-11-29T20:07:41.447460", "scenario_id": "API-015", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Missing validation, insecure libraries."}
-{"timestamp": "2025-11-29T20:16:38.778305", "scenario_id": "API-015", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Missing validation, insecure libraries."}

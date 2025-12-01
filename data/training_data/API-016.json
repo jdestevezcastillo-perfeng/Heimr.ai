@@ -1,2 +1,0 @@
-{"timestamp": "2025-11-29T20:07:41.959486", "scenario_id": "API-016", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Schema mismatch, missing schema validation."}
-{"timestamp": "2025-11-29T20:17:49.075686", "scenario_id": "API-016", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Schema mismatch, missing schema validation."}

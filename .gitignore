@@ -25,3 +25,17 @@ nohup.out
 temp_verification/
 verification_file.parquet
 instrumentation_helper.py
+
+# Model Training
+catboost_info/
+models/
+*.pkl
+*.cbm
+*.bin
+
+# Data
+data/training_data/
+data/gcs_cache/
+temp_data/
+logs/
+*.log

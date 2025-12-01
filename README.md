@@ -46,12 +46,16 @@ We've created a **production-grade chaos engineering platform** that generates h
 
 ### Model Training
 *   **Architecture:** CatBoost (Binary Classification)
-*   **Pipeline:** `train_model.py` (Data Loading -> Feature Engineering -> Training -> Evaluation)
+*   **Pipeline:** `model_training/train_model.py` (Data Loading -> Feature Engineering -> Training -> Evaluation)
 *   **Features:** Metrics + Categorical Log/Trace features.
 
 ### Live Validation
 *   **Script:** `watch_and_validate.py`
 *   **Function:** Polls GCS bucket, downloads new files, and validates schema/content in real-time.
+
+### Live Training
+*   **Script:** `model_training/train_live.py`
+*   **Function:** Monitors GCS bucket and retrains model on new data batches.
 
 ## 🏗️ Architecture
 
