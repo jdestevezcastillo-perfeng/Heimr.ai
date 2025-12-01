@@ -62,21 +62,16 @@ deployment:
       - name: "promtail"
         volume: "hostPath (/var/log)"
 validation_status:
-  metrics:
-    status: "PASS"
-    details: "Verified in Parquet file. Prometheus scraping successful."
-  logs:
-    status: "PASS"
-    details: "Verified in Parquet file. Fixed collection query to target `sim-*` containers, removing observability noise."
-  traces:
-    status: "PASS"
-    details: "Verified in Parquet file. Added error trace capture (searching for `error=true`) and filtered out `/metrics` traces."
+  schema_compliance: "PASS"
+  metric_integrity: "PASS"
+  log_collection: "PASS (Application logs captured)"
+  trace_collection: "PASS (Application traces captured, including errors)"
+  scenario_fidelity: "PASS (Verified Latency, Memory, and Error scenarios)"
 known_issues:
   - id: "QUEUE_CONFUSION"
     description: "Previous diagrams labeled queue as RabbitMQ; code confirms it is Kafka."
     status: "RESOLVED"
 recent_actions:
-  - "Imported existing GCP infrastructure to Terraform."
   - "Refactored Terraform to match GKE state (Workload Identity, Monitoring)."
   - "Destroyed and recreated infrastructure to verify reproducibility."
   - "Deployed 12 simulator topologies."

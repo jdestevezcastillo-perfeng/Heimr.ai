@@ -10,6 +10,13 @@ import pandas as pd
 from datetime import datetime, timedelta
 import subprocess
 import aiohttp
+import sys
+import random
+
+# Ensure gke-gcloud-auth-plugin is in PATH
+sdk_bin = "/home/lostborion/Heimr.ai/google-cloud-sdk/bin"
+if sdk_bin not in os.environ["PATH"]:
+    os.environ["PATH"] = f"{sdk_bin}:{os.environ['PATH']}"
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -36,15 +43,22 @@ async def run_command(cmd):
 
 async def generate_traffic(duration=60, rate=5):
     """Generates concurrent HTTP traffic to the simulation service."""
-    url = f"http://sim-service.{NAMESPACE}.svc.cluster.local:8000/docs" # Simple endpoint
-    logger.info(f"Starting traffic generator to {url} for {duration}s at ~{rate} req/s")
+    # Traffic Generator
+    # We need to target the service. If running locally, we need to point to localhost (forwarded).
+    # If running in cluster, use the DNS name.
+    
+    target_url = os.getenv("TARGET_URL")
+    if not target_url:
+        target_url = f"http://sim-service.{NAMESPACE}.svc.cluster.local:8000/docs"
+    
+    logger.info(f"Starting traffic generator to {target_url} for {duration}s at ~{rate} req/s")
     
     start_time = time.time()
     async with aiohttp.ClientSession() as session:
         while time.time() - start_time < duration:
             tasks = []
             for _ in range(rate):
-                tasks.append(session.get(url))
+                tasks.append(session.get(target_url))
             
             try:
                 responses = await asyncio.gather(*tasks, return_exceptions=True)
@@ -174,7 +188,11 @@ def query_loki_logs(namespace, start_time, end_time):
                 if len(log_features["warning_samples"]) < 5:
                     log_features["warning_samples"].append(log_line[:200])
             else:
-                if len(log_features["context_samples"]) < 5:
+                # Filter out metrics logs from context samples to see application logic
+                if "GET /metrics" not in log_line and len(log_features["context_samples"]) < 50:
+                    log_features["context_samples"].append(log_line[:200])
+                elif len(log_features["context_samples"]) < 5:
+                    # Keep a few metrics logs if nothing else
                     log_features["context_samples"].append(log_line[:200])
 
             if "exception" in log_lower or "traceback" in log_lower:

@@ -37,11 +37,20 @@ We've created a **production-grade chaos engineering platform** that generates h
 
 ## 📊 Current Data Status
 
--   **Files Generated**: 0 (Regenerating with v1.1 pipeline)
--   **Total Samples**: 0
--   **Feature Dimensions**: 650+ metrics per sample
--   **Target**: 10,000+ examples for production training
--   **Storage**: `gs://heimr-data-tokyo-snow-479722-a2`
+### Current Data Status
+*   **Generation Status:** Active (Local Generation with Port-Forwarding)
+*   **Storage:** `gs://heimr-data-tokyo-snow-479722-a2`
+*   **Format:** Parquet (Snappy compression)
+*   **Schema Version:** v1.1 (Includes high-fidelity logs and traces)
+*   **Validation:** Verified for Healthy, Latency Spike, Memory Leak, and Error Spike scenarios.
+
+### Validation Scripts
+Ad-hoc validation scripts are located in the `testing/` directory:
+*   `verify_scenario_content.py`: Deep content verification for specific scenarios.
+*   `validate_sample_detailed.py`: Schema and basic content validation.
+*   `deep_inspect.py`: Manual inspection of log and trace samples.
+*   `search_logs.py`: Search for keywords in the `log_context` column.
+*   `dump_raw_logs.py`: Dump raw log content for debugging.
 
 ## 🏗️ Architecture
 
