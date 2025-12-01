@@ -14,7 +14,7 @@ import subprocess
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("gke-generator")
 
-SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "docs/data/failure_scenarios.yaml")
+SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "FAILURE_SCENARIOS.yaml")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "data/training_data")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9090")
 LOKI_URL = os.getenv("LOKI_URL", "http://observability:3100")
@@ -380,7 +380,7 @@ async def main():
     parser.add_argument("--prometheus-url", type=str, default=os.getenv("PROMETHEUS_URL", "http://observability:9090"), help="Prometheus URL") 
     args = parser.parse_args()
     
-    global NAMESPACE, PROMETHEUS_URL
+    global NAMESPACE, PROMETHEUS_URL, LOKI_URL, TEMPO_URL
     
     # Support for Kubernetes Indexed Jobs
     job_index = os.getenv("JOB_COMPLETION_INDEX")
@@ -390,7 +390,13 @@ async def main():
     else:
         NAMESPACE = args.namespace
 
-    PROMETHEUS_URL = args.prometheus_url
+    PROMETHEUS_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:9090"
+    LOKI_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3100"
+    TEMPO_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3200"
+    
+    # Allow override if provided explicitly (e.g. for local testing)
+    if args.prometheus_url != "http://observability:9090":
+        PROMETHEUS_URL = args.prometheus_url
     
     with open(SCENARIOS_FILE, "r") as f:
         scenarios = yaml.safe_load(f)

@@ -244,10 +244,17 @@ This is currently a research project. Documentation and examples will be added a
 
 MIT License - See [LICENSE](LICENSE) for details.
 
-## 🔗 Resources
+## 📚 Source of Truth
+These files in the root directory define the authoritative state of the project:
 
--   [Failure Scenarios](docs/data/failure_scenarios.yaml) - Complete list of 50+ chaos scenarios
--   [Training Data Schema](data-pipeline/storage/schema.py) - Parquet data structure
+-   [**PROJECT_STATE.md**](PROJECT_STATE.md) - Current status, infrastructure, and active tasks.
+-   [**SYSTEM_MANIFEST.yaml**](SYSTEM_MANIFEST.yaml) - Architecture definition (services, ports, dependencies).
+-   [**DATA_SCHEMA.yaml**](DATA_SCHEMA.yaml) - Training data schema (metrics, labels).
+-   [**ENV_CONFIG.yaml**](ENV_CONFIG.yaml) - Centralized environment variable configuration.
+-   [**FAILURE_SCENARIOS.yaml**](FAILURE_SCENARIOS.yaml) - Complete list of 50+ chaos scenarios.
+
+## 🔗 Other Resources
+-   [Training Data Schema (Python)](data-pipeline/storage/schema.py) - Implementation of the schema
 -   [Grafana Dashboards](chaos-generator/grafana/dashboards/) - Real-time monitoring
 
 ---

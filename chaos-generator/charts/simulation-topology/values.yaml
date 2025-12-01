@@ -2,7 +2,7 @@
 
 # Global settings
 global:
-  imageRegistry: "asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr"
+  imageRegistry: "us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr"
   imagePullPolicy: Always
 
 # List of services to deploy

@@ -12,7 +12,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("data-generator")
 
-SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "docs/data/failure_scenarios.yaml")
+SCENARIOS_FILE = os.getenv("SCENARIOS_FILE", "FAILURE_SCENARIOS.yaml")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "data/training_data")
 HELM_CHART = os.getenv("HELM_CHART", "chaos-generator/charts/simulation-topology")
 
