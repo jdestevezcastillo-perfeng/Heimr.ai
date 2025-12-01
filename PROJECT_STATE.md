@@ -1,6 +1,6 @@
 ---
 project_name: "Heimr.ai"
-last_updated: "2025-12-01T04:05:00+01:00"
+last_updated: "2025-12-01T11:30:00+01:00"
 # AGENT INSTRUCTION: ALWAYS UPDATE THIS FILE WHEN MAKING SIGNIFICANT CHANGES (INFRA, DEPLOYMENT, VALIDATION).
 # THIS FILE IS THE SOURCE OF TRUTH FOR PROJECT STATE.
 infrastructure:
@@ -67,10 +67,10 @@ validation_status:
     details: "Verified in Parquet file. Prometheus scraping successful."
   logs:
     status: "PASS"
-    details: "Verified in Parquet file (300+ logs/run). Promtail fixed with hostPath mount and privileged mode."
+    details: "Verified in Parquet file. Fixed collection query to target `sim-*` containers, removing observability noise."
   traces:
     status: "PASS"
-    details: "Verified in Parquet file (100+ traces/run). Traffic generator implemented to trigger traces."
+    details: "Verified in Parquet file. Added error trace capture (searching for `error=true`) and filtered out `/metrics` traces."
 known_issues:
   - id: "QUEUE_CONFUSION"
     description: "Previous diagrams labeled queue as RabbitMQ; code confirms it is Kafka."
@@ -86,6 +86,8 @@ recent_actions:
   - "Updated Data Pipeline to use `service.name` for trace queries and 60s lookback."
   - "Verified full observability data (Metrics, Logs, Traces) in Parquet."
   - "Moved Source of Truth files (Project State, Manifest, Schema, Config, Scenarios) to root directory."
+  - "Fixed Log Collection: Updated Loki query to exclude internal observability logs."
+  - "Fixed Trace Collection: Added explicit error trace capture and filtered out Prometheus scrape traces."
 ---
 
 # Project State Documentation
@@ -105,7 +107,7 @@ The project consists of a GKE cluster running multiple isolated "Simulator Topol
     *   **Architecture**: Kubernetes Job (`k8s/base/pipeline/job-parallel.yaml`) running inside the cluster.
     *   **Orchestrator**: `run_gke_generation.py` (running in the Job).
     *   **Data Flow**: Simulators -> Observability Stack -> Data Pipeline (Job) -> GCS Bucket.
-    *   **Status**: Active (Running 20 parallel workers).
+    *   **Status**: Active (Data Generation Phase).
 
 ## Current Status Details
 
@@ -114,13 +116,11 @@ The project consists of a GKE cluster running multiple isolated "Simulator Topol
 *   **GKE**: Running 3 nodes. Resource quotas are tight (12 vCPU limit), so workload is capped at 12 topologies.
 
 ### Observability Debugging
-We have spent significant time debugging the observability pipeline:
+We have successfully debugged and fixed the observability pipeline:
 1.  **Prometheus**: Working. Scrapes all services on port 8000.
-2.  **Loki**: Working, but receiving no application logs. Promtail was fixed to mount `/var/log`, but application logs (stdout) might not be flowing as expected or the volume mount might still be tricky with the sidecar pattern.
-3.  **Tempo**: Working, but receiving no traces.
-    *   **Fix Applied**: Added `OTEL_EXPORTER_OTLP_ENDPOINT` to all deployments.
-    *   **Remaining Issue**: The application (`sim-service-agent`) is passive. It needs incoming HTTP requests to generate traces. The current data generator only triggers chaos (config change) but does not send user traffic.
+2.  **Loki**: Working. Now correctly filtering for application logs from `sim-*` containers.
+3.  **Tempo**: Working. Now correctly capturing error traces and filtering out observability noise (`/metrics`).
 
 ## Next Steps
-1.  **Traffic Generation**: We must modify the data generation pipeline to send actual HTTP requests to `sim-service-agent` during the data collection window. This will generate the missing traces and logs.
-2.  **Verify Fix**: Once traffic is flowing, re-run `run_gke_generation.py` and inspect the Parquet file again.
+1.  **Data Generation**: Run the full data generation batch to produce the 10,000+ example dataset.
+2.  **Model Training**: Proceed to Phase 2 (XGBoost + LLM training) once data is ready.

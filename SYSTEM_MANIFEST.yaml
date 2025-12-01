@@ -1,5 +1,5 @@
 version: "1.0.0"
-last_updated: "2025-12-01T04:05:00+01:00"
+last_updated: "2025-12-01T10:50:00+01:00"
 description: "Single Source of Truth for Heimr.ai Architecture. Update this file whenever architecture components, ports, or configurations change."
 
 infrastructure:
@@ -97,9 +97,11 @@ topology:
 data_pipeline:
   script: "run_gke_generation.py"
   output_format: "Parquet"
-  schema_version: "v1"
+  schema_version: "v1.1"
   features:
     - "traffic_generator" # aiohttp based
+    - "filtered_log_collection" # Targets sim-* containers only
+    - "error_trace_capture" # Explicitly queries for error traces
   required_columns:
     - "metrics"
     - "logs"

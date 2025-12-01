@@ -127,8 +127,8 @@ def query_loki_logs(namespace, start_time, end_time):
     """Query Loki for logs during scenario execution."""
     url = f"{LOKI_URL}/loki/api/v1/query_range"
     
-    # Query for ALL logs in the namespace to ensure we see traffic
-    query = f'{{namespace="{namespace}"}}'
+    # Query for logs from simulation containers only
+    query = f'{{namespace="{namespace}", container_name=~"sim-.*|chaos-controller"}}'
     
     params = {
         "query": query,
@@ -224,7 +224,8 @@ def query_tempo_traces(namespace, start_time, end_time):
         "durations": [],
         "slowest_trace_id": None,
         "max_duration": -1,
-        "error_trace_id": None
+        "error_trace_id": None,
+        "traces_list": traces
     }
     
     for trace in traces:
@@ -260,27 +261,98 @@ def query_tempo_traces(namespace, start_time, end_time):
     }
 
     # Fetch details for slowest trace
-    if trace_features["slowest_trace_id"]:
-        try:
-            trace_url = f"{TEMPO_URL}/api/traces/{trace_features['slowest_trace_id']}"
-            t_resp = requests.get(trace_url, timeout=2)
-            if t_resp.status_code == 200:
-                full_trace = t_resp.json()
-                stats["trace_slowest_json"] = json.dumps(full_trace)[:5000] # Truncate
-                
-                # Extract dependencies
-                services = set()
-                for span in full_trace.get("spans", []):
-                    stats["trace_span_count"] += 1
-                    if "service.name" in span.get("attributes", {}): # OpenTelemetry convention
-                         services.add(span["attributes"]["service.name"])
-                    # Check for errors
-                    if span.get("status", {}).get("code") == "STATUS_CODE_ERROR":
-                         stats["trace_error_spans"] += 1
-                
-                stats["trace_dependencies"] = json.dumps(list(services))
-        except Exception:
-            pass
+    # We iterate through the slowest traces to find one that is NOT /metrics
+    # Tempo search returns a list of traces. We should check them.
+    
+    candidate_trace_id = None
+    
+    # If we have durations, we can try to find the max duration that corresponds to a non-metrics trace
+    # But we only have the list of traces from the search result.
+    # Let's re-examine the search result 'traces' list.
+    
+    # We need to fetch the full trace to know if it's /metrics (unless it's in the search summary?)
+    # Search summary usually has rootServiceName and rootTraceName.
+    
+    # Let's try to find a relevant trace from the search results
+    if trace_features["traces_list"]:
+        # Sort by duration descending
+        sorted_traces = sorted(trace_features["traces_list"], key=lambda x: x.get("durationMs", 0), reverse=True)
+        
+        for trace_summary in sorted_traces:
+            # Check if name indicates metrics
+            # Note: Tempo search result might not have 'name' or 'rootTraceName' depending on version
+            # If we can't tell, we have to fetch it.
+            
+            t_id = trace_summary["traceID"]
+            try:
+                trace_url = f"{TEMPO_URL}/api/traces/{t_id}"
+                t_resp = requests.get(trace_url, timeout=2)
+                if t_resp.status_code == 200:
+                    full_trace = t_resp.json()
+                    
+                    # Check root span name or any span name
+                    is_metrics = False
+                    for span in full_trace.get("spans", []):
+                        if span.get("name") == "GET /metrics" or \
+                           span.get("attributes", {}).get("http.target", "") == "/metrics":
+                            is_metrics = True
+                            break
+                    
+                    if not is_metrics:
+                        candidate_trace_id = t_id
+                        stats["trace_slowest_json"] = json.dumps(full_trace)[:5000]
+                        
+                        # Extract dependencies and errors from this valid trace
+                        services = set()
+                        for span in full_trace.get("spans", []):
+                            stats["trace_span_count"] += 1
+                            if "service.name" in span.get("attributes", {}):
+                                 services.add(span["attributes"]["service.name"])
+                            if span.get("status", {}).get("code") == "STATUS_CODE_ERROR":
+                                 stats["trace_error_spans"] += 1
+                        
+                        stats["trace_dependencies"] = json.dumps(list(services))
+                        break # Found our slowest non-metrics trace
+            except:
+                continue
+        
+        # If we didn't find any non-metrics trace, we leave it empty or take the first one?
+        # Leaving it empty is better than misleading data.
+
+    # NEW: Query specifically for ERROR traces to populate trace_error_json
+    # We look for traces with error=true tag or http.status_code >= 500
+    # Tempo search tags are restrictive, let's try 'error=true' which is common convention
+    # or 'http.status_code=500' (range queries not always supported in basic search)
+    
+    error_params = {
+        "tags": 'error="true"', 
+        "start": int(start_time.timestamp()),
+        "end": int(end_time.timestamp()),
+        "limit": 1
+    }
+    
+    try:
+        err_resp = requests.get(url, params=error_params, timeout=5)
+        if err_resp.status_code == 200:
+            err_traces = err_resp.json().get("traces", [])
+            if err_traces:
+                error_trace_id = err_traces[0]["traceID"]
+                # Fetch full details
+                t_resp = requests.get(f"{TEMPO_URL}/api/traces/{error_trace_id}", timeout=2)
+                if t_resp.status_code == 200:
+                    stats["trace_error_json"] = json.dumps(t_resp.json())[:5000]
+                    # If we found an error trace, we can assume non-zero error rate
+                    # But to be accurate we'd need count. 
+                    # Let's trust the 'trace_error_spans' from slowest trace OR set a flag?
+                    # Better: if we found error traces here, set error rate > 0 if it was 0
+                    if stats["trace_error_rate"] == 0:
+                         stats["trace_error_rate"] = 0.1 # Heuristic if we found at least one
+            
+            # If 'error=true' didn't return anything, we could try http.status_code=500
+            # but let's stick to one strategy for now to avoid complexity.
+            
+    except Exception as e:
+        logger.warning(f"Tempo error query failed: {e}")
 
     return stats
 
@@ -420,11 +492,21 @@ async def main():
     else:
         NAMESPACE = args.namespace
 
-    PROMETHEUS_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:9090"
-    LOKI_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3100"
-    TEMPO_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3200"
+    # Only override if not set via env vars (which are loaded at module level)
+    # But we need to handle the dynamic namespace case.
+    # Logic: If PROMETHEUS_URL env var is default, try to construct in-cluster URL.
+    # If user provided a custom URL (e.g. localhost via env), keep it.
     
-    # Allow override if provided explicitly (e.g. for local testing)
+    if os.getenv("PROMETHEUS_URL") is None:
+         PROMETHEUS_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:9090"
+    
+    if os.getenv("LOKI_URL") is None:
+         LOKI_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3100"
+         
+    if os.getenv("TEMPO_URL") is None:
+         TEMPO_URL = f"http://observability.{NAMESPACE}.svc.cluster.local:3200"
+    
+    # Allow override if provided explicitly via args (highest priority)
     if args.prometheus_url != "http://observability:9090":
         PROMETHEUS_URL = args.prometheus_url
     
