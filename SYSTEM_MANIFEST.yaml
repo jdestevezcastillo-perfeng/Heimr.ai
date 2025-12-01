@@ -96,13 +96,24 @@ topology:
 
 data_pipeline:
   script: "run_gke_generation.py"
-  output_format: "Parquet"
-  schema_version: "v1.1"
-  features:
-    - "traffic_generator" # aiohttp based
-    - "filtered_log_collection" # Targets sim-* containers only
-    - "error_trace_capture" # Explicitly queries for error traces
+  data_pipeline:
+    language: "Python 3.12"
+    orchestrator: "AsyncIO / Kubernetes Jobs"
+    storage: "Google Cloud Storage (Parquet)"
+    features:
+      - "parallel_generation (20 namespaces)"
+      - "live_validation (watch_and_validate.py)"
+      - "filtered_log_collection"
+      - "error_trace_capture"
+  
+  model_training:
+    framework: "CatBoost"
+    pipeline: "train_model.py"
+    features:
+      - "multi_modal_input (metrics + logs + traces)"
+      - "automated_feature_engineering"
   required_columns:
     - "metrics"
     - "logs"
     - "traces"
+```

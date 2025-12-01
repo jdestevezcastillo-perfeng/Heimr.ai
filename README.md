@@ -38,19 +38,20 @@ We've created a **production-grade chaos engineering platform** that generates h
 ## 📊 Current Data Status
 
 ### Current Data Status
-*   **Generation Status:** Active (Local Generation with Port-Forwarding)
+*   **Generation Status:** Active (Parallel - 20 Namespaces)
 *   **Storage:** `gs://heimr-data-tokyo-snow-479722-a2`
 *   **Format:** Parquet (Snappy compression)
-*   **Schema Version:** v1.1 (Includes high-fidelity logs and traces)
-*   **Validation:** Verified for Healthy, Latency Spike, Memory Leak, and Error Spike scenarios.
+*   **Schema Version:** v1.1 (High-fidelity logs/traces)
+*   **Validation:** Live validation active via `watch_and_validate.py`.
 
-### Validation Scripts
-Ad-hoc validation scripts are located in the `testing/` directory:
-*   `verify_scenario_content.py`: Deep content verification for specific scenarios.
-*   `validate_sample_detailed.py`: Schema and basic content validation.
-*   `deep_inspect.py`: Manual inspection of log and trace samples.
-*   `search_logs.py`: Search for keywords in the `log_context` column.
-*   `dump_raw_logs.py`: Dump raw log content for debugging.
+### Model Training
+*   **Architecture:** CatBoost (Binary Classification)
+*   **Pipeline:** `train_model.py` (Data Loading -> Feature Engineering -> Training -> Evaluation)
+*   **Features:** Metrics + Categorical Log/Trace features.
+
+### Live Validation
+*   **Script:** `watch_and_validate.py`
+*   **Function:** Polls GCS bucket, downloads new files, and validates schema/content in real-time.
 
 ## 🏗️ Architecture
 

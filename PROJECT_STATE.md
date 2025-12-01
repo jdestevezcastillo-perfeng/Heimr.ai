@@ -72,7 +72,11 @@ known_issues:
     description: "Previous diagrams labeled queue as RabbitMQ; code confirms it is Kafka."
     status: "RESOLVED"
 recent_actions:
-  - "Refactored Terraform to match GKE state (Workload Identity, Monitoring)."
+  - "[2025-12-01] Started parallel data generation (20 namespaces) targeting 10k samples."
+  - "[2025-12-01] Implemented CatBoost training pipeline (`train_model.py`)."
+  - "[2025-12-01] Created live validation script (`watch_and_validate.py`)."
+  - "[2025-12-01] Cleaned up GCS bucket (removed empty files)."
+  - "[2025-12-01] Validated content fidelity for API-002, API-003, API-004."
   - "Destroyed and recreated infrastructure to verify reproducibility."
   - "Deployed 12 simulator topologies."
   - "Fixed `observability-pod.yaml` (Promtail hostPath, Tempo memory)."
