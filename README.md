@@ -37,8 +37,8 @@ We've created a **production-grade chaos engineering platform** that generates h
 
 ## 📊 Current Data Status
 
--   **Files Generated**: 650+ Parquet files in GCS
--   **Total Samples**: ~4,000 time-series observations
+-   **Files Generated**: 0 (Regenerating with v1.1 pipeline)
+-   **Total Samples**: 0
 -   **Feature Dimensions**: 650+ metrics per sample
 -   **Target**: 10,000+ examples for production training
 -   **Storage**: `gs://heimr-data-tokyo-snow-479722-a2`
@@ -216,6 +216,7 @@ python quick_validation.py
 ✅ **Zero NULL values** across 650+ metrics  
 ✅ **91% non-zero metrics** (9% all-zero are expected - scenario-specific)  
 ✅ **50/50 class balance** achieved through interleaving
+✅ **High-Fidelity Logs & Traces**: Pipeline v1.1 filters observability noise and actively captures error traces.
 
 ### Validation Results (Random Forest Baseline)
 -   **Test Accuracy**: 91.67%

@@ -1,5 +1,5 @@
 version: "1.0.0"
-last_updated: "2025-12-01T04:05:00+01:00"
+last_updated: "2025-12-01T10:50:00+01:00"
 description: "Definition of the training data schema, metrics, and labels."
 
 schema:
@@ -85,6 +85,7 @@ schema:
         type: "list[string]"
       - name: "log_context"
         type: "list[string]"
+        description: "Application logs from simulation containers (filtered to exclude observability stack)"
 
       # Traces
       - name: "trace_count"
@@ -105,8 +106,10 @@ schema:
         type: "list[string]"
       - name: "trace_slowest_json"
         type: "object"
+        description: "Full JSON of the slowest trace in the window"
       - name: "trace_error_json"
         type: "object"
+        description: "Full JSON of a representative error trace (if any exist)"
 
   training_labels:
     description: "Ground truth labels for supervised learning."
