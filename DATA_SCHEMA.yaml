@@ -1,5 +1,5 @@
 version: "1.0.0"
-last_updated: "2025-12-01T01:53:00+01:00"
+last_updated: "2025-12-01T04:05:00+01:00"
 description: "Definition of the training data schema, metrics, and labels."
 
 schema:
@@ -67,6 +67,46 @@ schema:
         type: "float"
       - name: "concurrent_requests_max"
         type: "float"
+
+      # Logs
+      - name: "log_total_count"
+        type: "integer"
+      - name: "log_error_count"
+        type: "integer"
+      - name: "log_exception_count"
+        type: "integer"
+      - name: "log_unique_errors"
+        type: "integer"
+      - name: "log_error_rate"
+        type: "float"
+      - name: "log_error_samples"
+        type: "list[string]"
+      - name: "log_warning_samples"
+        type: "list[string]"
+      - name: "log_context"
+        type: "list[string]"
+
+      # Traces
+      - name: "trace_count"
+        type: "integer"
+      - name: "trace_span_count"
+        type: "integer"
+      - name: "trace_error_spans"
+        type: "integer"
+      - name: "trace_max_duration_ms"
+        type: "float"
+      - name: "trace_avg_duration_ms"
+        type: "float"
+      - name: "trace_p95_duration_ms"
+        type: "float"
+      - name: "trace_error_rate"
+        type: "float"
+      - name: "trace_dependencies"
+        type: "list[string]"
+      - name: "trace_slowest_json"
+        type: "object"
+      - name: "trace_error_json"
+        type: "object"
 
   training_labels:
     description: "Ground truth labels for supervised learning."

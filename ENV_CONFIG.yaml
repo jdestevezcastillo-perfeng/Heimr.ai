@@ -1,5 +1,5 @@
 version: "1.0.0"
-last_updated: "2025-12-01T01:53:00+01:00"
+last_updated: "2025-12-01T04:05:00+01:00"
 description: "Centralized configuration for environment variables used in deployments."
 
 environment_variables:

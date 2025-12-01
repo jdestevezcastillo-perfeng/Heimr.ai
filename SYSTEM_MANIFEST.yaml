@@ -1,5 +1,5 @@
 version: "1.0.0"
-last_updated: "2025-12-01T01:51:00+01:00"
+last_updated: "2025-12-01T04:05:00+01:00"
 description: "Single Source of Truth for Heimr.ai Architecture. Update this file whenever architecture components, ports, or configurations change."
 
 infrastructure:
@@ -89,13 +89,17 @@ topology:
         port: 3200
         otlp_grpc_port: 4317
         storage: "emptyDir"
+        memory_limit: "1Gi"
       - name: "promtail"
-        volume_mount: "/var/log (hostPath)"
+        volume_mount: "/host/var/log/pods (hostPath)"
+        security_context: "privileged: true"
 
 data_pipeline:
   script: "run_gke_generation.py"
   output_format: "Parquet"
   schema_version: "v1"
+  features:
+    - "traffic_generator" # aiohttp based
   required_columns:
     - "metrics"
     - "logs"
