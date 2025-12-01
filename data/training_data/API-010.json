@@ -1,2 +1,0 @@
-{"timestamp": "2025-11-29T20:06:35.857212", "scenario_id": "API-010", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Missing pagination."}
-{"timestamp": "2025-11-29T20:16:38.485982", "scenario_id": "API-010", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Missing pagination."}
