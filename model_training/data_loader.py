@@ -4,6 +4,7 @@ import ast
 import glob
 import os
 import logging
+from google.cloud import storage
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -42,6 +43,37 @@ def load_data(data_dir):
     full_df = pd.concat(dfs, ignore_index=True)
     logging.info(f"Loaded {len(full_df)} rows total.")
     return full_df
+
+def load_from_gcs(bucket_name, local_cache_dir="data/gcs_cache"):
+    """
+    Downloads new Parquet files from GCS to a local cache directory and loads them.
+    """
+    os.makedirs(local_cache_dir, exist_ok=True)
+    
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blobs = bucket.list_blobs(prefix="") # Assuming files are at root or we want all
+        
+        new_files_count = 0
+        for blob in blobs:
+            if blob.name.endswith(".parquet"):
+                local_path = os.path.join(local_cache_dir, os.path.basename(blob.name))
+                if not os.path.exists(local_path):
+                    logging.info(f"Downloading {blob.name} from GCS...")
+                    blob.download_to_filename(local_path)
+                    new_files_count += 1
+        
+        if new_files_count > 0:
+            logging.info(f"Downloaded {new_files_count} new files.")
+        else:
+            logging.info("No new files in GCS.")
+            
+        return load_data(local_cache_dir)
+        
+    except Exception as e:
+        logging.error(f"GCS Load Error: {e}")
+        return pd.DataFrame()
 
 def parse_logs(df):
     """

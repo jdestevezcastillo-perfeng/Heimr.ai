@@ -40,3 +40,14 @@ environment_variables:
       value: "<pod_name>"
       description: "Hostname of the pod"
       used_by: ["all_simulators"]
+
+  data_pipeline:
+    BUCKET_NAME:
+      value: "heimr-data-tokyo-snow-479722-a2"
+      description: "GCS bucket for storing Parquet files"
+      used_by: ["run_gke_generation.py", "run_parallel_generation.py"]
+    
+    TARGET_URL:
+      value: "http://localhost:8080/docs"
+      description: "Target URL for traffic generation (local execution)"
+      used_by: ["run_gke_generation.py"]
