@@ -4,8 +4,8 @@ metadata:
   name: data-gen-parallel
   namespace: heimr-core
 spec:
-  completions: 20
-  parallelism: 20
+  completions: 12
+  parallelism: 12
   completionMode: Indexed
   template:
     spec:
@@ -21,12 +21,6 @@ spec:
               value: "/data/training"
             - name: HELM_CHART
               value: "chaos-generator/charts/simulation-topology"
-            - name: PROMETHEUS_URL
-              value: "http://prometheus-kube-prometheus-prometheus:9090"
-            - name: LOKI_URL
-              value: "http://loki:3100"
-            - name: TEMPO_URL
-              value: "http://tempo:3100"
             - name: BUCKET_NAME
               value: "heimr-data-tokyo-snow-479722-a2"
           volumeMounts:

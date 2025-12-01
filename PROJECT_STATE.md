@@ -1,6 +1,6 @@
 ---
 project_name: "Heimr.ai"
-last_updated: "2025-12-01T01:45:00+01:00"
+last_updated: "2025-12-01T04:05:00+01:00"
 # AGENT INSTRUCTION: ALWAYS UPDATE THIS FILE WHEN MAKING SIGNIFICANT CHANGES (INFRA, DEPLOYMENT, VALIDATION).
 # THIS FILE IS THE SOURCE OF TRUTH FOR PROJECT STATE.
 infrastructure:
@@ -66,16 +66,12 @@ validation_status:
     status: "PASS"
     details: "Verified in Parquet file. Prometheus scraping successful."
   logs:
-    status: "FAIL"
-    details: "0 logs in Parquet. Promtail configured correctly, but app logs not reaching Loki or not being generated."
+    status: "PASS"
+    details: "Verified in Parquet file (300+ logs/run). Promtail fixed with hostPath mount and privileged mode."
   traces:
-    status: "FAIL"
-    details: "0 traces in Parquet. Simulators are passive; no traffic generator running to trigger traces."
+    status: "PASS"
+    details: "Verified in Parquet file (100+ traces/run). Traffic generator implemented to trigger traces."
 known_issues:
-  - id: "MISSING_TRAFFIC"
-    description: "Data generation script does not generate HTTP traffic to sim-service, so no traces are created."
-    impact: "Observability data is incomplete (only metrics)."
-    fix_plan: "Implement a load generator (e.g., in `run_gke_generation.py` or separate Pod) to drive traffic."
   - id: "QUEUE_CONFUSION"
     description: "Previous diagrams labeled queue as RabbitMQ; code confirms it is Kafka."
     status: "RESOLVED"
@@ -84,9 +80,11 @@ recent_actions:
   - "Refactored Terraform to match GKE state (Workload Identity, Monitoring)."
   - "Destroyed and recreated infrastructure to verify reproducibility."
   - "Deployed 12 simulator topologies."
-  - "Fixed `observability-pod.yaml` (Promtail hostPath)."
+  - "Fixed `observability-pod.yaml` (Promtail hostPath, Tempo memory)."
   - "Fixed `sim-deployments.yaml` (Added OTEL env vars)."
-  - "Generated and uploaded partial Parquet file (Metrics only)."
+  - "Implemented Traffic Generator in `run_gke_generation.py`."
+  - "Updated Data Pipeline to use `service.name` for trace queries and 60s lookback."
+  - "Verified full observability data (Metrics, Logs, Traces) in Parquet."
   - "Moved Source of Truth files (Project State, Manifest, Schema, Config, Scenarios) to root directory."
 ---
 

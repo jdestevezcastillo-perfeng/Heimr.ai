@@ -21,4 +21,12 @@ data:
               - localhost
             labels:
               job: pod-logs
-              __path__: /var/log/pods/*/*.log
+              __path__: /host/var/log/pods/*/*/*.log
+        pipeline_stages:
+          - regex:
+              expression: "^/host/var/log/pods/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\\-]+)/(?P<container_name>[^/]+)/.*\\.log$"
+              source: filename
+          - labels:
+              namespace:
+              pod_name:
+              container_name:

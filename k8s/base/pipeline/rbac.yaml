@@ -3,6 +3,8 @@ kind: ServiceAccount
 metadata:
   name: data-generator-sa
   namespace: heimr-core
+  annotations:
+    iam.gke.io/gcp-service-account: heimr-agent-sa@tokyo-snow-479722-a2.iam.gserviceaccount.com
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

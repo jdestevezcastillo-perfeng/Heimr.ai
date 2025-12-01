@@ -80,8 +80,8 @@ spec:
         memory: "128Mi"
         cpu: "50m"
       limits:
-        memory: "256Mi"
-        cpu: "200m"
+        memory: "1Gi"
+        cpu: "500m"
   
   # Promtail - Log shipping
   - name: promtail
@@ -89,8 +89,8 @@ spec:
     volumeMounts:
     - name: promtail-config
       mountPath: /etc/promtail
-    - name: varlog
-      mountPath: /var/log
+    - name: host-root
+      mountPath: /host
       readOnly: true
     args:
     - '-config.file=/etc/promtail/promtail-config.yaml'
@@ -101,6 +101,9 @@ spec:
       limits:
         memory: "128Mi"
         cpu: "100m"
+    securityContext:
+      privileged: true
+      runAsUser: 0
   
   # Grafana - Dashboards
   - name: grafana
@@ -150,6 +153,9 @@ spec:
   - name: promtail-config
     configMap:
       name: promtail-config
+  - name: host-root
+    hostPath:
+      path: /
   - name: varlog
     emptyDir: {}
   - name: grafana-datasources

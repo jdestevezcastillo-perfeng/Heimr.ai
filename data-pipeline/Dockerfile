@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir \
     requests \
     pyyaml \
     google-cloud-storage \
-    kubernetes
+    kubernetes \
+    aiohttp
 
 # Copy application code
 COPY data-pipeline/ /app/data-pipeline/

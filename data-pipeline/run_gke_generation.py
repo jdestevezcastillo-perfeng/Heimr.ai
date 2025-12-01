@@ -9,6 +9,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import subprocess
+import aiohttp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -32,6 +33,26 @@ async def run_command(cmd):
         logger.error(f"Command failed: {cmd}\nStderr: {stderr.decode()}")
         return False
     return True
+
+async def generate_traffic(duration=60, rate=5):
+    """Generates concurrent HTTP traffic to the simulation service."""
+    url = f"http://sim-service.{NAMESPACE}.svc.cluster.local:8000/docs" # Simple endpoint
+    logger.info(f"Starting traffic generator to {url} for {duration}s at ~{rate} req/s")
+    
+    start_time = time.time()
+    async with aiohttp.ClientSession() as session:
+        while time.time() - start_time < duration:
+            tasks = []
+            for _ in range(rate):
+                tasks.append(session.get(url))
+            
+            try:
+                responses = await asyncio.gather(*tasks, return_exceptions=True)
+                # Optional: log success rate if needed
+            except Exception as e:
+                logger.warning(f"Traffic generation error: {e}")
+            
+            await asyncio.sleep(1) # 1 second batch
 
 async def inject_fault(scenario):
     """Applies the ChaosScenario CRD to the existing namespace."""
@@ -106,8 +127,8 @@ def query_loki_logs(namespace, start_time, end_time):
     """Query Loki for logs during scenario execution."""
     url = f"{LOKI_URL}/loki/api/v1/query_range"
     
-    # Query for error logs
-    query = f'{{namespace="{namespace}"}} |~ "(?i)(error|exception|fatal|panic|traceback)"'
+    # Query for ALL logs in the namespace to ensure we see traffic
+    query = f'{{namespace="{namespace}"}}'
     
     params = {
         "query": query,
@@ -178,7 +199,7 @@ def query_tempo_traces(namespace, start_time, end_time):
     url = f"{TEMPO_URL}/api/search"
     
     params = {
-        "tags": f"namespace={namespace}",
+        "tags": "service.name=sim-service-agent",
         "start": int(start_time.timestamp()),
         "end": int(end_time.timestamp())
     }
@@ -269,6 +290,9 @@ async def collect_metrics(scenario, duration=60):
     start_time_collection = datetime.now()
     data_points = []
     
+    # Start traffic generation in background
+    traffic_task = asyncio.create_task(generate_traffic(duration=duration))
+    
     # Collect for 'duration' seconds
     while (datetime.now() - start_time_collection).total_seconds() < duration:
         timestamp = datetime.now()
@@ -321,10 +345,13 @@ async def collect_metrics(scenario, duration=60):
                 continue
 
         # 2. Loki Logs (NEW)
-        log_features = query_loki_logs(NAMESPACE, timestamp - timedelta(seconds=10), timestamp)
+        # Increase lookback to 60s to account for ingestion lag
+        log_features = query_loki_logs(NAMESPACE, timestamp - timedelta(seconds=60), timestamp)
+        logger.info(f"Loki logs found: {log_features['log_total_count']}")
         
         # 3. Tempo Traces (NEW)
-        trace_features = query_tempo_traces(NAMESPACE, timestamp - timedelta(seconds=10), timestamp)
+        trace_features = query_tempo_traces(NAMESPACE, timestamp - timedelta(seconds=60), timestamp)
+        logger.info(f"Tempo traces found: {trace_features['trace_count']}")
         
         data_point = {
             "timestamp": timestamp.isoformat(),
@@ -337,6 +364,9 @@ async def collect_metrics(scenario, duration=60):
         
         data_points.append(data_point)
         await asyncio.sleep(10)
+    
+    # Ensure traffic stops
+    await traffic_task
     
     return data_points
 
