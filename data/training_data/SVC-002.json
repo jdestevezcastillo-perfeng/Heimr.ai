@@ -1,2 +1,0 @@
-{"timestamp": "2025-11-29T20:07:42.546562", "scenario_id": "SVC-002", "metrics": {"latency_p99": 597, "error_rate": 0.05}, "label": "Downstream outage."}
-{"timestamp": "2025-11-29T20:17:49.878475", "scenario_id": "SVC-002", "metrics": {"latency_p99": 556, "error_rate": 0.05}, "label": "Downstream outage."}

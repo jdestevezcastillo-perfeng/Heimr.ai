@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-gen-parallel
+  namespace: heimr-core
+spec:
+  completions: 12
+  parallelism: 12
+  completionMode: Indexed
+  template:
+    spec:
+      serviceAccountName: data-generator-sa
+      containers:
+        - name: generator
+          image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/data-pipeline:latest
+          imagePullPolicy: Always
+          env:
+            - name: SCENARIOS_FILE
+              value: "/app/FAILURE_SCENARIOS.yaml"
+            - name: OUTPUT_DIR
+              value: "/data/training"
+            - name: HELM_CHART
+              value: "chaos-generator/charts/simulation-topology"
+            - name: BUCKET_NAME
+              value: "heimr-data-tokyo-snow-479722-a2"
+          volumeMounts:
+            - name: training-data
+              mountPath: /data/training
+
+      restartPolicy: OnFailure
+      volumes:
+        - name: training-data
+          emptyDir: {}
+

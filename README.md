@@ -37,11 +37,25 @@ We've created a **production-grade chaos engineering platform** that generates h
 
 ## 📊 Current Data Status
 
--   **Files Generated**: 650+ Parquet files in GCS
--   **Total Samples**: ~4,000 time-series observations
--   **Feature Dimensions**: 650+ metrics per sample
--   **Target**: 10,000+ examples for production training
--   **Storage**: `gs://heimr-data-tokyo-snow-479722-a2`
+### Current Data Status
+*   **Generation Status:** Active (Parallel - 20 Namespaces)
+*   **Storage:** `gs://heimr-data-tokyo-snow-479722-a2`
+*   **Format:** Parquet (Snappy compression)
+*   **Schema Version:** v1.1 (High-fidelity logs/traces)
+*   **Validation:** Live validation active via `watch_and_validate.py`.
+
+### Model Training
+*   **Architecture:** CatBoost (Binary Classification)
+*   **Pipeline:** `model_training/train_model.py` (Data Loading -> Feature Engineering -> Training -> Evaluation)
+*   **Features:** Metrics + Categorical Log/Trace features.
+
+### Live Validation
+*   **Script:** `watch_and_validate.py`
+*   **Function:** Polls GCS bucket, downloads new files, and validates schema/content in real-time.
+
+### Live Training
+*   **Script:** `model_training/train_live.py`
+*   **Function:** Monitors GCS bucket and retrains model on new data batches.
 
 ## 🏗️ Architecture
 
@@ -113,7 +127,7 @@ Heimr.ai/
 │   ├── quick_validation.py # Pipeline validation
 │   └── sample_data/        # 20 sample Parquet files
 │
-├── error-generator/        # Chaos engineering stack
+├── chaos-generator/        # Chaos engineering stack
 │   ├── services/           # 6 microservice simulators
 │   ├── chaos_controller/   # CRD-based chaos injection
 │   └── grafana/            # Dashboards
@@ -216,6 +230,7 @@ python quick_validation.py
 ✅ **Zero NULL values** across 650+ metrics  
 ✅ **91% non-zero metrics** (9% all-zero are expected - scenario-specific)  
 ✅ **50/50 class balance** achieved through interleaving
+✅ **High-Fidelity Logs & Traces**: Pipeline v1.1 filters observability noise and actively captures error traces.
 
 ### Validation Results (Random Forest Baseline)
 -   **Test Accuracy**: 91.67%
@@ -244,11 +259,18 @@ This is currently a research project. Documentation and examples will be added a
 
 MIT License - See [LICENSE](LICENSE) for details.
 
-## 🔗 Resources
+## 📚 Source of Truth
+These files in the root directory define the authoritative state of the project:
 
--   [Failure Scenarios](docs/data/failure_scenarios.yaml) - Complete list of 50+ chaos scenarios
--   [Training Data Schema](data-pipeline/storage/schema.py) - Parquet data structure
--   [Grafana Dashboards](error-generator/grafana/dashboards/) - Real-time monitoring
+-   [**PROJECT_STATE.md**](PROJECT_STATE.md) - Current status, infrastructure, and active tasks.
+-   [**SYSTEM_MANIFEST.yaml**](SYSTEM_MANIFEST.yaml) - Architecture definition (services, ports, dependencies).
+-   [**DATA_SCHEMA.yaml**](DATA_SCHEMA.yaml) - Training data schema (metrics, labels).
+-   [**ENV_CONFIG.yaml**](ENV_CONFIG.yaml) - Centralized environment variable configuration.
+-   [**FAILURE_SCENARIOS.yaml**](FAILURE_SCENARIOS.yaml) - Complete list of 50+ chaos scenarios.
+
+## 🔗 Other Resources
+-   [Training Data Schema (Python)](data-pipeline/storage/schema.py) - Implementation of the schema
+-   [Grafana Dashboards](chaos-generator/grafana/dashboards/) - Real-time monitoring
 
 ---
 

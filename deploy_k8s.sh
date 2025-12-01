@@ -20,7 +20,7 @@ kubectl kustomize --enable-helm k8s/base/observability | kubectl apply --server-
 # 3. Create ConfigMap for Scenarios
 echo "Creating Failure Scenarios ConfigMap..."
 kubectl create configmap failure-scenarios \
-    --from-file=docs/data/failure_scenarios.yaml \
+    --from-file=FAILURE_SCENARIOS.yaml \
     -n heimr-core \
     --dry-run=client -o yaml | kubectl apply -f -
 

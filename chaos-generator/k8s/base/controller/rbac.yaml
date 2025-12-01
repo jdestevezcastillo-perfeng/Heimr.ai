@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chaos-controller-sa
+  namespace: heimr-chaos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: chaos-controller-role
+rules:
+  # Framework: knowing which other operators are running (i.e. peering).
+  - apiGroups: ["zalando.org"]
+    resources: ["kopfpeerings"]
+    verbs: ["list", "watch", "patch", "get"]
+  # Framework: posting the events about the handlers progress/errors.
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create"]
+  # Application: watching & handling for the custom resource we declared.
+  - apiGroups: ["heimr.ai"]
+    resources: ["chaosscenarios"]
+    verbs: ["list", "watch", "patch", "get"]
+  # Application: other resources it produces and manages.
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["list", "get", "delete", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: chaos-controller-binding
+subjects:
+  - kind: ServiceAccount
+    name: chaos-controller-sa
+    namespace: heimr-chaos
+roleRef:
+  kind: ClusterRole
+  name: chaos-controller-role
+  apiGroup: rbac.authorization.k8s.io

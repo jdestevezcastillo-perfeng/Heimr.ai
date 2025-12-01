@@ -1,0 +1,53 @@
+version: "1.0.0"
+last_updated: "2025-12-01T04:05:00+01:00"
+description: "Centralized configuration for environment variables used in deployments."
+
+environment_variables:
+  opentelemetry:
+    OTEL_EXPORTER_OTLP_ENDPOINT:
+      value: "http://observability:4317"
+      description: "Endpoint for the OpenTelemetry Collector (Tempo/OtelCol)"
+      used_by: ["all_simulators"]
+    
+    OTEL_SERVICE_NAME:
+      value: "<service_name>"
+      description: "Unique name of the service (e.g., sim-service-agent)"
+      used_by: ["all_simulators"]
+
+  kafka:
+    KAFKA_BOOTSTRAP_SERVERS:
+      value: "localhost:9092"
+      description: "Address of the Kafka broker (simulated)"
+      used_by: ["sim-queue-agent"]
+    
+    TOPIC_NAME:
+      value: "chaos-topic"
+      description: "Kafka topic for message generation"
+      used_by: ["sim-queue-agent"]
+    
+    CONSUMER_GROUP:
+      value: "chaos-group"
+      description: "Kafka consumer group ID"
+      used_by: ["sim-queue-agent"]
+
+  application:
+    NAMESPACE:
+      value: "<k8s_namespace>"
+      description: "Kubernetes namespace where the pod is running"
+      used_by: ["all_simulators"]
+    
+    HOSTNAME:
+      value: "<pod_name>"
+      description: "Hostname of the pod"
+      used_by: ["all_simulators"]
+
+  data_pipeline:
+    BUCKET_NAME:
+      value: "heimr-data-tokyo-snow-479722-a2"
+      description: "GCS bucket for storing Parquet files"
+      used_by: ["run_gke_generation.py", "run_parallel_generation.py"]
+    
+    TARGET_URL:
+      value: "http://localhost:8080/docs"
+      description: "Target URL for traffic generation (local execution)"
+      used_by: ["run_gke_generation.py"]
