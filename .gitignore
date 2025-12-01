@@ -9,11 +9,14 @@ google-cloud-sdk/
 POC docs/
 .venv/
 
-# Terraform
-terraform/.terraform/
-terraform/.terraform.lock.hcl
-terraform/terraform.tfstate
-terraform/terraform.tfstate.backup
+# Archive (old/unused code)
+archive/
+
+# Chaos Generator (terraform state, generated files)
+chaos-generator/terraform/.terraform/
+chaos-generator/terraform/.terraform.lock.hcl
+chaos-generator/terraform/terraform.tfstate
+chaos-generator/terraform/terraform.tfstate.backup
 *.tfstate
 *.tfstate.backup
 
@@ -34,8 +37,7 @@ models/
 *.bin
 
 # Data
-data/training_data/
-data/gcs_cache/
+data/
 temp_data/
 logs/
 *.log
