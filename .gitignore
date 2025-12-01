@@ -8,3 +8,36 @@ CLAUDE.md
 google-cloud-sdk/
 POC docs/
 .venv/
+
+# Archive (old/unused code)
+archive/
+
+# Chaos Generator (terraform state, generated files)
+chaos-generator/terraform/.terraform/
+chaos-generator/terraform/.terraform.lock.hcl
+chaos-generator/terraform/terraform.tfstate
+chaos-generator/terraform/terraform.tfstate.backup
+*.tfstate
+*.tfstate.backup
+
+# Batch processing
+batch_queue.log
+nohup.out
+
+# Temporary files
+temp_verification/
+verification_file.parquet
+instrumentation_helper.py
+
+# Model Training
+catboost_info/
+models/
+*.pkl
+*.cbm
+*.bin
+
+# Data
+data/
+temp_data/
+logs/
+*.log

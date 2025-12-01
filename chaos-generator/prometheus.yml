@@ -1,0 +1,64 @@
+# Prometheus configuration
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'chaos-generator'
+    environment: 'local'
+
+scrape_configs:
+  # Chaos Generator service
+  - job_name: 'chaos-generator'
+    static_configs:
+      - targets: ['chaos-generator:8000']
+        labels:
+          service: 'chaos-generator'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # NVIDIA DCGM Exporter (official NVIDIA GPU metrics)
+  - job_name: 'nvidia-dcgm'
+    static_configs:
+      - targets: ['dcgm-exporter:9400']
+        labels:
+          service: 'dcgm-exporter'
+          gpu_type: 'nvidia'
+    scrape_interval: 5s
+
+  # NVIDIA SMI Exporter (nvidia_smi_* metrics for existing dashboards)
+  - job_name: 'nvidia-smi'
+    static_configs:
+      - targets: ['nvidia-smi-exporter:9835']
+        labels:
+          service: 'nvidia-smi-exporter'
+          gpu_type: 'nvidia'
+    scrape_interval: 5s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # Loki metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+        labels:
+          service: 'loki'
+
+  # Tempo metrics
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']
+        labels:
+          service: 'tempo'
+
+  # Node Exporter metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          instance: 'localhost'
