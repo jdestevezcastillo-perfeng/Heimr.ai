@@ -16,7 +16,7 @@ spec:
       serviceAccountName: chaos-controller-sa
       containers:
         - name: controller
-          image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/chaos-controller:instrumented
+          image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/chaos-controller:instrumented
           imagePullPolicy: Always
           env:
             - name: KOPF_VERBOSE

@@ -21,11 +21,12 @@ RUN pip install --no-cache-dir \
 
 # Copy application code
 COPY data-pipeline/ /app/data-pipeline/
-COPY docs/data/failure_scenarios.yaml /app/docs/data/failure_scenarios.yaml
+# Copy scenarios
+COPY FAILURE_SCENARIOS.yaml /app/FAILURE_SCENARIOS.yaml
 
 # Set environment variables
-ENV PYTHONPATH=/app
-ENV SCENARIOS_FILE=/app/docs/data/failure_scenarios.yaml
+ENV PYTHONUNBUFFERED=1
+ENV SCENARIOS_FILE=/app/FAILURE_SCENARIOS.yaml
 ENV OUTPUT_DIR=/app/data/training_data
 
 # Entrypoint

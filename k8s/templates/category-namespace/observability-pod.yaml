@@ -153,7 +153,8 @@ spec:
     configMap:
       name: promtail-config
   - name: varlog
-    emptyDir: {}
+    hostPath:
+      path: /var/log
   - name: grafana-datasources
     configMap:
       name: grafana-datasources

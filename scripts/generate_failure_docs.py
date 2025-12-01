@@ -92,4 +92,4 @@ def generate_markdown(yaml_path, output_path):
     print(f"Successfully generated {output_path} from {yaml_path}")
 
 if __name__ == "__main__":
-    generate_markdown('docs/data/failure_scenarios.yaml', 'docs/FAILURE_SCENARIOS.md')
+    generate_markdown('FAILURE_SCENARIOS.yaml', 'docs/FAILURE_SCENARIOS.md')

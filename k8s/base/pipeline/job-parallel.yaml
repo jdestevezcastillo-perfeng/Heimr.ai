@@ -12,11 +12,11 @@ spec:
       serviceAccountName: data-generator-sa
       containers:
         - name: generator
-          image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/data-pipeline:latest
+          image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/data-pipeline:latest
           imagePullPolicy: Always
           env:
             - name: SCENARIOS_FILE
-              value: "/app/docs/data/failure_scenarios.yaml"
+              value: "/app/FAILURE_SCENARIOS.yaml"
             - name: OUTPUT_DIR
               value: "/data/training"
             - name: HELM_CHART
@@ -32,12 +32,9 @@ spec:
           volumeMounts:
             - name: training-data
               mountPath: /data/training
-            - name: scenarios
-              mountPath: /app/docs/data
+
       restartPolicy: OnFailure
       volumes:
         - name: training-data
           emptyDir: {}
-        - name: scenarios
-          configMap:
-            name: failure-scenarios
+

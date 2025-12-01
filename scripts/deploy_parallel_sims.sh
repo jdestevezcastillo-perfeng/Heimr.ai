@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-REPLICAS=20
+REPLICAS=12
 
 echo "🚀 Deploying $REPLICAS parallel simulator topologies..."
 
@@ -19,12 +19,18 @@ for ((i=0; i<REPLICAS; i++)); do
         kubectl apply -f -
     
     # Apply Prometheus RBAC
-    kubectl apply -f k8s/templates/category-namespace/prometheus-rbac.yaml -n $NS
+    cat k8s/templates/category-namespace/prometheus-rbac.yaml | \
+        sed "s/namespace: sim-api/namespace: $NS/g" | \
+        kubectl apply -f -
     
     # Deploy ConfigMaps
-    kubectl apply -f k8s/templates/category-namespace/configmaps/ -n $NS 2>/dev/null || true
+    # Deploy ConfigMaps
+    for file in k8s/templates/category-namespace/configmaps/*.yaml; do
+        cat "$file" | sed "s/namespace: sim-api/namespace: $NS/g" | kubectl apply -f - -n $NS
+    done
     
     # Deploy Observability Pod
+    kubectl delete pod observability-stack -n $NS --ignore-not-found
     kubectl apply -f k8s/templates/category-namespace/observability-pod.yaml -n $NS
     
     # Deploy Simulators

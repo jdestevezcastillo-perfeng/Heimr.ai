@@ -13,7 +13,7 @@ from typing import Optional
 # OpenTelemetry imports
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -57,7 +57,8 @@ try:
         endpoint="http://observability:4317",
         insecure=True
     )
-    span_processor = BatchSpanProcessor(otlp_exporter)
+    # Use SimpleSpanProcessor for immediate export (synchronous) to avoid data loss in short windows
+    span_processor = SimpleSpanProcessor(otlp_exporter)
     trace.get_tracer_provider().add_span_processor(span_processor)
     logger.info("OpenTelemetry tracing configured successfully")
 except Exception as e:

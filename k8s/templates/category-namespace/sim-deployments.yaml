@@ -14,10 +14,15 @@ spec:
     spec:
       containers:
       - name: sim-service
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-service-agent:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-service-agent:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "sim-service-agent"
         resources:
           requests:
             memory: "64Mi"
@@ -42,10 +47,15 @@ spec:
     spec:
       containers:
       - name: sim-db
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-db-agent:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-db-agent:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "sim-db"
         resources:
           requests:
             memory: "128Mi"
@@ -70,10 +80,15 @@ spec:
     spec:
       containers:
       - name: sim-cache
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-cache-agent:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-cache-agent:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "sim-cache"
         resources:
           requests:
             memory: "64Mi"
@@ -98,10 +113,15 @@ spec:
     spec:
       containers:
       - name: sim-queue
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-queue-agent:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-queue-agent:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "sim-queue"
         resources:
           requests:
             memory: "64Mi"
@@ -126,10 +146,15 @@ spec:
     spec:
       containers:
       - name: sim-inference
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-inference:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/sim-inference:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "sim-inference"
         resources:
           requests:
             memory: "256Mi"
@@ -155,10 +180,15 @@ spec:
       serviceAccountName: chaos-controller-sa
       containers:
       - name: chaos-controller
-        image: asia-northeast1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/chaos-controller:instrumented
+        image: us-central1-docker.pkg.dev/tokyo-snow-479722-a2/heimr/chaos-controller:instrumented
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://observability:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "chaos-controller"
         resources:
           requests:
             memory: "64Mi"

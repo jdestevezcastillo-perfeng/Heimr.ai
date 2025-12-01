@@ -1,0 +1,102 @@
+version: "1.0.0"
+last_updated: "2025-12-01T01:51:00+01:00"
+description: "Single Source of Truth for Heimr.ai Architecture. Update this file whenever architecture components, ports, or configurations change."
+
+infrastructure:
+  platform: "GKE"
+  region: "asia-northeast1"
+  zone: "us-central1-a"
+  cluster:
+    name: "heimr-cluster"
+    node_count: 3
+    machine_type: "e2-standard-4"
+    disk_size_gb: 50
+  storage:
+    gcs_bucket: "heimr-data-tokyo-snow-479722-a2"
+    artifact_registry: "heimr (us-central1)"
+
+topology:
+  namespace_pattern: "sim-api-*"
+  active_namespaces: 12
+  
+  services:
+    - name: "sim-service-agent"
+      role: "Gateway / API"
+      image: "heimr/sim-service-agent:instrumented"
+      ports:
+        http: 8000
+      env_vars:
+        - OTEL_EXPORTER_OTLP_ENDPOINT: "http://observability:4317"
+        - OTEL_SERVICE_NAME: "sim-service-agent"
+      configuration:
+        trace_processor: "SimpleSpanProcessor" # Synchronous export
+        framework: "FastAPI"
+      dependencies:
+        - "sim-db"
+        - "sim-cache"
+        - "sim-queue"
+        - "sim-inference"
+
+    - name: "sim-db"
+      role: "Database Simulator"
+      image: "heimr/sim-db-agent:instrumented"
+      ports:
+        http: 8000
+      tech_stack: "PostgreSQL (Simulated)"
+
+    - name: "sim-cache"
+      role: "Cache Simulator"
+      image: "heimr/sim-cache-agent:instrumented"
+      ports:
+        http: 8000
+      tech_stack: "Redis (Simulated)"
+
+    - name: "sim-queue"
+      role: "Message Queue Simulator"
+      image: "heimr/sim-queue-agent:instrumented"
+      ports:
+        http: 8000
+      tech_stack: "Kafka (Simulated)"
+      notes: "Uses aiokafka, generates kafka_* metrics"
+
+    - name: "sim-inference"
+      role: "LLM Simulator"
+      image: "heimr/sim-inference:instrumented"
+      ports:
+        http: 8000
+      tech_stack: "Python/Mock"
+
+    - name: "chaos-controller"
+      role: "Fault Injection"
+      image: "heimr/chaos-controller:instrumented"
+      ports:
+        http: 8000
+      permissions:
+        service_account: "chaos-controller-sa"
+        cluster_role: "chaos-cluster-role"
+
+  observability:
+    deployment_mode: "Sidecar / Single Pod"
+    pod_name: "observability-stack"
+    components:
+      - name: "prometheus"
+        port: 9090
+        storage: "emptyDir"
+      - name: "loki"
+        port: 3100
+        storage: "emptyDir"
+      - name: "tempo"
+        port: 3200
+        otlp_grpc_port: 4317
+        storage: "emptyDir"
+      - name: "promtail"
+        volume_mount: "/var/log (hostPath)"
+
+data_pipeline:
+  script: "run_gke_generation.py"
+  output_format: "Parquet"
+  schema_version: "v1"
+  required_columns:
+    - "metrics"
+    - "logs"
+    - "traces"
