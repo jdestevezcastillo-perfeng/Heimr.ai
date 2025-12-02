@@ -37,14 +37,15 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Analyze command
-    analyze_parser = subparsers.add_parser("analyze", help="Analyze a load test result file")
-    analyze_parser.add_argument("file", help="Path to the result file (JTL, JSON, LOG, CSV)")
-    analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Force file format")
-    analyze_parser.add_argument("--output", help="Path to save the report (optional)")
-    analyze_parser.add_argument("--explain", action="store_true", help="Generate AI explanation")
-    analyze_parser.add_argument("--prometheus-url", help="Prometheus URL for metrics")
-    analyze_parser.add_argument("--llm-url", help="Custom LLM API URL (e.g., http://localhost:11434/v1)")
-    analyze_parser.add_argument("--llm-model", help="Custom LLM model name (e.g., llama3)")
+    # Analyze command
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze a load test result file and detect anomalies.")
+    analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
+    analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
+    analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
+    analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
+    analyze_parser.add_argument("--prometheus-url", help="URL of the Prometheus server to fetch system metrics (e.g., http://localhost:9090)")
+    analyze_parser.add_argument("--llm-url", help="Base URL for a custom/local LLM API (e.g., http://localhost:11434/v1 for Ollama)")
+    analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-4, claude-3-opus, llama3)")
 
     args = parser.parse_args()
 
@@ -135,6 +136,12 @@ def main():
                 # Pass prom_metrics to LLM (mock will ignore for now, but interface is ready)
                 explanation = llm.generate_explanation(stats, anomaly_summary) 
                 print(explanation)
+
+                # Save report if requested
+                if args.output:
+                    with open(args.output, "w") as f:
+                        f.write(explanation)
+                    print(f"\n✅ Report saved to: {args.output}")
 
         except Exception as e:
             print(f"Error: {e}")
