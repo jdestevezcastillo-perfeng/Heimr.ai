@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+tests
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.claude
+google-cloud-sdk
+chaos-generator
+archive
