@@ -80,17 +80,41 @@ class LLMClient:
 
     def _construct_prompt(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
         return f"""
-        Analyze this load test run:
+        You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
+
+        ### Test Statistics
         - Total Requests: {stats.get('total_requests')}
-        - Avg Latency: {stats.get('avg_latency'):.2f} ms
+        - Average Latency: {stats.get('avg_latency'):.2f} ms
         - P99 Latency: {stats.get('p99_latency'):.2f} ms
         - Error Rate: {stats.get('error_rate'):.2f}%
-        
-        Anomalies Detected:
-        - Count: {anomalies.get('count')}
-        - Avg Anomaly Latency: {anomalies.get('avg_latency', 0):.2f} ms
-        
-        Provide a concise root cause analysis and recommendations.
+        - Start Time: {stats.get('start_time')}
+        - End Time: {stats.get('end_time')}
+
+        ### Anomaly Detection Results
+        - Anomalies Detected: {anomalies.get('count')}
+        - Average Latency during Anomalies: {anomalies.get('avg_latency', 0):.2f} ms
+        - Max Latency during Anomalies: {anomalies.get('max_latency', 0):.2f} ms
+        - Anomaly Timestamps: {', '.join(str(ts) for ts in anomalies.get('timestamps', [])[:5])} ...
+
+        ### Report Requirements
+        Please structure your response exactly as follows:
+
+        # Performance Analysis Report
+
+        ## 1. Executive Summary
+        [Provide a high-level summary of the test run. Was it successful? Did it meet SLAs? Mention the error rate and P99 latency.]
+
+        ## 2. Detailed Analysis
+        [Analyze the statistics. Discuss the significance of the P99 latency vs Average. Explain the impact of the error rate.]
+
+        ## 3. Anomaly Investigation
+        [Discuss the detected anomalies. Correlate the timestamps with potential system events. Why is the anomaly latency so high?]
+
+        ## 4. Potential Root Causes
+        [List 3-5 potential root causes based on the data. E.g., Database saturation, GC pauses, Network congestion, etc.]
+
+        ## 5. Recommendations
+        [Provide actionable next steps to resolve the issues.]
         """
 
     def _generate_mock_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
