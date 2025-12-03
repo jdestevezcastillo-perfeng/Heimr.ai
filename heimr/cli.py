@@ -84,7 +84,7 @@ def main():
     analyze_parser.add_argument("--tempo-url", help="URL of the Tempo server to fetch traces (e.g., http://localhost:3200)")
     analyze_parser.add_argument("--tempo-file", help="Path to a local JSON file containing Tempo traces")
     analyze_parser.add_argument("--llm-url", help="Base URL for a local LLM API (e.g., http://localhost:11434/v1 for Ollama)")
-    analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-4, claude-3-5-sonnet-20241022, llama3)")
+    analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-5.1, claude-sonnet-4-5-20250514, llama3)")
 
     args = parser.parse_args()
 

@@ -47,7 +47,7 @@ class LLMClient:
             
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
-            model_to_use = self.model if self.model else "gpt-4-turbo"
+            model_to_use = self.model if self.model else "gpt-5.1"
             
             stream = client.chat.completions.create(
                 model=model_to_use,
@@ -73,7 +73,7 @@ class LLMClient:
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
             
             with client.messages.stream(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-5-20250514",
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
             ) as stream:

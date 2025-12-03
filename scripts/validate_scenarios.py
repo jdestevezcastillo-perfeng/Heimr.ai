@@ -64,7 +64,7 @@ def validate_file(args):
 def run_validation():
     parser = argparse.ArgumentParser(description="Validate Heimr scenarios.")
     parser.add_argument("--llm-url", help="URL for local LLM (e.g., http://localhost:11434/v1)")
-    parser.add_argument("--llm-model", help="Model name (e.g., gpt-4, llama3)")
+    parser.add_argument("--llm-model", help="Model name (e.g., gpt-5.1, claude-sonnet-4-5-20250514, llama3)")
     parser.add_argument("--api-key", help="API Key for OpenAI or Anthropic")
     parser.add_argument("--provider", choices=['openai', 'anthropic', 'local'], help="Provider type (for API key configuration)")
     args = parser.parse_args()

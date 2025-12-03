@@ -165,9 +165,9 @@ No data ever leaves your infrastructure:
 
 For enhanced analysis, optionally use:
 
-- OpenAI GPT-4
+- OpenAI ChatGPT-5.1
 
-- Anthropic Claude 3.5
+- Anthropic Claude Sonnet 4.5
 
 **You control** where your data goes.
 
