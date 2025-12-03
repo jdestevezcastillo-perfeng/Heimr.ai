@@ -9,7 +9,7 @@ CLAUDE.md
 google-cloud-sdk/
 POC docs/
 .venv/
-.gemini/
+
 
 # Archive (old/unused code)
 archive/
