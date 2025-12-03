@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heimr.ai - AI-Powered Load Test Analysis</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Retro Grid Background -->
+    <div class="retro-grid"></div>
+    <div class="stars"></div>
+    
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="logo-container">
+            <img src="../banner.png" alt="Heimr.ai" class="banner-logo">
+        </div>
+        <h1 class="glitch" data-text="HEIMR.AI">HEIMR.AI</h1>
+        <p class="tagline">AI-Powered Load Test Analysis</p>
+        <p class="subtitle">Explainable Root Cause Analysis for Your Performance Tests</p>
+    </header>
+
+    <!-- Countdown Section -->
+    <section class="countdown-section">
+        <div class="container">
+            <h2 class="section-title">⚡ LAUNCHING SOON ⚡</h2>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <span class="countdown-value" id="days">00</span>
+                    <span class="countdown-label">DAYS</span>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="hours">00</span>
+                    <span class="countdown-label">HOURS</span>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="minutes">00</span>
+                    <span class="countdown-label">MINUTES</span>
+                </div>
+                <div class="countdown-separator">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="seconds">00</span>
+                    <span class="countdown-label">SECONDS</span>
+                </div>
+            </div>
+            <p class="release-date">December 7, 2025 • 1:00 PM CET</p>
+        </div>
+    </section>
+
+    <!-- What is Heimr.ai Section -->
+    <section class="about-tool">
+        <div class="container">
+            <h2 class="section-title">▶ WHAT IS HEIMR.AI?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Multi-Format Support</h3>
+                    <p>Analyzes JMeter, k6, Gatling, and Locust test results automatically</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Multi-Signal Detection</h3>
+                    <p>Combines 6+ signals: latency anomalies, errors, CPU, memory, logs, and traces</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI-Powered Analysis</h3>
+                    <p>Local LLM (Llama 3.1 / Ministral) generates root cause analysis instantly</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Fully Explainable</h3>
+                    <p>No black-box ML - every anomaly has clear statistical reasoning</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy-First</h3>
+                    <p>Runs completely local with Ollama - your data never leaves your machine</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>O(n) complexity - no training required, works out of the box</p>
+                </div>
+            </div>
+            <div class="tool-description">
+                <p>Heimr.ai correlates your load test results with observability data (Prometheus, Loki, Tempo) to identify performance bottlenecks. Using statistical anomaly detection and AI-powered analysis, it generates comprehensive markdown reports with actionable recommendations.</p>
+                <p class="highlight">✨ Think of it as having a senior performance engineer analyze your tests 24/7</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture">
+        <div class="container">
+            <h2 class="section-title">▼ SYSTEM ARCHITECTURE</h2>
+            <div class="architecture-diagram">
+                <pre class="ascii-art">
+╔═══════════════════╗
+║  Load Test Files  ║
+║ JMeter│k6│Gatling ║
+║      Locust       ║
+╚═════════┬═════════╝
+          │
+          ▼
+    ┌─────────┐
+    │ PARSERS │
+    └────┬────┘
+         │
+         ▼
+  ┌──────────────┐     ┌─────────────────────┐
+  │   ANOMALY    │────▶│  OBSERVABILITY DATA │
+  │   DETECTOR   │     │ Prometheus│Loki     │
+  │  6 Signals   │     │     Tempo           │
+  └──────┬───────┘     └─────────────────────┘
+         │                       │
+         └───────────┬───────────┘
+                     ▼
+            ┌────────────────┐
+            │   LLM CLIENT   │
+            │ Llama / Claude │
+            └────────┬───────┘
+                     ▼
+            ┌────────────────┐
+            │ MARKDOWN REPORT│
+            │Root Cause + Fix│
+            └────────────────┘
+                </pre>
+            </div>
+            <div class="tech-stack">
+                <h3>Tech Stack</h3>
+                <div class="tech-tags">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">Pandas</span>
+                    <span class="tech-tag">Statistical Analysis</span>
+                    <span class="tech-tag">Ollama</span>
+                    <span class="tech-tag">OpenAI API</span>
+                    <span class="tech-tag">Prometheus</span>
+                    <span class="tech-tag">Loki</span>
+                    <span class="tech-tag">Tempo</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo">
+        <div class="container">
+            <h2 class="section-title">◆ LIVE DEMO</h2>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span class="terminal-button red"></span>
+                    <span class="terminal-button yellow"></span>
+                    <span class="terminal-button green"></span>
+                    <span class="terminal-title">heimr-demo.sh</span>
+                </div>
+                <div class="terminal-body">
+                    <p><span class="prompt">$</span> heimr analyze results.jtl --explain</p>
+                    <p class="output">Analyzing results.jtl (jmeter)...</p>
+                    <p class="output">✅ Found 100 requests</p>
+                    <p class="output">⚠️  Detected 7 anomalies</p>
+                    <p class="output">📊 Fetching Prometheus metrics...</p>
+                    <p class="output">📝 Fetching Loki logs...</p>
+                    <p class="output">🔍 Fetching Tempo traces...</p>
+                    <p class="output result-failed">❌ FAILED</p>
+                    <p class="output result-reasons">Reasons: Error Rate: 39.00%, Anomalies: 7, Error/Warn Logs: 8</p>
+                    <p class="output">&nbsp;</p>
+                    <p class="output-ai">🤖 AI Analysis:</p>
+                    <p class="output-ai">Root Cause: Database saturation caused by</p>
+                    <p class="output-ai">unoptimized queries. Recommend adding indexes</p>
+                    <p class="output-ai">and implementing connection pooling.</p>
+                    <p class="output">&nbsp;</p>
+                    <p class="output-success">✅ Report saved to: analysis_report.md</p>
+                    <p><span class="prompt cursor">█</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Me Section -->
+    <section class="about-me">
+        <div class="container">
+            <h2 class="section-title">● ABOUT THE CREATOR</h2>
+            <div class="profile-card">
+                <img src="profile.jpg" alt="Juan David Estevez Castillo" class="profile-photo">
+                <div class="profile-content">
+                    <h3>Juan David Estevez Castillo</h3>
+                    <p class="profile-title">Senior Performance Engineer & ML Enthusiast</p>
+                    <p class="profile-bio">
+                        Performance engineer passionate about making complex systems faster and more reliable. 
+                        Built Heimr.ai after spending too many late nights manually analyzing load test results 
+                        and correlating metrics across multiple observability systems. Believes in explainable 
+                        AI over black-box solutions and local-first tools that respect your privacy.
+                    </p>
+                    <p class="profile-bio">
+                        When not optimizing performance or training models, you'll find me exploring chaos 
+                        engineering, contributing to open source, or experimenting with the latest LLMs.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact">
+        <div class="container">
+            <h2 class="section-title">◈ GET IN TOUCH</h2>
+            <div class="contact-grid">
+                <a href="https://www.linkedin.com/in/juan-estevez-castillo-8b703260/" target="_blank" class="contact-card linkedin">
+                    <div class="contact-icon">💼</div>
+                    <h3>LinkedIn</h3>
+                    <p>Connect with me professionally</p>
+                    <span class="contact-link">@juan-estevez-castillo</span>
+                </a>
+                <a href="mailto:jd.estevezcastillo@gmail.com" class="contact-card email">
+                    <div class="contact-icon">✉️</div>
+                    <h3>Email</h3>
+                    <p>Drop me a message</p>
+                    <span class="contact-link">jd.estevezcastillo@gmail.com</span>
+                </a>
+            </div>
+            <div class="cta">
+                <p class="cta-text">Interested in beta testing? Want to collaborate? Let's talk!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="scanlines">© 2025 Heimr.ai • Built with ❤️ and AI</p>
+            <p class="footer-note">Heimdall watches over your performance</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

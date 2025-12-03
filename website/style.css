@@ -1,0 +1,675 @@
+/* 80s Retro Style inspired by Heimr.ai banner */
+:root {
+  /* Color palette from banner */
+  --color-red: #ff0040;
+  --color-orange: #ff6600;
+  --color-yellow: #ffcc00;
+  --color-green: #00ff88;
+  --color-cyan: #00ffff;
+  --color-purple: #ff00ff;
+  --color-dark: #0a0014;
+  --color-dark-purple: #1a0a2e;
+  --color-neon: #00ff00;
+
+  /* Gradients */
+  --gradient-main: linear-gradient(
+    135deg,
+    var(--color-red),
+    var(--color-orange),
+    var(--color-yellow),
+    var(--color-green),
+    var(--color-cyan)
+  );
+  --gradient-text: linear-gradient(
+    90deg,
+    var(--color-cyan),
+    var(--color-purple),
+    var(--color-orange)
+  );
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "VT323", monospace;
+  background: var(--color-dark);
+  color: var(--color-cyan);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Retro Grid Background */
+.retro-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+      0deg,
+      transparent 24%,
+      rgba(0, 255, 255, 0.05) 25%,
+      rgba(0, 255, 255, 0.05) 26%,
+      transparent 27%,
+      transparent 74%,
+      rgba(0, 255, 255, 0.05) 75%,
+      rgba(0, 255, 255, 0.05) 76%,
+      transparent 77%,
+      transparent
+    ),
+    linear-gradient(
+      90deg,
+      transparent 24%,
+      rgba(0, 255, 255, 0.05) 25%,
+      rgba(0, 255, 255, 0.05) 26%,
+      transparent 27%,
+      transparent 74%,
+      rgba(0, 255, 255, 0.05) 75%,
+      rgba(0, 255, 255, 0.05) 76%,
+      transparent 77%,
+      transparent
+    );
+  background-size: 50px 50px;
+  background-position: -1px -1px;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: center top;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Animated Stars */
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stars::before,
+.stars::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--color-cyan);
+  box-shadow: 100px 200px var(--color-cyan), 200px 50px var(--color-purple),
+    300px 300px var(--color-yellow), 400px 150px var(--color-cyan),
+    500px 250px var(--color-green), 600px 100px var(--color-orange),
+    700px 350px var(--color-cyan), 800px 200px var(--color-purple),
+    900px 50px var(--color-yellow), 1000px 300px var(--color-cyan),
+    1100px 150px var(--color-green), 1200px 250px var(--color-orange);
+  animation: twinkle 3s infinite;
+}
+
+.stars::after {
+  left: 50px;
+  animation-delay: 1.5s;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 4rem 2rem 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.logo-container {
+  margin-bottom: 2rem;
+}
+
+.banner-logo {
+  max-width: 800px;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 20px var(--color-cyan));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.hero h1 {
+  font-family: "Press Start 2P", cursive;
+  font-size: 4rem;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px var(--color-cyan);
+  margin-bottom: 1rem;
+  animation: glitch 5s infinite;
+}
+
+@keyframes glitch {
+  0%,
+  90%,
+  100% {
+    transform: translateX(0);
+  }
+  91% {
+    transform: translateX(-2px);
+  }
+  92% {
+    transform: translateX(2px);
+  }
+  93% {
+    transform: translateX(-2px);
+  }
+  94% {
+    transform: translateX(2px);
+  }
+}
+
+.tagline {
+  font-size: 2rem;
+  color: var(--color-yellow);
+  text-shadow: 0 0 10px var(--color-yellow);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: var(--color-green);
+}
+
+/* Countdown Section */
+.countdown-section {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.countdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.countdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 255, 255, 0.1);
+  border: 2px solid var(--color-cyan);
+  padding: 1rem 2rem;
+  min-width: 120px;
+  box-shadow: 0 0 20px var(--color-cyan);
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--color-cyan);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--color-cyan), 0 0 60px var(--color-cyan);
+  }
+}
+
+.countdown-value {
+  font-family: "Press Start 2P", cursive;
+  font-size: 3rem;
+  color: var(--color-yellow);
+  text-shadow: 0 0 15px var(--color-yellow);
+}
+
+.countdown-label {
+  font-size: 1.2rem;
+  color: var(--color-cyan);
+  margin-top: 0.5rem;
+}
+
+.countdown-separator {
+  font-family: "Press Start 2P", cursive;
+  font-size: 3rem;
+  color: var(--color-purple);
+}
+
+.release-date {
+  font-size: 1.8rem;
+  color: var(--color-orange);
+  text-shadow: 0 0 10px var(--color-orange);
+  margin-top: 2rem;
+}
+
+/* Section Titles */
+.section-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 2rem;
+  color: var(--color-yellow);
+  text-shadow: 0 0 15px var(--color-yellow);
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+/* Feature Grid */
+.about-tool {
+  padding: 4rem 2rem;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.feature-card {
+  background: rgba(26, 10, 46, 0.8);
+  border: 2px solid var(--color-purple);
+  padding: 2rem;
+  border-radius: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 0 15px var(--color-purple);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px var(--color-purple), 0 0 60px var(--color-purple);
+  border-color: var(--color-cyan);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  font-family: "Press Start 2P", cursive;
+  font-size: 1.2rem;
+  color: var(--color-cyan);
+  margin-bottom: 1rem;
+}
+
+.feature-card p {
+  font-size: 1.3rem;
+  color: var(--color-green);
+  line-height: 1.6;
+}
+
+.tool-description {
+  background: rgba(0, 255, 255, 0.05);
+  border: 2px solid var(--color-cyan);
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.tool-description p {
+  font-size: 1.5rem;
+  color: var(--color-cyan);
+  margin-bottom: 1rem;
+  line-height: 1.8;
+}
+
+.highlight {
+  color: var(--color-yellow) !important;
+  font-size: 1.8rem !important;
+  text-shadow: 0 0 10px var(--color-yellow);
+}
+
+/* Architecture Section */
+.architecture {
+  padding: 4rem 2rem;
+  background: rgba(10, 0, 20, 0.5);
+}
+
+.architecture-diagram {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--color-green);
+  padding: 2rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 0 20px var(--color-green);
+  margin-bottom: 2rem;
+}
+
+.ascii-art {
+  font-family: "VT323", monospace;
+  font-size: 1.3rem;
+  color: var(--color-green);
+  text-shadow: 0 0 10px var(--color-green);
+  line-height: 1.4;
+}
+
+.tech-stack {
+  text-align: center;
+}
+
+.tech-stack h3 {
+  font-family: "Press Start 2P", cursive;
+  font-size: 1.5rem;
+  color: var(--color-orange);
+  margin-bottom: 1rem;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.tech-tag {
+  background: rgba(255, 102, 0, 0.2);
+  border: 2px solid var(--color-orange);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  color: var(--color-orange);
+  font-size: 1.2rem;
+  box-shadow: 0 0 10px var(--color-orange);
+}
+
+/* Demo Terminal */
+.demo {
+  padding: 4rem 2rem;
+}
+
+.terminal {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #000;
+  border: 3px solid var(--color-green);
+  border-radius: 10px;
+  box-shadow: 0 0 40px var(--color-green);
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: #2a2a2a;
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terminal-button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-button.red {
+  background: #ff5f56;
+}
+.terminal-button.yellow {
+  background: #ffbd2e;
+}
+.terminal-button.green {
+  background: #27c93f;
+}
+
+.terminal-title {
+  margin-left: auto;
+  color: #999;
+  font-size: 1rem;
+}
+
+.terminal-body {
+  padding: 2rem;
+  font-family: "VT323", monospace;
+  font-size: 1.4rem;
+  line-height: 1.8;
+}
+
+.prompt {
+  color: var(--color-green);
+}
+
+.output {
+  color: var(--color-cyan);
+}
+
+.output-ai {
+  color: var(--color-purple);
+}
+
+.output-success {
+  color: var(--color-green);
+}
+
+.result-failed {
+  color: var(--color-red);
+  font-size: 1.8rem;
+  text-shadow: 0 0 10px var(--color-red);
+}
+
+.result-reasons {
+  color: var(--color-yellow);
+}
+
+.cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* About Me Section */
+.about-me {
+  padding: 4rem 2rem;
+  background: rgba(26, 10, 46, 0.3);
+}
+
+.profile-card {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--color-purple);
+  padding: 3rem;
+  border-radius: 15px;
+  box-shadow: 0 0 30px var(--color-purple);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.profile-photo {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  border: 4px solid var(--color-cyan);
+  box-shadow: 0 0 30px var(--color-cyan);
+  object-fit: cover;
+}
+
+.profile-content h3 {
+  font-family: "Press Start 2P", cursive;
+  font-size: 1.8rem;
+  color: var(--color-yellow);
+  margin-bottom: 0.5rem;
+}
+
+.profile-title {
+  font-size: 1.5rem;
+  color: var(--color-orange);
+  margin-bottom: 1.5rem;
+}
+
+.profile-bio {
+  font-size: 1.4rem;
+  color: var(--color-cyan);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+/* Contact Section */
+.contact {
+  padding: 4rem 2rem;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.contact-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--color-cyan);
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s;
+  box-shadow: 0 0 20px var(--color-cyan);
+}
+
+.contact-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px var(--color-cyan), 0 0 60px var(--color-cyan);
+}
+
+.contact-card.linkedin {
+  border-color: var(--color-purple);
+  box-shadow: 0 0 20px var(--color-purple);
+}
+
+.contact-card.linkedin:hover {
+  box-shadow: 0 0 40px var(--color-purple), 0 0 60px var(--color-purple);
+}
+
+.contact-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.contact-card h3 {
+  font-family: "Press Start 2P", cursive;
+  font-size: 1.5rem;
+  color: var(--color-yellow);
+  margin-bottom: 1rem;
+}
+
+.contact-card p {
+  font-size: 1.3rem;
+  color: var(--color-green);
+  margin-bottom: 1rem;
+}
+
+.contact-link {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--color-cyan);
+}
+
+.cta {
+  text-align: center;
+  background: rgba(255, 0, 64, 0.1);
+  border: 2px solid var(--color-red);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 20px var(--color-red);
+}
+
+.cta-text {
+  font-size: 1.8rem;
+  color: var(--color-yellow);
+  text-shadow: 0 0 10px var(--color-yellow);
+}
+
+/* Footer */
+.footer {
+  padding: 3rem 2rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 2px solid var(--color-cyan);
+}
+
+.scanlines {
+  font-family: "Press Start 2P", cursive;
+  font-size: 1.2rem;
+  color: var(--color-green);
+  margin-bottom: 1rem;
+}
+
+.footer-note {
+  font-size: 1.4rem;
+  color: var(--color-purple);
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .tagline {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+  }
+
+  .countdown-value {
+    font-size: 2rem;
+  }
+
+  .countdown-item {
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-photo {
+    width: 200px;
+    height: 200px;
+  }
+}
