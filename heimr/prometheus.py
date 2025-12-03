@@ -6,9 +6,10 @@ class PrometheusClient:
     """
     Client for querying Prometheus metrics.
     """
-    def __init__(self, url: str = "http://localhost:9090"):
+    def __init__(self, url: str = "http://localhost:9090", file_path: str = None):
         self.url = url.rstrip('/')
         self.api_url = f"{self.url}/api/v1/query_range"
+        self.file_path = file_path
 
     def query_metric(self, query: str, start_time: datetime, end_time: datetime, step: str = "15s") -> List[Dict[str, Any]]:
         """
@@ -38,6 +39,15 @@ class PrometheusClient:
         """
         Fetches key system metrics (CPU, Memory) for the given time range.
         """
+        if self.file_path:
+            import json
+            try:
+                with open(self.file_path, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Error reading Prometheus file: {e}")
+                return {}
+
         metrics = {}
         
         # Example queries - adjust based on actual environment

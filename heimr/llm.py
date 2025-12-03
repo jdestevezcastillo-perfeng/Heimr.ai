@@ -3,140 +3,183 @@ from typing import Dict, Any
 
 class LLMClient:
     """
-    Client for interacting with LLMs (OpenAI, Anthropic, etc.) to generate explanations.
-    Currently uses a mock implementation.
+    Client for interacting with LLMs (OpenAI, Anthropic, Ollama/Local) to generate explanations.
     """
-    def __init__(self, provider: str = "mock", base_url: str = None, model: str = None):
-        self.provider = provider
+    def __init__(self, base_url: str = None, model: str = None):
         self.base_url = base_url
         self.model = model
+        self.provider = self._detect_provider()
 
-    def generate_explanation(self, summary_stats: Dict[str, Any], anomalies_summary: Dict[str, Any]) -> str:
-        """
-        Generates a natural language explanation based on test stats and anomalies.
-        """
-        if self.provider == "mock":
-            return self._generate_mock_explanation(summary_stats, anomalies_summary)
-        elif self.provider == "openai":
-            return self._generate_openai_explanation(summary_stats, anomalies_summary)
-        elif self.provider == "anthropic":
-            return self._generate_anthropic_explanation(summary_stats, anomalies_summary)
+    def _detect_provider(self) -> str:
+        """Auto-detect which LLM provider to use based on configuration."""
+        if self.base_url:
+            # Custom URL means local LLM (Ollama, vLLM, etc.)
+            return "local"
+        elif os.environ.get("ANTHROPIC_API_KEY"):
+            return "anthropic"
+        elif os.environ.get("OPENAI_API_KEY"):
+            return "openai"
         else:
-            raise NotImplementedError(f"Provider {self.provider} not implemented yet.")
+            raise ValueError(
+                "No LLM provider configured. Please either:\n"
+                "  - Set OPENAI_API_KEY environment variable, or\n"
+                "  - Set ANTHROPIC_API_KEY environment variable, or\n"
+                "  - Provide --llm-url for local LLM (e.g., http://localhost:11434/v1)"
+            )
 
-    def _generate_openai_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
+    def generate_explanation(self, summary_stats: Dict[str, Any], anomalies_summary: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+        """
+        Generates a natural language explanation based on test stats, anomalies, and observability data.
+        Returns a generator that yields chunks of the explanation.
+        """
+        if self.provider == "openai":
+            yield from self._generate_openai_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+        elif self.provider == "anthropic":
+            yield from self._generate_anthropic_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+        elif self.provider == "local":
+            yield from self._generate_local_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+        else:
+            raise NotImplementedError(f"Provider {self.provider} not implemented.")
+
+    def _generate_openai_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
         try:
             from openai import OpenAI
-            # For local LLMs (like Ollama), API key might not be needed, but client requires a value.
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if not api_key and self.base_url:
-                api_key = "dummy-key"
             
-            # Ensure api_key is not None if we are using OpenAI provider (even with custom URL)
-            if not api_key:
-                 # If we are here, it means no env var and no base_url (or base_url didn't trigger dummy key)
-                 # But wait, if provider is openai, we expect a key.
-                 # If base_url is set, we set dummy key.
-                 pass
-
-            client = OpenAI(api_key=api_key, base_url=self.base_url)
-            
-            prompt = self._construct_prompt(stats, anomalies)
-            
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
             model_to_use = self.model if self.model else "gpt-4-turbo"
             
-            response = client.chat.completions.create(
+            stream = client.chat.completions.create(
                 model=model_to_use,
                 messages=[
                     {"role": "system", "content": "You are a performance engineering expert. Analyze the following load test results."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                stream=True
             )
-            return response.choices[0].message.content
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
         except ImportError:
-            return "Error: `openai` package not installed. Run `pip install openai`."
+            yield "Error: `openai` package not installed. Run `pip install openai`."
         except Exception as e:
-            return f"Error calling OpenAI: {e}"
+            yield f"Error calling OpenAI: {e}"
 
-    def _generate_anthropic_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
+    def _generate_anthropic_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
         try:
             import anthropic
+            
             client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
             
-            prompt = self._construct_prompt(stats, anomalies)
-            
-            message = client.messages.create(
-                model="claude-3-opus-20240229",
-                max_tokens=1000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return message.content[0].text
+            with client.messages.stream(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
         except ImportError:
-            return "Error: `anthropic` package not installed. Run `pip install anthropic`."
+            yield "Error: `anthropic` package not installed. Run `pip install anthropic`."
         except Exception as e:
-            return f"Error calling Anthropic: {e}"
+            yield f"Error calling Anthropic: {e}"
 
-    def _construct_prompt(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
+    def _generate_local_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+        """
+        Generates explanation using Ollama or other local LLMs that support OpenAI-compatible API.
+        """
+        try:
+            from openai import OpenAI
+            
+            # Use provided URL or default to Ollama
+            base_url = self.base_url if self.base_url else "http://localhost:11434/v1"
+            api_key = "not-needed"  # Most local LLMs don't require API keys
+            
+            client = OpenAI(api_key=api_key, base_url=base_url)
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
+            model_to_use = self.model if self.model else "llama3"
+            
+            stream = client.chat.completions.create(
+                model=model_to_use,
+                messages=[
+                    {"role": "system", "content": "You are a performance engineering expert. Analyze the following load test results."},
+                    {"role": "user", "content": prompt}
+                ],
+                stream=True
+            )
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+        except ImportError:
+            yield "Error: `openai` package not installed. Run `pip install openai`."
+        except Exception as e:
+            yield f"Error calling Local LLM: {e}"
+
+    def _construct_prompt(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None) -> str:
+        # Format Prometheus Metrics
+        prom_text = "No Prometheus metrics available."
+        if prom_metrics:
+            prom_text = "Prometheus Metrics:\\n"
+            for metric, values in prom_metrics.items():
+                prom_text += f"- {metric}: {len(values)} data points\\n"
+
+        # Format Loki Logs
+        logs_text = "No logs available."
+        if loki_logs:
+            logs_text = "Error Logs (Sample):\\n"
+            for log in loki_logs[:10]:
+                logs_text += f"- {log}\\n"
+
+        # Format Tempo Traces
+        traces_text = "No slow traces available."
+        if tempo_traces:
+            traces_text = "Slow Traces (Sample):\\n"
+            for trace in tempo_traces[:5]:
+                trace_id = trace.get('traceID', 'N/A')
+                duration = trace.get('duration', 'N/A')
+                traces_text += f"- TraceID: {trace_id}, Duration: {duration}ms\\n"
+
         return f"""
-        You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
+You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
 
-        ### Test Statistics
-        - Total Requests: {stats.get('total_requests')}
-        - Average Latency: {stats.get('avg_latency'):.2f} ms
-        - P99 Latency: {stats.get('p99_latency'):.2f} ms
-        - Error Rate: {stats.get('error_rate'):.2f}%
-        - Start Time: {stats.get('start_time')}
-        - End Time: {stats.get('end_time')}
+### Test Statistics
+- Total Requests: {stats.get('total_requests')}
+- Average Latency: {stats.get('avg_latency'):.2f} ms
+- P99 Latency: {stats.get('p99_latency'):.2f} ms
+- Error Rate: {stats.get('error_rate'):.2f}%
+- Start Time: {stats.get('start_time')}
+- End Time: {stats.get('end_time')}
 
-        ### Anomaly Detection Results
-        - Anomalies Detected: {anomalies.get('count')}
-        - Average Latency during Anomalies: {anomalies.get('avg_latency', 0):.2f} ms
-        - Max Latency during Anomalies: {anomalies.get('max_latency', 0):.2f} ms
-        - Anomaly Timestamps: {', '.join(str(ts) for ts in anomalies.get('timestamps', [])[:5])} ...
+### Anomaly Detection Results
+- Anomalies Detected: {anomalies.get('count')}
+- Average Latency during Anomalies: {anomalies.get('avg_latency', 0):.2f} ms
+- Max Latency during Anomalies: {anomalies.get('max_latency', 0):.2f} ms
+- Anomaly Timestamps: {', '.join(str(ts) for ts in anomalies.get('timestamps', [])[:5])} ...
 
-        ### Report Requirements
-        Please structure your response exactly as follows:
+### Observability Data
+{prom_text}
 
-        # Performance Analysis Report
+{logs_text}
 
-        ## 1. Executive Summary
-        [Provide a high-level summary of the test run. Was it successful? Did it meet SLAs? Mention the error rate and P99 latency.]
+{traces_text}
 
-        ## 2. Detailed Analysis
-        [Analyze the statistics. Discuss the significance of the P99 latency vs Average. Explain the impact of the error rate.]
+### Report Requirements
+Please structure your response exactly as follows:
 
-        ## 3. Anomaly Investigation
-        [Discuss the detected anomalies. Correlate the timestamps with potential system events. Why is the anomaly latency so high?]
+# Performance Analysis Report
 
-        ## 4. Potential Root Causes
-        [List 3-5 potential root causes based on the data. E.g., Database saturation, GC pauses, Network congestion, etc.]
+## 1. Executive Summary
+[Provide a high-level summary of the test run. Was it successful? Did it meet SLAs? Mention the error rate and P99 latency.]
 
-        ## 5. Recommendations
-        [Provide actionable next steps to resolve the issues.]
-        """
+## 2. Detailed Analysis
+[Analyze the statistics. Discuss the significance of the P99 latency vs Average. Explain the impact of the error rate.]
 
-    def _generate_mock_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
-        """
-        Returns a hardcoded mock explanation for testing.
-        """
-        return f"""
-### 🤖 AI Analyst Report (MOCK)
+## 3. Anomaly Investigation
+[Discuss the detected anomalies. Correlate the timestamps with potential system events. Why is the anomaly latency so high?]
 
-**Summary**:
-The load test ran for {stats.get('total_requests')} requests. 
-The average latency was {stats.get('avg_latency'):.2f}ms, but the p99 latency spiked to {stats.get('p99_latency'):.2f}ms.
+## 4. Potential Root Causes
+[List 3-5 potential root causes based on the data. E.g., Database saturation, GC pauses, Network congestion, etc.]
 
-**Anomaly Analysis**:
-I detected {anomalies.get('count')} anomalies. 
-The average latency during these anomalies was {anomalies.get('avg_latency', 0):.2f}ms.
-
-**Potential Root Causes (Hypothetical)**:
-1.  **Database Locking**: The sustained latency spike suggests a database lock contention or a slow query blocking the connection pool.
-2.  **Resource Saturation**: Check CPU/Memory usage on the backend pods during the anomaly window.
-
-**Recommendations**:
--   Check database slow query logs.
--   Review connection pool settings.
+## 5. Recommendations
+[Provide actionable next steps to resolve the issues.]
 """
