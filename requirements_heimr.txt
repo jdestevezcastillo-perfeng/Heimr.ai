@@ -1,5 +1,5 @@
 pandas
-pyod
+
 scikit-learn
 requests
 openai
