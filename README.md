@@ -14,108 +14,274 @@
 
 **AI-Powered Load Test Analysis & Root Cause Explanation**
 
-Heimr is a command-line tool that transforms raw load test data into actionable insights. It parses results from industry-standard tools, detects statistical anomalies, and uses Large Language Models (LLMs) to generate natural language explanations for performance regressions.
+Stop staring at charts. Let AI explain what went wrong and how to fix it.
 
 ---
 
-## 🚀 Features
+## Why Heimr?
 
-*   **Multi-Format Support**: Seamlessly parse and analyze results from:
-    *   **JMeter** (`.jtl`, CSV)
-    *   **k6** (JSON output)
-    *   **Gatling** (`simulation.log`)
-    *   **Locust** (`_stats_history.csv`)
-*   **Smart Anomaly Detection**: Uses **Isolation Forest** (unsupervised learning) to automatically identify latency spikes and error rate deviations without manual thresholding.
-*   **AI Analyst**: Integrates with **OpenAI**, **Anthropic**, and **Local LLMs** (via Ollama/vLLM) to explain *why* performance degraded, correlating anomalies with test statistics.
-*   **Prometheus Integration**: Fetches infrastructure metrics (CPU, Memory) during the test window to provide context-aware Root Cause Analysis.
-*   **Portable**: Runs as a Python CLI or Docker container.
+### 🎯 Explainable by Design
+
+Unlike black-box ML tools, Heimr shows you **exactly** why something was flagged:
+
+- "P99 latency is 3.2x higher than P50 (bimodal distribution detected)"
+
+- "Memory usage increased 950% during test execution"
+
+- "Cache hit rate dropped to 12%, causing database saturation"
+
+No guessing. No magic. Just clear, actionable insights.
+
+### 🔍 Multi-Signal Intelligence
+
+Heimr doesn't just look at latency. It correlates:
+
+- ✅ Load test anomalies (spikes, bimodal patterns, gradual degradation)
+
+- ✅ Infrastructure metrics (CPU, memory, disk I/O)
+
+- ✅ Application logs (errors, warnings, GC pauses)
+
+- ✅ Distributed traces (slow spans, service dependencies)
+
+- ✅ Error rates and response codes
+
+**156 failure scenarios** built-in, from cache stampedes to memory leaks.
+
+### 🤖 LLM-Powered Root Cause Analysis
+
+After detecting issues, Heimr uses Large Language Models to:
+
+- Explain the root cause in plain English
+
+- Suggest specific remediation steps
+
+- Correlate patterns across multiple signals
+
+- Generate executive summaries for stakeholders
+
+**Privacy-first**: Run completely local with Llama 3.1 (no data leaves your infrastructure).
+
+### ⚡ Works with Your Stack
+
+Seamless integration with industry-standard tools:
+
+- **Load Testing**: JMeter, k6, Gatling, Locust
+
+- **Metrics**: Prometheus, Grafana
+
+- **Logs**: Loki, Elasticsearch
+
+- **Traces**: Tempo, Jaeger
+
+No vendor lock-in. Use what you already have.
 
 ---
 
-## 📦 Installation
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
-git clone https://github.com/heimr-ai/heimr.git
-cd heimr
-pip install .
+pip install heimr-ai
 ```
 
----
-
-## 🛠️ Usage
-
-### 1. Basic Analysis
-Analyze a load test file to get a statistical summary and anomaly report.
+### Basic Analysis
 
 ```bash
-# Auto-detects format (JTL, JSON, LOG, CSV)
+# Analyze any load test result
 heimr analyze results.jtl
-```
 
-### 2. AI-Powered Explanation (`--explain`)
-Generate a natural language report describing the performance issues.
-
-**Using OpenAI / Anthropic:**
-```bash
-export OPENAI_API_KEY="sk-..."
-# or
-export ANTHROPIC_API_KEY="sk-ant-..."
-
-heimr analyze results.jtl --explain
-```
-
-**Using Local LLM (Ollama):**
-Run completely offline with your own hardware!
-```bash
-# Assuming Ollama is running on localhost:11434
-heimr analyze results.jtl --explain \
-  --llm-url http://localhost:11434/v1 \
-  --llm-model llama3
-```
-
-### 3. Report Generation (`--output`)
-Save the full analysis and AI report to a Markdown file.
-
-```bash
+# Get AI-powered explanation
 heimr analyze results.jtl --explain --output report.md
 ```
 
-### 4. Prometheus Integration
-Correlate application performance with system health.
+### With Full Observability
+
 ```bash
-heimr analyze results.jtl --prometheus-url http://localhost:9090
+heimr analyze results.jtl --explain \
+  --prometheus-url http://localhost:9090 \
+  --loki-url http://localhost:3100 \
+  --tempo-url http://localhost:3200 \
+  --output report.md
+```
+
+**Result**: A comprehensive Markdown report with:
+
+- Statistical summary (P50, P95, P99, error rate)
+
+- Detected anomalies with timestamps
+
+- Infrastructure correlation (CPU spikes, memory leaks)
+
+- Log analysis (error patterns, warnings)
+
+- Trace analysis (slow spans, bottlenecks)
+
+- **AI-generated root cause explanation and recommendations**
+
+---
+
+## 🎬 See It In Action
+
+### Example Report Output
+
+```markdown
+# ❌ FAILED
+**Reasons**: Anomalies: 7, Memory Growth: 950%, Error/Warn Logs: 4
+
+## Executive Summary
+The load test revealed a critical memory leak causing gradual performance 
+degradation. Average latency increased from 100ms to 3000ms over the test 
+duration, with 7 anomalous spikes detected.
+
+## Root Cause Analysis
+1. **Memory Leak**: Heap usage grew from 100MB to 1GB (950% increase)
+2. **GC Pressure**: Frequent garbage collection pauses (up to 5 seconds)
+3. **Database Saturation**: Connection pool exhausted due to leaked connections
+
+## Recommendations
+1. Review connection pool management in `DatabaseClient.java`
+2. Implement connection leak detection with HikariCP
+3. Add heap dump analysis to identify leak source
+4. Increase monitoring for connection pool metrics
 ```
 
 ---
 
-## 🎬 Demos
+## 🔐 Privacy & Security
 
-We have included ready-to-run demo scripts in the `demos/` directory:
+### Run Completely Local
 
-*   **Local LLM**: `./demos/demo_local_llm.sh` (Requires Ollama)
-*   **Anthropic**: `./demos/demo_anthropic.sh` (Requires API Key)
+No data ever leaves your infrastructure:
+
+- **Local LLM**: Use Llama 3.1 via Ollama (no API calls)
+
+- **On-premise**: All analysis runs on your hardware
+
+- **Offline**: Works without internet connectivity
+
+### Optional Cloud LLMs
+
+For enhanced analysis, optionally use:
+
+- OpenAI GPT-4
+
+- Anthropic Claude 3.5
+
+**You control** where your data goes.
 
 ---
 
-## 🐳 Docker Support
+## 🏢 Enterprise Features
 
-Run Heimr without installing Python dependencies.
+
+- **Batch Analysis**: Process hundreds of test results in parallel
+
+- **Historical Trending**: Track performance degradation over time
+
+- **Custom Scenarios**: Add your own failure patterns
+
+- **CI/CD Integration**: Automated analysis in your pipeline
+
+- **Team Collaboration**: Share reports and insights
+
+- **SSO/RBAC**: Enterprise authentication and access control
+
+*Contact us for enterprise licensing and support.*
+
+---
+
+## 📊 Supported Failure Scenarios
+
+Heimr recognizes **156 common failure patterns**, including:
+
+**Performance Issues**:
+
+- Latency spikes (tail latency)
+
+- Bimodal distributions (cache misses)
+
+- Gradual degradation (memory leaks)
+
+- CPU saturation
+
+- Thread starvation
+
+**Infrastructure**:
+
+- OOMKills
+
+- CPU throttling
+
+- Disk I/O saturation
+
+- Network packet loss
+
+- DNS latency
+
+**Application**:
+
+- Database slow queries
+
+- Connection pool exhaustion
+
+- Cache stampedes
+
+- Message queue lag
+
+- Distributed deadlocks
+
+**And many more...**
+
+---
+
+## 🛠️ Advanced Usage
+
+### Custom Prompts
+
+Fine-tune LLM analysis for your domain:
 
 ```bash
-docker build -t heimr .
-docker run --rm -v $(pwd)/results:/data heimr analyze /data/results.jtl
+heimr analyze results.jtl --explain \
+  --prompt-template custom_prompt.txt
+```
+
+### Programmatic API
+
+```python
+from heimr import Analyzer
+
+analyzer = Analyzer(
+    file_path="results.jtl",
+    prometheus_url="http://localhost:9090",
+    llm_model="llama3.1:8b"
+)
+
+report = analyzer.analyze(explain=True)
+print(report.summary)
+print(report.root_causes)
+print(report.recommendations)
 ```
 
 ---
 
 ## 🤝 Contributing
 
-1.  Install dependencies: `pip install -r requirements_heimr.txt`
-2.  Run tests: `pytest`
-3.  Build package: `./release.sh`
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+For technical implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## License
+## 📄 License
 
 Proprietary. All Rights Reserved.
+
+For licensing inquiries: [contact@heimr.ai](mailto:contact@heimr.ai)
+
+---
+
+## 🌟 Why "Heimr"?
+
+In Norse mythology, **Heimdallr** (Heimr) is the all-seeing guardian who watches over the Bifrost bridge. Like its namesake, Heimr.ai watches over your performance tests, detecting issues before they reach production.
