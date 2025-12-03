@@ -277,19 +277,11 @@ def main():
 """
                     header += "```\n\n"
                     
-                    failed = False
-                    reasons = []
-                    if stats.get('error_rate', 0) > 0:
-                        failed = True
-                        reasons.append(f"Error Rate: {stats['error_rate']:.2f}%")
-                    if anomaly_summary['count'] > 0:
-                        failed = True
-                        reasons.append(f"Anomalies: {anomaly_summary['count']}")
-                    
-                    if failed:
-                        header += f"# ❌ FAILED\n**Reasons**: {', '.join(reasons)}\n\n"
+                    # Use the multi-signal failure detection (same as console output)
+                    if has_failure:
+                        header += f"# {status_icon} {status_text}\n**Reasons**: {", ".join(failure_signals)}\n\n"
                     else:
-                        header += f"# ✅ PASSED\nNo errors or anomalies detected.\n\n"
+                        header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
                     
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
