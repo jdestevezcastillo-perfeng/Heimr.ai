@@ -1,4 +1,0 @@
-catboost
-scikit-learn
-matplotlib
-seaborn
