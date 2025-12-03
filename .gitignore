@@ -5,6 +5,7 @@ __pycache__/
 .env
 CLAUDE.md
 .claude/
+.gemini/
 google-cloud-sdk/
 POC docs/
 .venv/
