@@ -10,6 +10,7 @@ google-cloud-sdk/
 POC docs/
 .venv/
 chaos-generator/
+.pytest_cache/
 
 # Archive (old/unused code)
 archive/
@@ -43,3 +44,4 @@ data/
 temp_data/
 logs/
 *.log
+.github/workflows/
