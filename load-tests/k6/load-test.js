@@ -76,32 +76,3 @@ export default function () {
   sleep(0.5 + Math.random());
 }
 
-export function handleSummary(data) {
-  // Export results in JSON format for Heimr analysis
-  return {
-    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
-    './load-tests/results/k6_results.json': JSON.stringify(data, null, 2),
-  };
-}
-
-function textSummary(data, options) {
-  const { metrics } = data;
-  let output = '\n=== K6 Load Test Summary ===\n\n';
-  
-  output += `Total Requests: ${metrics.http_reqs.values.count}\n`;
-  output += `Duration: ${Math.round(metrics.iteration_duration.values.avg)}ms avg\n`;
-  output += `Error Rate: ${(metrics.errors.values.rate * 100).toFixed(2)}%\n`;
-  output += `\nLatency:\n`;
-  output += `  avg: ${Math.round(metrics.http_req_duration.values.avg)}ms\n`;
-  output += `  p90: ${Math.round(metrics.http_req_duration.values['p(90)'])}ms\n`;
-  output += `  p95: ${Math.round(metrics.http_req_duration.values['p(95)'])}ms\n`;
-  output += `  p99: ${Math.round(metrics.http_req_duration.values['p(99)'])}ms\n`;
-  
-  if (metrics.audit_logs_latency) {
-    output += `\nAudit Logs Endpoint (unindexed):\n`;
-    output += `  avg: ${Math.round(metrics.audit_logs_latency.values.avg)}ms\n`;
-    output += `  p99: ${Math.round(metrics.audit_logs_latency.values['p(99)'])}ms\n`;
-  }
-  
-  return output;
-}
