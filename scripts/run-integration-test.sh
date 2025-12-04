@@ -47,7 +47,10 @@ echo "================================================================"
 echo "  Running k6 Load Test (8 minutes)"
 echo "================================================================"
 if command -v k6 &> /dev/null; then
-    k6 run "$PROJECT_ROOT/load-tests/k6/load-test.js" -e BASE_URL="$BASE_URL" 2>&1 | tee "$RESULTS_DIR/k6_output.txt"
+    k6 run "$PROJECT_ROOT/load-tests/k6/load-test.js" \
+        -e BASE_URL="$BASE_URL" \
+        --out json="$RESULTS_DIR/k6_results.json" \
+        2>&1 | tee "$RESULTS_DIR/k6_output.txt"
     echo "✓ k6 test complete. Results in $RESULTS_DIR/k6_results.json"
 else
     echo "SKIP: k6 not installed"
