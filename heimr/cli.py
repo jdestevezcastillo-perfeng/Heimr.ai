@@ -326,14 +326,14 @@ output: ./reports/analysis.md
                 failure_signals.append(f"Error Rate: {stats['error_rate']:.2f}%")
             
             # Signal 3: High CPU usage in Prometheus
-            if prom_metrics and 'cpu_usage' in prom_metrics:
+            if prom_metrics and 'cpu_usage' in prom_metrics and len(prom_metrics['cpu_usage']) > 0:
                 cpu_values = [float(v[1]) for v in prom_metrics['cpu_usage'][0]['values']]
                 avg_cpu = sum(cpu_values) / len(cpu_values) if cpu_values else 0
                 if avg_cpu > 0.8:  # 80% CPU
                     failure_signals.append(f"High CPU: {avg_cpu*100:.1f}%")
             
             # Signal 4: Memory growth in Prometheus
-            if prom_metrics and 'memory_usage' in prom_metrics:
+            if prom_metrics and 'memory_usage' in prom_metrics and len(prom_metrics['memory_usage']) > 0:
                 mem_values = [int(v[1]) for v in prom_metrics['memory_usage'][0]['values']]
                 if len(mem_values) >= 2:
                     mem_growth = (mem_values[-1] - mem_values[0]) / mem_values[0]
