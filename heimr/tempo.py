@@ -31,7 +31,8 @@ class TempoClient:
             if min_duration:
                 params['minDuration'] = min_duration
 
-            response = requests.get(self.api_url, params=params)
+            # print(f"DEBUG: Querying Tempo at {self.api_url} with params {params}")
+            response = requests.get(self.api_url, params=params, timeout=5)
             response.raise_for_status()
             
             result = response.json()
