@@ -172,17 +172,16 @@ Please structure your response exactly as follows:
 # Performance Analysis Report
 
 ## 1. Executive Summary
-[Provide a high-level summary of the test run. Was it successful? Did it meet SLAs? Mention the error rate and P99 latency.]
+[Provide a concise, high-level summary for business stakeholders. Focus on whether the system met its goals, the impact of any failures, and the overall user experience. Avoid technical jargon here.]
 
-## 2. Detailed Analysis
-[Analyze the statistics. Discuss the significance of the P99 latency vs Average. Explain the impact of the error rate.]
+## 2. Key Performance Indicators
+[KPI_TABLE]
 
-## 3. Anomaly Investigation
-[Discuss the detected anomalies. Correlate the timestamps with potential system events. Why is the anomaly latency so high?]
-
-## 4. Potential Root Causes
-[List 3-5 potential root causes based on the data. E.g., Database saturation, GC pauses, Network congestion, etc.]
-
-## 5. Recommendations
-[Provide actionable next steps to resolve the issues.]
+## 3. Technical Analysis
+[Provide a detailed technical breakdown for engineers. Discuss:]
+- **Latency Distribution**: Analyze Avg vs P99 vs Max.
+- **Throughput & Errors**: Discuss load handling and error patterns.
+- **Anomalies**: Correlate detected anomalies with system events.
+- **Root Cause Analysis**: Hypothesize causes (e.g., DB saturation, network).
+- **Recommendations**: Technical steps to resolve issues.
 """
