@@ -51,3 +51,4 @@ build/
 heimr_ai.egg-info/
 demos/output/
 load-tests/results/
+IDEAS.md
