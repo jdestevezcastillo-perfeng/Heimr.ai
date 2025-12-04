@@ -1,0 +1,60 @@
+# Copyright (c) 2025 Juan Estevez Castillo
+# Licensed under AGPL v3. Commercial licenses available.
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
+#
+# Heimr Configuration File
+# 
+# This file configures Heimr for analyzing load test results.
+# CLI arguments will override settings in this file.
+#
+# Usage:
+#   heimr analyze results.jtl --config heimr.yaml
+#   heimr analyze results.json -c heimr.yaml
+#
+
+# ============================================================================
+# Observability Sources
+# ============================================================================
+
+# Prometheus - for system metrics (CPU, memory, latency histograms)
+prometheus_url: http://localhost:9090
+# prometheus_file: ./data/prometheus_metrics.json  # Use local file instead
+
+# Loki - for log aggregation
+loki_url: http://localhost:3100
+# loki_file: ./data/loki_logs.json  # Use local file instead
+
+# Tempo - for distributed traces
+tempo_url: http://localhost:3200
+# tempo_file: ./data/tempo_traces.json  # Use local file instead
+
+# ============================================================================
+# LLM Configuration (for AI-powered Root Cause Analysis)
+# ============================================================================
+
+# Enable AI explanation (equivalent to --explain flag)
+explain: true
+
+# Local LLM (Ollama) - recommended for privacy
+llm_url: http://localhost:11434/v1
+llm_model: llama3.1:8b
+
+# Cloud LLM alternatives (use environment variables for API keys):
+#   OPENAI_API_KEY - for OpenAI
+#   ANTHROPIC_API_KEY - for Anthropic Claude
+
+# OpenAI example:
+# llm_model: gpt-4o
+
+# Anthropic example (requires ANTHROPIC_API_KEY):
+# llm_model: claude-sonnet-4-5-20250514
+
+# ============================================================================
+# Output Settings
+# ============================================================================
+
+# Path to save the analysis report (Markdown format)
+output: ./reports/analysis.md
+
+# File format (auto-detected if not specified)
+# format: k6  # Options: jtl, k6, gatling, locust

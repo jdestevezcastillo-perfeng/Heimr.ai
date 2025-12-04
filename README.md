@@ -106,6 +106,37 @@ heimr analyze results.jtl --explain \
   --output report.md
 ```
 
+### Using a Config File
+
+Instead of specifying all options on the command line, you can use a YAML config file:
+
+```bash
+# Use config file (CLI args override config values)
+heimr analyze results.jtl --config heimr.yaml
+
+# Short form
+heimr analyze results.jtl -c heimr.yaml
+```
+
+Example `heimr.yaml`:
+
+```yaml
+# Observability sources
+prometheus_url: http://localhost:9090
+loki_url: http://localhost:3100
+tempo_url: http://localhost:3200
+
+# LLM configuration
+explain: true
+llm_url: http://localhost:11434/v1
+llm_model: llama3.1:8b
+
+# Output
+output: ./reports/analysis.md
+```
+
+See `heimr.yaml.example` for the full template with all options.
+
 **Result**: A comprehensive Markdown report with:
 
 - Statistical summary (P50, P95, P99, error rate)

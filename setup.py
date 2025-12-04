@@ -43,6 +43,8 @@ setup(
         "numpy>=1.21.0",
         # HTTP client for observability integrations (Prometheus, Loki, Tempo)
         "requests>=2.28.0",
+        # YAML config file support
+        "pyyaml>=6.0",
     ],
     extras_require={
         # LLM providers - install only what you need
