@@ -142,6 +142,7 @@ def main():
   output, format. Run 'heimr config-init' to generate a template.""")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
+    analyze_parser.add_argument("--dashboard", help="Path to save the generated HTML dashboard")
     analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
     analyze_parser.add_argument("--prometheus-url", help="URL of the Prometheus server to fetch system metrics (e.g., http://localhost:9090)")
     analyze_parser.add_argument("--prometheus-file", help="Path to a local JSON file containing Prometheus metrics")
@@ -445,6 +446,15 @@ output: ./reports/analysis.md
 
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
+
+            # Generate Dashboard if requested
+            if args.dashboard:
+                try:
+                    from heimr.dashboard import DashboardGenerator
+                    dashboard_gen = DashboardGenerator(df, stats, prom_metrics)
+                    dashboard_gen.generate(args.dashboard)
+                except Exception as e:
+                    print(f"Warning: Failed to generate dashboard: {e}")
 
         except Exception as e:
             print(f"Error: {e}")
