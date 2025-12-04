@@ -274,14 +274,6 @@ For technical implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## 📄 License
-
-Proprietary. All Rights Reserved.
-
-For licensing inquiries: [jd.estevezcastillo@gmail.com](mailto:jd.estevezcastillo@gmail.com)
-
----
-
 ## 🌟 Why "Heimr"?
 
 In Norse mythology, **Heimdallr** (Heimr) is the all-seeing guardian who watches over the Bifrost bridge. Like its namesake, Heimr.ai watches over your performance tests, detecting issues before they reach production.
