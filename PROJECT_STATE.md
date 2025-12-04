@@ -44,13 +44,13 @@ The face of the results.
 
 | Component | Evolution | Current State | Pending Tasks |
 |-----------|-----------|---------------|---------------|
-| **Markdown Report** | Simple text -> Structured sections -> **Enhanced**. | **Good**. Includes Business Summary & KPI Table. | - Improve formatting further.<br>- Add PDF export. |
-| **HTML Dashboard** | **Non-existent** -> `heimr/dashboard.py`. | **Functional**. Interactive charts with Chart.js. | - Add more metrics (GC, DB connections).<br>- Add dark mode. |
+| **Markdown Report** | Simple text -> Structured sections -> **Enhanced**. | **Excellent**. Includes Business Summary & Per-Endpoint KPI Table. | - Add PDF export. |
+| **HTML Dashboard** | **Non-existent** -> `heimr/dashboard.py`. | **Advanced**. Grid layout, separate charts, system metrics. | - Add dark mode. |
 
 ---
 
 ## Immediate Roadmap
-1. **Refine Report**: Done.
-2. **Build Dashboard**: Done.
+1. **Refine Report**: Done (Transposed KPI Table).
+2. **Build Dashboard**: Done (Grid Layout).
 3. **Commit & Push**: Done.
 4. **Next**: Expand chaos scenarios (CPU, Memory).
