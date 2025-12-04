@@ -1,0 +1,93 @@
+# Copyright (c) 2025 Juan Estevez Castillo
+# Licensed under AGPL v3. Commercial licenses available.
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
+---
+# Testing System ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testing-system-config
+  namespace: heimr-test
+data:
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "testdb"
+  DB_USER: "postgres"
+  DB_PASSWORD: "postgres"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "tempo:4317"
+  OTEL_SERVICE_NAME: "test-app"
+
+---
+# Testing System Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testing-system
+  namespace: heimr-test
+  labels:
+    app: testing-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: testing-system
+  template:
+    metadata:
+      labels:
+        app: testing-system
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: test-app
+          image: heimr-test-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: testing-system-config
+          env:
+            - name: CHAOS_SLOW_ENABLED
+              value: "false"
+            - name: CHAOS_ERROR_ENABLED
+              value: "false"
+            - name: CHAOS_MEMORY_LEAK
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
+---
+# Testing System Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: testing-system
+  namespace: heimr-test
+  labels:
+    app: testing-system
+spec:
+  selector:
+    app: testing-system
+  ports:
+    - port: 8080
+      targetPort: 8080

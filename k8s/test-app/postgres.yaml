@@ -1,0 +1,144 @@
+# Copyright (c) 2025 Juan Estevez Castillo
+# Licensed under AGPL v3. Commercial licenses available.
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
+---
+# PostgreSQL StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: heimr-test
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "testdb"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: postgres-init
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: heimr-test
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+# PostgreSQL Init Script - Creates unindexed table for performance testing
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: heimr-test
+data:
+  01-init.sql: |
+    -- Create users table (indexed, for normal operations)
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Create index on email for fast lookups
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+    -- Create UNINDEXED table for slow query testing
+    -- This table deliberately has NO indexes for performance testing
+    CREATE TABLE IF NOT EXISTS audit_logs (
+        id BIGSERIAL,  -- NOT a primary key, no index!
+        user_id INTEGER,
+        action VARCHAR(100),
+        resource VARCHAR(255),
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        request_body TEXT,
+        response_code INTEGER,
+        duration_ms INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB
+        -- NO PRIMARY KEY, NO INDEXES - deliberately slow!
+    );
+
+    -- Populate audit_logs with 1 million rows of test data
+    -- This will make queries VERY slow without indexes
+    INSERT INTO audit_logs (user_id, action, resource, ip_address, user_agent, request_body, response_code, duration_ms, metadata)
+    SELECT 
+        (random() * 10000)::int,
+        (ARRAY['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])[floor(random() * 5 + 1)],
+        '/api/v1/' || (ARRAY['users', 'orders', 'products', 'payments', 'reports'])[floor(random() * 5 + 1)] || '/' || (random() * 10000)::int,
+        (random() * 255)::int || '.' || (random() * 255)::int || '.' || (random() * 255)::int || '.' || (random() * 255)::int,
+        'Mozilla/5.0 (Test Agent ' || (random() * 100)::int || ')',
+        '{"data": "test payload ' || generate_series || '"}',
+        (ARRAY[200, 201, 400, 401, 403, 404, 500, 502, 503])[floor(random() * 9 + 1)],
+        (random() * 5000)::int,
+        ('{"request_id": "' || gen_random_uuid() || '"}')::jsonb
+    FROM generate_series(1, 1000000);
+
+    -- Also insert some sample users
+    INSERT INTO users (username, email) 
+    SELECT 
+        'user_' || generate_series,
+        'user_' || generate_series || '@example.com'
+    FROM generate_series(1, 1000);
+
+    -- Analyze tables
+    ANALYZE users;
+    ANALYZE audit_logs;
+
+    -- Show table sizes
+    SELECT 
+        relname as table_name,
+        pg_size_pretty(pg_total_relation_size(relid)) as total_size,
+        n_live_tup as row_count
+    FROM pg_stat_user_tables 
+    ORDER BY pg_total_relation_size(relid) DESC;

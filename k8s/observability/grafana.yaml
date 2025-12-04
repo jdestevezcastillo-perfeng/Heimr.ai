@@ -1,0 +1,339 @@
+# Copyright (c) 2025 Juan Estevez Castillo
+# Licensed under AGPL v3. Commercial licenses available.
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
+---
+# Grafana Datasources ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: heimr-test
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        editable: false
+
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        editable: false
+
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo:3200
+        editable: false
+        jsonData:
+          tracesToLogs:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false
+            mapTagNamesEnabled: true
+            mappedTags:
+              - key: service.name
+                value: service
+          serviceMap:
+            datasourceUid: prometheus
+          nodeGraph:
+            enabled: true
+
+---
+# Grafana Dashboard Provider ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: heimr-test
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: 'Heimr Test'
+        folderUid: 'heimr-test'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+
+---
+# Grafana Dashboards ConfigMap (Node Exporter Full)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: heimr-test
+data:
+  node-exporter.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": 1860,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percent"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "targets": [{"expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A"}],
+          "title": "CPU Usage",
+          "type": "gauge"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "id": 2,
+          "targets": [
+            {"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "legendFormat": "Used", "refId": "A"},
+            {"expr": "node_memory_MemAvailable_bytes", "legendFormat": "Available", "refId": "B"}
+          ],
+          "title": "Memory Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 3,
+          "targets": [{"expr": "node_filesystem_avail_bytes{mountpoint=\"/\"}", "refId": "A"}],
+          "title": "Disk Available",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "Bps"}},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "id": 4,
+          "targets": [
+            {"expr": "rate(node_network_receive_bytes_total[5m])", "legendFormat": "Receive", "refId": "A"},
+            {"expr": "rate(node_network_transmit_bytes_total[5m])", "legendFormat": "Transmit", "refId": "B"}
+          ],
+          "title": "Network I/O",
+          "type": "timeseries"
+        }
+      ],
+      "schemaVersion": 38,
+      "tags": ["node", "exporter"],
+      "templating": {"list": []},
+      "time": {"from": "now-30m", "to": "now"},
+      "title": "Node Exporter",
+      "uid": "node-exporter"
+    }
+  postgres.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "gnetId": 9628,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "short"}},
+          "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+          "id": 1,
+          "targets": [{"expr": "pg_stat_activity_count", "legendFormat": "{{state}}", "refId": "A"}],
+          "title": "Active Connections",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "short"}},
+          "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+          "id": 2,
+          "targets": [{"expr": "rate(pg_stat_database_tup_fetched{datname=\"testdb\"}[5m])", "refId": "A"}],
+          "title": "Rows Fetched/s",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "s"}},
+          "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+          "id": 3,
+          "targets": [{"expr": "pg_stat_activity_max_tx_duration{datname=\"testdb\"}", "refId": "A"}],
+          "title": "Longest Transaction",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "id": 4,
+          "targets": [{"expr": "pg_database_size_bytes{datname=\"testdb\"}", "refId": "A"}],
+          "title": "Database Size",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "short"}},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "id": 5,
+          "targets": [
+            {"expr": "rate(pg_stat_database_blks_hit{datname=\"testdb\"}[5m])", "legendFormat": "Cache Hits", "refId": "A"},
+            {"expr": "rate(pg_stat_database_blks_read{datname=\"testdb\"}[5m])", "legendFormat": "Disk Reads", "refId": "B"}
+          ],
+          "title": "Buffer Cache Hit Ratio",
+          "type": "timeseries"
+        }
+      ],
+      "schemaVersion": 38,
+      "tags": ["postgres", "database"],
+      "templating": {"list": []},
+      "time": {"from": "now-30m", "to": "now"},
+      "title": "PostgreSQL",
+      "uid": "postgres"
+    }
+  test-app.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "reqps"}},
+          "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+          "id": 1,
+          "targets": [{"expr": "sum(rate(http_requests_total[5m]))", "refId": "A"}],
+          "title": "Request Rate",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "s"}},
+          "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+          "id": 2,
+          "targets": [
+            {"expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P50", "refId": "A"},
+            {"expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P95", "refId": "B"},
+            {"expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P99", "refId": "C"}
+          ],
+          "title": "Latency Percentiles",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percent"}},
+          "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+          "id": 3,
+          "targets": [{"expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100", "refId": "A"}],
+          "title": "Error Rate",
+          "type": "gauge"
+        },
+        {
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 8},
+          "id": 4,
+          "targets": [{"expr": "{namespace=\"heimr-test\", container=\"test-app\"} |= \"error\" or |= \"ERROR\"", "refId": "A"}],
+          "title": "Application Error Logs",
+          "type": "logs"
+        },
+        {
+          "datasource": {"type": "tempo", "uid": "tempo"},
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 18},
+          "id": 5,
+          "targets": [{"queryType": "traceql", "query": "{resource.service.name=\"test-app\"}", "refId": "A"}],
+          "title": "Recent Traces",
+          "type": "traces"
+        }
+      ],
+      "schemaVersion": 38,
+      "tags": ["application", "fastapi"],
+      "templating": {"list": []},
+      "time": {"from": "now-30m", "to": "now"},
+      "title": "Test Application",
+      "uid": "test-app"
+    }
+
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: heimr-test
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.2.0
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "admin"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: "Viewer"
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
+
+---
+# Grafana Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: heimr-test
+spec:
+  selector:
+    app: grafana
+  ports:
+    - port: 3000
+      targetPort: 3000

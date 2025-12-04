@@ -1,0 +1,86 @@
+# Copyright (c) 2025 Juan Estevez Castillo
+# Licensed under AGPL v3. Commercial licenses available.
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
+---
+# NodePort Services for external access (Minikube compatible)
+# Access via: minikube service <service-name> -n heimr-test
+
+# Grafana NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-external
+  namespace: heimr-test
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30300
+
+---
+# Prometheus NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-external
+  namespace: heimr-test
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+      nodePort: 30909
+
+---
+# Loki NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-external
+  namespace: heimr-test
+spec:
+  type: NodePort
+  selector:
+    app: loki
+  ports:
+    - port: 3100
+      targetPort: 3100
+      nodePort: 30310
+
+---
+# Tempo NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo-external
+  namespace: heimr-test
+spec:
+  type: NodePort
+  selector:
+    app: tempo
+  ports:
+    - name: http
+      port: 3200
+      targetPort: 3200
+      nodePort: 30320
+
+---
+# Test Application NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app-external
+  namespace: heimr-test
+spec:
+  type: NodePort
+  selector:
+    app: testing-system
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30808
