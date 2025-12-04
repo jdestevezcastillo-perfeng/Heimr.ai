@@ -250,6 +250,16 @@ output: ./reports/analysis.md
             df = file_parser.parse()
             stats = file_parser.get_summary_stats()
             
+            # Calculate Extended Stats
+            if not df.empty:
+                stats['median_latency'] = df['elapsed'].median()
+                stats['min_latency'] = df['elapsed'].min()
+                stats['max_latency'] = df['elapsed'].max()
+                stats['error_count'] = len(df[~df['success']])
+                
+                duration_sec = (stats['end_time'] - stats['start_time']).total_seconds()
+                stats['throughput'] = stats['total_requests'] / duration_sec if duration_sec > 0 else 0
+            
             if df.empty:
                 print("No data found.")
                 return
@@ -414,6 +424,25 @@ output: ./reports/analysis.md
                     else:
                         header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
                     
+                    # Construct KPI Table
+                    kpi_table = "| Metric | Value |\n|---|---|\n"
+                    kpi_table += f"| Total Requests | {stats.get('total_requests')} |\n"
+                    kpi_table += f"| Throughput | {stats.get('throughput', 0):.2f} req/s |\n"
+                    kpi_table += f"| Error Rate | {stats.get('error_rate', 0):.2f}% ({stats.get('error_count', 0)} errors) |\n"
+                    kpi_table += f"| Avg Latency | {stats.get('avg_latency', 0):.2f} ms |\n"
+                    kpi_table += f"| Median Latency | {stats.get('median_latency', 0):.2f} ms |\n"
+                    kpi_table += f"| P95 Latency | {stats.get('p95_latency', 0):.2f} ms |\n"
+                    kpi_table += f"| P99 Latency | {stats.get('p99_latency', 0):.2f} ms |\n"
+                    kpi_table += f"| Min Latency | {stats.get('min_latency', 0):.2f} ms |\n"
+                    kpi_table += f"| Max Latency | {stats.get('max_latency', 0):.2f} ms |\n"
+
+                    # Replace placeholder in full_explanation
+                    if "[KPI_TABLE]" in full_explanation:
+                        full_explanation = full_explanation.replace("[KPI_TABLE]", kpi_table)
+                    else:
+                        # Fallback if LLM didn't include placeholder
+                        full_explanation = f"## Key Performance Indicators\n{kpi_table}\n\n" + full_explanation
+
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
 
