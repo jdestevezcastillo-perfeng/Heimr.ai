@@ -42,10 +42,6 @@ data:
         wal:
           path: /var/tempo/wal
 
-    querier:
-      frontend_worker:
-        frontend_address: tempo:9095
-
 ---
 # Tempo Deployment
 apiVersion: apps/v1
