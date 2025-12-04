@@ -22,7 +22,10 @@ class K6Parser(BaseParser):
                 for line in f:
                     try:
                         entry = json.loads(line)
-                        if entry['type'] == 'Point' and entry['metric'] == 'http_req_duration':
+                        if not isinstance(entry, dict):
+                            continue
+                            
+                        if entry.get('type') == 'Point' and entry.get('metric') == 'http_req_duration':
                             # k6 'http_req_duration' is the total time for the request
                             status = int(entry['data']['tags'].get('status', 200))
                             row = {

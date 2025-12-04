@@ -31,6 +31,7 @@ echo ""
 # Start k6 load test in background
 echo "Starting k6 load test..."
 mkdir -p "$RESULTS_DIR"
+# Use --out json to generate granular data for Heimr
 k6 run "$PROJECT_ROOT/load-tests/k6/load-test.js" \
     -e BASE_URL="$BASE_URL" \
     --out json="$RESULTS_DIR/k6_chaos_${CHAOS_TYPE}.json" \
