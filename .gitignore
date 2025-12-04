@@ -45,3 +45,8 @@ temp_data/
 logs/
 *.log
 .github/workflows/
+
+# Build artifacts
+build/
+heimr_ai.egg-info/
+demos/output/
