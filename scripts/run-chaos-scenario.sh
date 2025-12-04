@@ -79,6 +79,8 @@ echo ""
 echo "Analyzing with Heimr..."
 heimr analyze "$RESULTS_DIR/k6_chaos_${CHAOS_TYPE}.json" \
     -c "$PROJECT_ROOT/heimr-test.yaml" \
-    --output "$RESULTS_DIR/report_chaos_${CHAOS_TYPE}.md"
+    --output "$RESULTS_DIR/report_chaos_${CHAOS_TYPE}.md" \
+    --dashboard "$RESULTS_DIR/dashboard_chaos_${CHAOS_TYPE}.html"
 
 echo "Report: $RESULTS_DIR/report_chaos_${CHAOS_TYPE}.md"
+echo "Dashboard: $RESULTS_DIR/dashboard_chaos_${CHAOS_TYPE}.html"
