@@ -278,10 +278,62 @@ For technical implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Proprietary. All Rights Reserved.
 
-For licensing inquiries: [contact@heimr.ai](mailto:contact@heimr.ai)
+For licensing inquiries: [jd.estevezcastillo@gmail.com](mailto:jd.estevezcastillo@gmail.com)
 
 ---
 
 ## 🌟 Why "Heimr"?
 
 In Norse mythology, **Heimdallr** (Heimr) is the all-seeing guardian who watches over the Bifrost bridge. Like its namesake, Heimr.ai watches over your performance tests, detecting issues before they reach production.
+
+# License
+
+Heimr is licensed under the **GNU Affero General Public License v3 (AGPL v3)**. 
+
+## Open Source Usage
+
+You are free to use, modify, and distribute Heimr under the terms of the AGPL v3 license, provided that:
+
+- Any modifications or derivative works you create are also licensed under AGPL v3
+- If you run Heimr as a network service (including SaaS offerings), you must make your modified source code available to your users
+- You retain all copyright notices and license information
+
+For the full license text, see [LICENSE](./LICENSE).
+
+## Commercial Licensing
+
+If you intend to use Heimr in a commercial product or service without open-sourcing your modifications, **you are required to obtain a commercial license** from the Heimr authors.
+
+Commercial licensing allows you to:
+- Integrate Heimr into proprietary applications
+- Distribute Heimr without copyleft obligations
+- Keep your modifications and derivative works private
+- Use Heimr in closed-source SaaS offerings
+
+### Obtaining a Commercial License
+
+Please contact us to discuss commercial licensing options:
+
+- Email: [jd.estevezcastillo@gmail.com]
+- For inquiries: [http://heimr.ai/contact/]
+
+We're flexible on licensing terms and happy to work with businesses of all sizes. Typical arrangements include:
+- One-time perpetual licenses
+- Deployment-based pricing
+- Revenue-share agreements
+- Custom terms based on your specific use case
+
+---
+
+## Summary
+
+| Use Case | License Required |
+|----------|------------------|
+| Open source project using Heimr | AGPL v3 (free) |
+| Internal company use (non-public) | AGPL v3 (free) |
+| SaaS/web service offering | Commercial License |
+| Proprietary product integration | Commercial License |
+| Educational/research use | AGPL v3 (free) |
+| Modification and private redistribution | AGPL v3 (free) |
+
+If you're unsure whether your use case requires a commercial license, please reach out—we'd rather clarify than have legal surprises down the road.
