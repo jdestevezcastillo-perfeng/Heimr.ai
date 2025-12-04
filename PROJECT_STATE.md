@@ -44,12 +44,13 @@ The face of the results.
 
 | Component | Evolution | Current State | Pending Tasks |
 |-----------|-----------|---------------|---------------|
-| **Markdown Report** | Simple text -> Structured sections -> **Needs Improvement**. | **Basic**. Too verbose, lacks business summary. | - **Refactor structure: Business Summary -> KPI Table -> Tech Details.**<br>- Improve formatting. |
-| **HTML Dashboard** | **Non-existent**. | **Planned**. | - **Create `heimr dashboard` command.**<br>- Generate interactive HTML with Chart.js/Plotly.<br>- Visualize CPU, Mem, Latency, Errors over time. |
+| **Markdown Report** | Simple text -> Structured sections -> **Enhanced**. | **Good**. Includes Business Summary & KPI Table. | - Improve formatting further.<br>- Add PDF export. |
+| **HTML Dashboard** | **Non-existent** -> `heimr/dashboard.py`. | **Functional**. Interactive charts with Chart.js. | - Add more metrics (GC, DB connections).<br>- Add dark mode. |
 
 ---
 
 ## Immediate Roadmap
-1. **Refine Report**: Implement Business Summary + KPI Table structure.
-2. **Build Dashboard**: Create HTML report generator with interactive charts.
-3. **Commit & Push**: Save state.
+1. **Refine Report**: Done.
+2. **Build Dashboard**: Done.
+3. **Commit & Push**: Done.
+4. **Next**: Expand chaos scenarios (CPU, Memory).
