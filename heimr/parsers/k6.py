@@ -32,7 +32,9 @@ class K6Parser(BaseParser):
                                 'timestamp_dt': pd.to_datetime(entry['data']['time']),
                                 'elapsed': entry['data']['value'], # ms
                                 'success': status < 400,
-                                'responseCode': status
+                                'responseCode': status,
+                                'name': entry['data']['tags'].get('name', 'unknown'),
+                                'method': entry['data']['tags'].get('method', 'unknown')
                             }
                             data.append(row)
                     except json.JSONDecodeError:
