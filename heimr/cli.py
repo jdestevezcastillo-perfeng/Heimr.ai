@@ -4,6 +4,7 @@
 import argparse
 import sys
 import os
+import yaml
 from heimr.parsers.jtl import JTLParser
 from heimr.parsers.k6 import K6Parser
 from heimr.parsers.gatling import GatlingParser
@@ -13,6 +14,61 @@ from heimr.llm import LLMClient
 from heimr.prometheus import PrometheusClient
 from heimr.loki import LokiClient
 from heimr.tempo import TempoClient
+
+
+def load_config(config_path: str) -> dict:
+    """
+    Load configuration from a YAML file.
+    
+    Example heimr.yaml:
+        prometheus_url: http://localhost:9090
+        loki_url: http://localhost:3100
+        tempo_url: http://localhost:3200
+        llm_url: http://localhost:11434/v1
+        llm_model: llama3.1:8b
+        explain: true
+        output: reports/analysis.md
+    """
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f) or {}
+    
+    # Convert YAML keys (snake_case) to argparse format (with underscores)
+    # YAML uses snake_case, argparse dest uses underscores
+    return config
+
+
+def merge_config_with_args(args, config: dict):
+    """
+    Merge config file settings with command line arguments.
+    CLI arguments take precedence over config file.
+    """
+    # Map config keys to argparse attribute names
+    key_mapping = {
+        'prometheus_url': 'prometheus_url',
+        'prometheus_file': 'prometheus_file',
+        'loki_url': 'loki_url',
+        'loki_file': 'loki_file',
+        'tempo_url': 'tempo_url',
+        'tempo_file': 'tempo_file',
+        'llm_url': 'llm_url',
+        'llm_model': 'llm_model',
+        'explain': 'explain',
+        'output': 'output',
+        'format': 'format',
+    }
+    
+    for config_key, arg_key in key_mapping.items():
+        if config_key in config:
+            # Only set from config if CLI arg was not provided
+            current_value = getattr(args, arg_key, None)
+            if current_value is None or (isinstance(current_value, bool) and not current_value):
+                setattr(args, arg_key, config[config_key])
+    
+    return args
+
 
 def get_parser(filepath: str, format_arg: str = None):
     """
@@ -77,6 +133,7 @@ def main():
     # Analyze command
     analyze_parser = subparsers.add_parser("analyze", help="Analyze a load test result file and detect anomalies.")
     analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
+    analyze_parser.add_argument("--config", "-c", help="Path to YAML config file (e.g., heimr.yaml). CLI args override config.")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
     analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
@@ -93,6 +150,12 @@ def main():
 
     if args.command == "analyze":
         try:
+            # Load config file if provided
+            if args.config:
+                config = load_config(args.config)
+                args = merge_config_with_args(args, config)
+                print(f"Loaded config from: {args.config}")
+            
             # Detect format if not specified
             file_format = args.format
             if not file_format:
