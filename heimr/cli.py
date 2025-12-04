@@ -425,17 +425,46 @@ output: ./reports/analysis.md
                     else:
                         header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
                     
-                    # Construct KPI Table
-                    kpi_table = "| Metric | Value |\n|---|---|\n"
-                    kpi_table += f"| Total Requests | {stats.get('total_requests')} |\n"
-                    kpi_table += f"| Throughput | {stats.get('throughput', 0):.2f} req/s |\n"
-                    kpi_table += f"| Error Rate | {stats.get('error_rate', 0):.2f}% ({stats.get('error_count', 0)} errors) |\n"
-                    kpi_table += f"| Avg Latency | {stats.get('avg_latency', 0):.2f} ms |\n"
-                    kpi_table += f"| Median Latency | {stats.get('median_latency', 0):.2f} ms |\n"
-                    kpi_table += f"| P95 Latency | {stats.get('p95_latency', 0):.2f} ms |\n"
-                    kpi_table += f"| P99 Latency | {stats.get('p99_latency', 0):.2f} ms |\n"
-                    kpi_table += f"| Min Latency | {stats.get('min_latency', 0):.2f} ms |\n"
-                    kpi_table += f"| Max Latency | {stats.get('max_latency', 0):.2f} ms |\n"
+                    # Construct KPI Table (Per Endpoint)
+                    kpi_table = "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
+                    kpi_table += "|---|---|---|---|---|---|---|\n"
+                    
+                    if not df.empty:
+                        # Check if 'name' column exists
+                        if 'name' in df.columns:
+                            # Group by endpoint (name)
+                            grouped = df.groupby('name')
+                            for name, group in grouped:
+                                count = len(group)
+                                # Duration for this specific endpoint's activity
+                                duration_sec = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
+                                throughput = count / duration_sec if duration_sec > 0 else 0
+                                
+                                error_count = len(group[~group['success']])
+                                error_rate = (error_count / count) * 100
+                                
+                                avg = group['elapsed'].mean()
+                                p95 = group['elapsed'].quantile(0.95)
+                                p99 = group['elapsed'].quantile(0.99)
+                                
+                                kpi_table += f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | {avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
+                        else:
+                            print(f"Warning: 'name' column not found in DataFrame. Columns: {df.columns.tolist()}")
+                            kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
+                        
+                        # Add Aggregate Row
+                        total_count = len(df)
+                        total_duration = (df['timestamp_dt'].max() - df['timestamp_dt'].min()).total_seconds()
+                        total_throughput = total_count / total_duration if total_duration > 0 else 0
+                        total_errors = len(df[~df['success']])
+                        total_error_rate = (total_errors / total_count) * 100
+                        total_avg = df['elapsed'].mean()
+                        total_p95 = df['elapsed'].quantile(0.95)
+                        total_p99 = df['elapsed'].quantile(0.99)
+                        
+                        kpi_table += f"| **TOTAL** | **{total_count}** | **{total_throughput:.2f}** | **{total_error_rate:.2f}%** | **{total_avg:.2f}** | **{total_p95:.2f}** | **{total_p99:.2f}** |\n"
+                    else:
+                        kpi_table += "| No data | - | - | - | - | - | - |\n"
 
                     # Replace placeholder in full_explanation
                     if "[KPI_TABLE]" in full_explanation:
