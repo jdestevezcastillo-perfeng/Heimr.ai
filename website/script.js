@@ -1,3 +1,6 @@
+// Copyright (c) 2025 Juan Estevez Castillo
+// Licensed under AGPL v3. Commercial licenses available.
+// See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
 // Countdown Timer Script
 function updateCountdown() {
     // Target: December 7, 2025 at 1:00 PM CET
