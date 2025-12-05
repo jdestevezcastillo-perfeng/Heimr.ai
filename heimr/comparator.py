@@ -277,9 +277,13 @@ class PerformanceComparator:
                 pct_change = data['pct_change']
                 
                 if 'cpu' in metric:
-                    report.append(f"**{metric_name}**: {baseline_avg*100:.1f}% → {current_avg*100:.1f}% ({pct_change:+.1f}%)")
+                    # Show absolute change in percentage points for clarity
+                    abs_change = (current_avg - baseline_avg) * 100
+                    report.append(f"**{metric_name}**: {baseline_avg*100:.1f}% → {current_avg*100:.1f}% ({abs_change:+.1f}pp)")
                 elif 'memory' in metric:
-                    report.append(f"**{metric_name}**: {baseline_avg/1024/1024:.1f}MB → {current_avg/1024/1024:.1f}MB ({pct_change:+.1f}%)")
+                    # Show absolute change in MB
+                    abs_change_mb = (current_avg - baseline_avg) / 1024 / 1024
+                    report.append(f"**{metric_name}**: {baseline_avg/1024/1024:.1f}MB → {current_avg/1024/1024:.1f}MB ({abs_change_mb:+.1f}MB, {pct_change:+.1f}%)")
                 
                 if data['regression']:
                     report.append("  - ⚠️ Resource usage increased significantly")
