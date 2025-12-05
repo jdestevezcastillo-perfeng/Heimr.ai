@@ -1,6 +1,6 @@
 # Heimr.ai Project State - 2025-12-05
 
-**Last Updated:** 2025-12-05T01:39:00+01:00
+**Last Updated:** 2025-12-05T20:10:00+01:00
 **Status:** Active Development (Phase: Validation & Refinement)
 
 ## 1. Core Analysis Engine (`heimr/`)
@@ -12,7 +12,8 @@ The brain of the operation. Parses load test data, detects anomalies, and uses L
 | **Detector** | Basic threshold detection -> Statistical anomaly detection (Z-score/IQR). | **Stable**. Detects latency spikes effectively. | - Add trend detection (gradual degradation).<br>- Correlate anomalies across multiple metrics. |
 | **LLM Integration** | Placeholder -> Local Ollama support -> **Enhanced prompts with full data context**. | **Excellent**. Now extracts actual Prometheus stats (avg/min/max/trend), categorizes logs by level, and reports slowest trace spans with operation names. | - Fine-tune prompts for DB query analysis when Tempo has DB spans. |
 | **Observability Clients** | Basic HTTP requests -> Added Prometheus, Loki, Tempo clients -> Fixed timeouts & error handling. | **Robust**. Handles timeouts and empty data gracefully. | - Support for authenticated endpoints (Basic Auth/Bearer).<br>- More complex PromQL queries for specific insights. |
-| **CLI** | Simple args -> Added subcommands (`analyze`, `config-init`) -> Added YAML config support. | **User-Friendly**. `--config` and `config-init` make it easy to use. | - Add `dashboard` command for HTML generation.<br>- Add `compare` command for baseline vs new test. |
+| **CLI** | Simple args -> Added subcommands (`analyze`, `config-init`) -> Added YAML config support -> **Added comparison args**. | **User-Friendly**. `--config` and `config-init` make it easy to use. Comparison feature for regression testing. | - Add `dashboard` command for HTML generation. |
+| **Comparator** | **New** -> `heimr/comparator.py` created. | **Production-Ready**. Compares metrics, anomalies, Prometheus, logs, and traces. Generates separate comparison report with verdict. | - Add statistical significance testing.<br>- Add comparison visualization. |
 
 ## 2. Test Environment (`k8s/`)
 The playground for validating Heimr. A complete microservices setup on Minikube.
@@ -46,6 +47,7 @@ The face of the results.
 |-----------|-----------|---------------|---------------|
 | **Markdown Report** | Simple text -> Structured sections -> **Enhanced**. | **Excellent**. Includes Business Summary & Per-Endpoint KPI Table. | - Add PDF export. |
 | **HTML Dashboard** | **Non-existent** -> `heimr/dashboard.py`. | **Advanced**. Grid layout, separate charts, system metrics. | - **Parked**. Future improvements moved to `IDEAS.md` (Grafana). |
+| **Comparison Report** | **New** -> Integrated into CLI. | **Production-Ready**. Compares baseline vs current with verdict, deltas, and recommendations. | - Add trend analysis across multiple runs. |
 
 ---
 
@@ -61,6 +63,30 @@ The face of the results.
 
 **Result**: LLM now receives complete data context to perform accurate RCA.
 
+### Performance Comparison Feature (`heimr/comparator.py`)
+**Need**: Regression testing capability to compare current test results against a baseline.
+
+**Implementation**: Created `PerformanceComparator` class with comprehensive comparison logic:
+- Compares all key metrics (latency, throughput, errors) with deltas and % changes
+- Detects new anomalies between runs
+- Compares Prometheus metrics (CPU/memory trends) - shows absolute change in percentage points for clarity
+- Compares Loki logs (error/warning counts)
+- Compares Tempo traces (identifies new slow operations and regressions)
+- Generates separate comparison report with overall verdict (Regression/Improvement/Mixed)
+- Provides actionable recommendations based on differences
+
+**Usage**:
+```bash
+heimr analyze new-test.json \
+  --compare-baseline baseline.json \
+  --compare-prometheus baseline_prom.json \
+  --compare-loki baseline_loki.json \
+  --compare-tempo baseline_tempo.json \
+  --comparison comparison_report.md
+```
+
+**Result**: Production-ready regression testing. Successfully tested - detects new slow DB operations and performance degradations.
+
 ### DB Query Tracing
 **Finding**: Test app has `Psycopg2Instrumentor().instrument()` so DB queries appear as spans in Tempo traces. However, load tests had `--tempo-url` configured but Tempo wasn't collecting traces during execution.
 
@@ -71,5 +97,7 @@ The face of the results.
 ## Immediate Roadmap
 1. ✅ **Refine LLM Prompts**: Done (full data extraction).
 2. ✅ **Build Dashboard**: Done (Grid Layout).
-3. **Next**: Re-run load tests with Tempo collecting to verify DB span visibility.
-4. **Future**: Expand chaos scenarios (CPU, Memory), Grafana integration.
+3. ✅ **Comparison Feature**: Done (regression testing with separate report).
+4. **Next**: Re-run load tests with Tempo collecting to verify DB span visibility.
+5. **Future**: Expand chaos scenarios (CPU, Memory), Grafana integration, PDF export.
+
