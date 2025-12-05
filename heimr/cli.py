@@ -162,6 +162,15 @@ def main():
     )
     config_parser.add_argument("--output", "-o", default="heimr.yaml", help="Output path for the config file (default: heimr.yaml)")
 
+    # Setup-LLM command
+    setup_parser = subparsers.add_parser(
+        "setup-llm",
+        help="Setup Ollama and Llama 3.1 for AI analysis.",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    setup_parser.add_argument("--non-interactive", action="store_true", help="Run in non-interactive mode (auto-install)")
+
+
     # Analyze command
     analyze_parser = subparsers.add_parser(
         "analyze",
@@ -257,6 +266,12 @@ output: ./reports/analysis.md
         print(f"✓ Created config file: {output_path}")
         print(f"\nUsage: heimr analyze results.jtl -c {output_path}")
         sys.exit(0)
+
+    elif args.command == "setup-llm":
+        # Setup Ollama and Llama 3.1
+        from heimr.setup_llm import setup_llm
+        success = setup_llm(interactive=not args.non_interactive)
+        sys.exit(0 if success else 1)
 
     elif args.command == "analyze":
         try:
