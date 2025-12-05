@@ -17,16 +17,20 @@
 # ============================================================================
 
 # Prometheus - for system metrics (CPU, memory, latency histograms)
-prometheus_url: http://localhost:9090
-# prometheus_file: ./data/prometheus_metrics.json  # Use local file instead
+# Can be a URL or a file path
+prometheus: http://localhost:9090
+# prometheus: ./data/prometheus_metrics.json  # Or use local file
 
 # Loki - for log aggregation
-loki_url: http://localhost:3100
-# loki_file: ./data/loki_logs.json  # Use local file instead
+# Can be a URL or a file path
+loki: http://localhost:3100
+# loki: ./data/loki_logs.json  # Or use local file
 
 # Tempo - for distributed traces
-tempo_url: http://localhost:3200
-# tempo_file: ./data/tempo_traces.json  # Use local file instead
+# Can be a URL or a file path
+tempo: http://localhost:3200
+# tempo: ./data/tempo_traces.json  # Or use local file
+
 
 # ============================================================================
 # LLM Configuration (for AI-powered Root Cause Analysis)

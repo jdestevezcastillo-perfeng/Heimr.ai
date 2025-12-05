@@ -47,12 +47,15 @@ def merge_config_with_args(args, config: dict):
     """
     # Map config keys to argparse attribute names
     key_mapping = {
-        'prometheus_url': 'prometheus_url',
-        'prometheus_file': 'prometheus_file',
-        'loki_url': 'loki_url',
-        'loki_file': 'loki_file',
-        'tempo_url': 'tempo_url',
-        'tempo_file': 'tempo_file',
+        'prometheus': 'prometheus',
+        'prometheus_url': 'prometheus',  # Backward compatibility
+        'prometheus_file': 'prometheus',  # Backward compatibility
+        'loki': 'loki',
+        'loki_url': 'loki',  # Backward compatibility
+        'loki_file': 'loki',  # Backward compatibility
+        'tempo': 'tempo',
+        'tempo_url': 'tempo',  # Backward compatibility
+        'tempo_file': 'tempo',  # Backward compatibility
         'llm_url': 'llm_url',
         'llm_model': 'llm_model',
         'explain': 'explain',
@@ -124,11 +127,27 @@ def print_status(stats, anomaly_summary):
     print("\\n" + "="*50)
     if failed:
         print(f"\\033[1;31m❌ FAILED\\033[0m")
+        print(f"\033[1;31m❌ FAILED\033[0m")
         print(f"Reasons: {', '.join(reasons)}")
     else:
-        print(f"\\033[1;32m✅ PASSED\\033[0m")
+        print(f"\033[1;32m✅ PASSED\033[0m")
         print("No errors or anomalies detected.")
-    print("="*50 + "\\n")
+    print("="*50 + "\n")
+
+def parse_url_or_file(value):
+    """
+    Parse a value that could be either a URL or a file path.
+    Returns a tuple of (url, file_path) where one is None.
+    """
+    if not value:
+        return None, None
+    
+    # Check if it's a URL
+    if value.startswith('http://') or value.startswith('https://'):
+        return value, None
+    else:
+        # It's a file path
+        return None, value
 
 def main():
     parser = argparse.ArgumentParser(
@@ -153,8 +172,7 @@ def main():
     )
     analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
-  prometheus_url, prometheus_file, loki_url, loki_file,
-  tempo_url, tempo_file, llm_url, llm_model, explain,
+  prometheus, loki, tempo, llm_url, llm_model, explain,
   output, format, compare_baseline, compare_prometheus,
   compare_loki, compare_tempo, comparison.
   Run 'heimr config-init' to generate a template.
@@ -162,14 +180,12 @@ def main():
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
     analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
-    analyze_parser.add_argument("--prometheus-url", help="URL of the Prometheus server to fetch system metrics (e.g., http://localhost:9090)")
-    analyze_parser.add_argument("--prometheus-file", help="Path to a local JSON file containing Prometheus metrics")
-    analyze_parser.add_argument("--loki-url", help="URL of the Loki server to fetch logs (e.g., http://localhost:3100)")
-    analyze_parser.add_argument("--loki-file", help="Path to a local JSON file containing Loki logs")
-    analyze_parser.add_argument("--tempo-url", help="URL of the Tempo server to fetch traces (e.g., http://localhost:3200)")
-    analyze_parser.add_argument("--tempo-file", help="Path to a local JSON file containing Tempo traces")
+    analyze_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file (e.g., http://localhost:9090 or ./metrics.json)")
+    analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
+    analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
     analyze_parser.add_argument("--llm-url", help="Base URL for a local LLM API (e.g., http://localhost:11434/v1 for Ollama)")
     analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-5.1, claude-sonnet-4-5-20250514, llama3)")
+    
     
     # Comparison arguments
     analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
@@ -194,16 +210,20 @@ def main():
 # ============================================================================
 
 # Prometheus - for system metrics (CPU, memory, latency histograms)
-prometheus_url: http://localhost:9090
-# prometheus_file: ./data/prometheus_metrics.json  # Use local file instead
+# Can be a URL or a file path
+prometheus: http://localhost:9090
+# prometheus: ./data/prometheus_metrics.json  # Or use local file
 
 # Loki - for log aggregation
-loki_url: http://localhost:3100
-# loki_file: ./data/loki_logs.json  # Use local file instead
+# Can be a URL or a file path
+loki: http://localhost:3100
+# loki: ./data/loki_logs.json  # Or use local file
 
 # Tempo - for distributed traces
-tempo_url: http://localhost:3200
-# tempo_file: ./data/tempo_traces.json  # Use local file instead
+# Can be a URL or a file path
+tempo: http://localhost:3200
+# tempo: ./data/tempo_traces.json  # Or use local file
+
 
 # ============================================================================
 # LLM Configuration (for AI-powered Root Cause Analysis)
@@ -318,10 +338,11 @@ output: ./reports/analysis.md
 
             # 3. Prometheus Metrics (Optional)
             prom_metrics = {}
-            if args.prometheus_url or args.prometheus_file:
+            if args.prometheus:
                 print("\n--- Fetching Prometheus Metrics ---")
                 try:
-                    prom = PrometheusClient(url=args.prometheus_url or "http://localhost:9090", file_path=args.prometheus_file)
+                    prom_url, prom_file = parse_url_or_file(args.prometheus)
+                    prom = PrometheusClient(url=prom_url or "http://localhost:9090", file_path=prom_file)
                     # Use a dummy time range for now, or infer from data
                     # For simplicity, we'll just fetch current metrics in this demo
                     prom_metrics = prom.get_system_metrics(stats['start_time'], stats['end_time'])
@@ -331,10 +352,11 @@ output: ./reports/analysis.md
 
             # 4. Loki Logs (Optional)
             loki_logs = []
-            if args.loki_url or args.loki_file:
+            if args.loki:
                 print("\n--- Fetching Loki Logs ---")
                 try:
-                    loki = LokiClient(url=args.loki_url or "http://localhost:3100", file_path=args.loki_file)
+                    loki_url, loki_file = parse_url_or_file(args.loki)
+                    loki = LokiClient(url=loki_url or "http://localhost:3100", file_path=loki_file)
                     loki_logs = loki.get_error_logs(stats['start_time'], stats['end_time'])
                     print(f"Fetched {len(loki_logs)} error logs.")
                 except Exception as e:
@@ -342,10 +364,11 @@ output: ./reports/analysis.md
 
             # 5. Tempo Traces (Optional)
             tempo_traces = []
-            if args.tempo_url or args.tempo_file:
+            if args.tempo:
                 print("\n--- Fetching Tempo Traces ---")
                 try:
-                    tempo = TempoClient(url=args.tempo_url or "http://localhost:3200", file_path=args.tempo_file)
+                    tempo_url, tempo_file = parse_url_or_file(args.tempo)
+                    tempo = TempoClient(url=tempo_url or "http://localhost:3200", file_path=tempo_file)
                     # Fetch traces slower than P99 latency
                     min_duration = int(stats.get('p99_latency', 1000))
                     tempo_traces = tempo.get_slow_traces(stats['start_time'], stats['end_time'], min_duration_ms=min_duration)
