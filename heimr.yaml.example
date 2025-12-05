@@ -33,25 +33,33 @@ tempo: http://localhost:3200
 
 
 # ============================================================================
-# LLM Configuration (for AI-powered Root Cause Analysis)
+# LLM Configuration (AI-powered Root Cause Analysis - enabled by default)
 # ============================================================================
-
-# Enable AI explanation (equivalent to --explain flag)
-explain: true
 
 # Local LLM (Ollama) - recommended for privacy
 llm_url: http://localhost:11434/v1
-llm_model: llama3.1:8b
 
-# Cloud LLM alternatives (use environment variables for API keys):
-#   OPENAI_API_KEY - for OpenAI
-#   ANTHROPIC_API_KEY - for Anthropic Claude
+# Model tier (auto-resolves to specific model):
+llm_model: medium  # Options: small, medium, large
 
-# OpenAI example:
-# llm_model: gpt-4o
+# Model Tiers:
+#   - small:  llama3.2:3b  (~2GB, laptops/CI/CD, fast)
+#   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
+#   - large:  llama3.3:70b (~21GB, RTX 4090+, best quality)
+#
+# Or specify any model directly:
+# llm_model: llama3.1:405b
+# llm_model: mistral:7b
+# llm_model: codellama:13b
 
-# Anthropic example (requires ANTHROPIC_API_KEY):
-# llm_model: claude-sonnet-4-5-20250514
+# Cloud LLM alternatives (set API keys as environment variables):
+#   export OPENAI_API_KEY='sk-...'        # For OpenAI models
+#   export ANTHROPIC_API_KEY='sk-ant-...' # For Anthropic Claude
+#
+# When using cloud APIs, set the model:
+# llm_model: gpt-4o          # OpenAI
+# llm_model: gpt-4o-mini     # OpenAI (cheaper)
+# llm_model: claude-sonnet-4 # Anthropic
 
 # ============================================================================
 # Output Settings

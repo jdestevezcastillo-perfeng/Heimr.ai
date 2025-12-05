@@ -4,14 +4,29 @@
 import os
 from typing import Dict, Any
 
+# Model tier aliases for convenience
+MODEL_TIERS = {
+    'small': 'llama3.2:3b',           # ~2GB, laptops/CI/CD
+    'medium': 'llama3.1:8b',          # ~5GB, default
+    'large': 'llama3.3:70b-instruct-q4_K_M'  # ~21GB, RTX 4090+
+}
+
 class LLMClient:
     """
     Client for interacting with LLMs (OpenAI, Anthropic, Ollama/Local) to generate explanations.
     """
     def __init__(self, base_url: str = None, model: str = None):
         self.base_url = base_url
-        self.model = model
+        # Resolve model tier alias to actual model name
+        self.model = self._resolve_model(model)
         self.provider = self._detect_provider()
+    
+    def _resolve_model(self, model: str) -> str:
+        """Resolve model tier alias (small/medium/large) to actual model name."""
+        if not model:
+            return None
+        # Check if it's a tier alias
+        return MODEL_TIERS.get(model.lower(), model)
 
     def _detect_provider(self) -> str:
         """Auto-detect which LLM provider to use based on configuration."""
@@ -24,10 +39,19 @@ class LLMClient:
             return "openai"
         else:
             raise ValueError(
-                "No LLM provider configured. Please either:\n"
-                "  - Set OPENAI_API_KEY environment variable, or\n"
-                "  - Set ANTHROPIC_API_KEY environment variable, or\n"
-                "  - Provide --llm-url for local LLM (e.g., http://localhost:11434/v1)"
+                "\n" + "="*60 + "\n"
+                "❌ No LLM configuration found!\n\n"
+                "Heimr requires AI analysis. Please choose one option:\n\n"
+                "Option 1 - Local LLM (Recommended, Privacy-First):\n"
+                "  Run: heimr setup-llm\n"
+                "  This installs Ollama + Llama 3.1 (~6GB)\n\n"
+                "Option 2 - OpenAI API (Cloud):\n"
+                "  Set: export OPENAI_API_KEY='sk-...'\n\n"
+                "Option 3 - Anthropic API (Cloud):\n"
+                "  Set: export ANTHROPIC_API_KEY='sk-ant-...'\n\n"
+                "Option 4 - Statistical Analysis Only:\n"
+                "  Add: --no-llm (anomaly detection only, no AI insights)\n"
+                + "="*60
             )
 
     def generate_explanation(self, summary_stats: Dict[str, Any], anomalies_summary: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
