@@ -58,3 +58,17 @@ output: ./reports/analysis.md
 
 # File format (auto-detected if not specified)
 # format: k6  # Options: jtl, k6, gatling, locust
+
+# ============================================================================
+# Comparison Settings (Optional - for regression testing)
+# ============================================================================
+
+# Compare current test with a baseline
+# compare_baseline: ./baseline/k6_results.json
+# compare_prometheus: ./baseline/prometheus_metrics.json
+# compare_loki: ./baseline/loki_logs.json
+# compare_tempo: ./baseline/tempo_traces.json
+
+# Path to save the comparison report
+# comparison: ./reports/comparison.md
+

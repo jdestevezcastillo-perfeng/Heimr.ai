@@ -58,6 +58,11 @@ def merge_config_with_args(args, config: dict):
         'explain': 'explain',
         'output': 'output',
         'format': 'format',
+        'compare_baseline': 'compare_baseline',
+        'compare_prometheus': 'compare_prometheus',
+        'compare_loki': 'compare_loki',
+        'compare_tempo': 'compare_tempo',
+        'comparison': 'comparison',
     }
     
     for config_key, arg_key in key_mapping.items():
@@ -152,6 +157,14 @@ def main():
     analyze_parser.add_argument("--tempo-file", help="Path to a local JSON file containing Tempo traces")
     analyze_parser.add_argument("--llm-url", help="Base URL for a local LLM API (e.g., http://localhost:11434/v1 for Ollama)")
     analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-5.1, claude-sonnet-4-5-20250514, llama3)")
+    
+    # Comparison arguments
+    analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
+    analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file for comparison")
+    analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file for comparison")
+    analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file for comparison")
+    analyze_parser.add_argument("--comparison", help="Path to save the comparison report (Markdown format)")
+
 
     args = parser.parse_args()
 
@@ -484,6 +497,109 @@ output: ./reports/analysis.md
                     dashboard_gen.generate(args.dashboard)
                 except Exception as e:
                     print(f"Warning: Failed to generate dashboard: {e}")
+
+            # Generate Comparison Report if requested
+            if args.comparison and args.compare_baseline:
+                print("\n--- Generating Comparison Report ---")
+                try:
+                    from heimr.comparator import PerformanceComparator
+                    
+                    # Load baseline data
+                    print(f"Loading baseline: {args.compare_baseline}")
+                    baseline_format = args.format or 'k6'  # Use same format as current
+                    
+                    if baseline_format == 'k6':
+                        baseline_parser = K6Parser(args.compare_baseline)
+                    elif baseline_format == 'gatling':
+                        baseline_parser = GatlingParser(args.compare_baseline)
+                    elif baseline_format == 'locust':
+                        baseline_parser = LocustParser(args.compare_baseline)
+                    else:
+                        baseline_parser = JTLParser(args.compare_baseline)
+                    
+                    baseline_df = baseline_parser.parse()
+                    baseline_stats = baseline_parser.get_summary_stats()
+                    
+                    # Calculate extended baseline stats
+                    if not baseline_df.empty:
+                        baseline_stats['median_latency'] = baseline_df['elapsed'].median()
+                        baseline_stats['min_latency'] = baseline_df['elapsed'].min()
+                        baseline_stats['max_latency'] = baseline_df['elapsed'].max()
+                        baseline_stats['error_count'] = len(baseline_df[~baseline_df['success']])
+                        duration_sec = (baseline_stats['end_time'] - baseline_stats['start_time']).total_seconds()
+                        baseline_stats['throughput'] = baseline_stats['total_requests'] / duration_sec if duration_sec > 0 else 0
+                    
+                    # Detect baseline anomalies
+                    baseline_detector = AnomalyDetector(baseline_df)
+                    baseline_anomalies_result = baseline_detector.detect_latency_anomalies()
+                    baseline_anomaly_summary = baseline_detector.get_anomaly_summary(baseline_anomalies_result)
+                    
+                    # Load baseline observability data
+                    baseline_prom_metrics = {}
+                    baseline_loki_logs = []
+                    baseline_tempo_traces = []
+                    
+                    if args.compare_prometheus:
+                        print(f"Loading baseline Prometheus metrics: {args.compare_prometheus}")
+                        import json
+                        with open(args.compare_prometheus, 'r') as f:
+                            baseline_prom_metrics = json.load(f)
+                    
+                    if args.compare_loki:
+                        print(f"Loading baseline Loki logs: {args.compare_loki}")
+                        import json
+                        with open(args.compare_loki, 'r') as f:
+                            loki_data = json.load(f)
+                            if 'data' in loki_data and 'result' in loki_data['data']:
+                                for stream in loki_data['data']['result']:
+                                    for value in stream['values']:
+                                        baseline_loki_logs.append(value[1])
+                    
+                    if args.compare_tempo:
+                        print(f"Loading baseline Tempo traces: {args.compare_tempo}")
+                        import json
+                        with open(args.compare_tempo, 'r') as f:
+                            tempo_data = json.load(f)
+                            baseline_tempo_traces = tempo_data.get('data', [])
+                    
+                    # Create comparator and run comparison
+                    comparator = PerformanceComparator(baseline_stats, stats)
+                    
+                    metrics_comparison = comparator.compare_metrics()
+                    anomalies_comparison = comparator.compare_anomalies(baseline_anomaly_summary, anomaly_summary)
+                    
+                    prometheus_comparison = None
+                    if baseline_prom_metrics and prom_metrics:
+                        prometheus_comparison = comparator.compare_prometheus(baseline_prom_metrics, prom_metrics)
+                    
+                    logs_comparison = None
+                    if baseline_loki_logs and loki_logs:
+                        logs_comparison = comparator.compare_logs(baseline_loki_logs, loki_logs)
+                    
+                    traces_comparison = None
+                    if baseline_tempo_traces and tempo_traces:
+                        traces_comparison = comparator.compare_traces(baseline_tempo_traces, tempo_traces)
+                    
+                    # Generate comparison report
+                    comparison_report = comparator.generate_comparison_report(
+                        metrics_comparison,
+                        anomalies_comparison,
+                        prometheus_comparison,
+                        logs_comparison,
+                        traces_comparison
+                    )
+                    
+                    # Save comparison report
+                    with open(args.comparison, 'w') as f:
+                        f.write(comparison_report)
+                    
+                    print(f"✅ Comparison report saved to: {args.comparison}")
+                    
+                except Exception as e:
+                    print(f"Warning: Failed to generate comparison report: {e}")
+                    import traceback
+                    traceback.print_exc()
+
 
         except Exception as e:
             print(f"Error: {e}")
