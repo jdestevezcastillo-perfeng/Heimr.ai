@@ -1,10 +1,11 @@
 # Heimr.ai Project State - 2025-12-05
 
-**Last Updated:** 2025-12-05T21:55:00+01:00
+**Last Updated:** 2025-12-06T00:05:00+01:00
 **Status:** Active Development (Phase: UX Refinement & Feature Completion)
+**Current Task:** ✅ DB Span Verification Complete | ✅ Large Tier Model Verified (Qwen 2.5 14B)
 
 ## 1. Core Analysis Engine (`heimr/`)
-The brain of the operation. Parses load test data, detects anomalies, and uses LLMs for RCA.
+The brain of the operation. Parses load test data, detects anomalies, and uses LLMs for layered analysis.
 
 | Component | Evolution | Current State | Pending Tasks |
 |-----------|-----------|---------------|---------------|

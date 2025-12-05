@@ -191,7 +191,7 @@ def main():
     analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
     analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
     analyze_parser.add_argument("--llm-url", default="http://localhost:11434/v1", help="Base URL for LLM API (default: Ollama at http://localhost:11434/v1)")
-    analyze_parser.add_argument("--llm-model", default="medium", help="""LLM model to use. Options:
+    analyze_parser.add_argument("--llm-model", default=None, help="""LLM model to use. Options:
   - small:  llama3.2:3b  (~2GB, laptops/CI/CD)
   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
   - large:  llama3.3:70b (~21GB, RTX 4090+, best quality)
@@ -284,6 +284,10 @@ output: ./reports/analysis.md
                 config = load_config(args.config)
                 args = merge_config_with_args(args, config)
                 print(f"Loaded config from: {args.config}")
+            
+            # Set default model if not configured
+            if not args.llm_model:
+                args.llm_model = "medium"
             
             # Detect format if not specified
             file_format = args.format

@@ -118,32 +118,29 @@ class HealthResponse(BaseModel):
     chaos_memory_leak: bool
 
 
-# OpenTelemetry setup
-def setup_telemetry():
-    """Configure OpenTelemetry tracing."""
-    tempo_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "tempo:4317")
-    
-    provider = TracerProvider()
-    processor = BatchSpanProcessor(
-        OTLPSpanExporter(
-            endpoint=tempo_endpoint,
-            insecure=True
-        )
+# OpenTelemetry setup - MUST be done FIRST at module load time
+tempo_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "tempo:4317")
+
+provider = TracerProvider()
+processor = BatchSpanProcessor(
+    OTLPSpanExporter(
+        endpoint=tempo_endpoint,
+        insecure=True
     )
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
-    
-    # Instrument psycopg2
-    Psycopg2Instrumentor().instrument()
-    
-    logger.info(f"OpenTelemetry configured with endpoint: {tempo_endpoint}")
+)
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+
+logger.info(f"OpenTelemetry configured with endpoint: {tempo_endpoint}")
+
+# Psycopg2Instrumentor removed as it was not working manually
+# Psycopg2Instrumentor().instrument(enable_commenter=True, commenter_options={})
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    # Startup
-    setup_telemetry()
+    # Startup (telemetry already configured at module load)
     logger.info("Test application starting up")
     
     # Wait for database
@@ -259,21 +256,33 @@ async def metrics():
     )
 
 
+# Create a global tracer
+tracer = trace.get_tracer("app.manual")
+
+
 @app.get("/api/users", response_model=List[User], tags=["Users"])
 async def list_users(limit: int = Query(default=10, le=100)):
     """List users (indexed table - fast)."""
-    tracer = trace.get_tracer(__name__)
     with tracer.start_as_current_span("list_users") as span:
         span.set_attribute("limit", limit)
         
         try:
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute(
-                "SELECT id, username, email, created_at FROM users LIMIT %s",
-                (limit,)
-            )
-            rows = cur.fetchall()
+            
+            # Manual DB span
+            with tracer.start_as_current_span("db.query.users") as db_span:
+                db_span.set_attribute("db.system", "postgresql")
+                db_span.set_attribute("db.statement", "SELECT id, username, email, created_at FROM users LIMIT %s")
+                db_span.set_attribute("db.operation", "SELECT")
+                db_span.set_attribute("db.sql.table", "users")
+                
+                cur.execute(
+                    "SELECT id, username, email, created_at FROM users LIMIT %s",
+                    (limit,)
+                )
+                rows = cur.fetchall()
+            
             cur.close()
             return_db_connection(conn)
             
