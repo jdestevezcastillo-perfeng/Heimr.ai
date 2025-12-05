@@ -133,15 +133,26 @@ def print_status(stats, anomaly_summary):
     print("="*50 + "\\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="Heimr.ai - AI-Powered Load Test Analysis")
+    parser = argparse.ArgumentParser(
+        description="Heimr.ai - AI-Powered Load Test Analysis",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Config-init command
-    config_parser = subparsers.add_parser("config-init", help="Generate an example heimr.yaml config file.")
+    config_parser = subparsers.add_parser(
+        "config-init",
+        help="Generate an example heimr.yaml config file.",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     config_parser.add_argument("--output", "-o", default="heimr.yaml", help="Output path for the config file (default: heimr.yaml)")
 
     # Analyze command
-    analyze_parser = subparsers.add_parser("analyze", help="Analyze a load test result file and detect anomalies.")
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Analyze a load test result file and detect anomalies.",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=35, width=120)
+    )
     analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
   prometheus_url, prometheus_file, loki_url, loki_file,
