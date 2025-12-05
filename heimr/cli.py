@@ -57,6 +57,8 @@ def merge_config_with_args(args, config: dict):
         'llm_model': 'llm_model',
         'explain': 'explain',
         'output': 'output',
+        'dashboard': 'dashboard',
+        'pdf': 'pdf',
         'format': 'format',
         'compare_baseline': 'compare_baseline',
         'compare_prometheus': 'compare_prometheus',
@@ -144,7 +146,9 @@ def main():
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
   prometheus_url, prometheus_file, loki_url, loki_file,
   tempo_url, tempo_file, llm_url, llm_model, explain,
-  output, format. Run 'heimr config-init' to generate a template.""")
+  output, dashboard, pdf, format,
+  compare_baseline, compare_prometheus, compare_loki, compare_tempo, comparison.
+  Run 'heimr config-init' to generate a template.""")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
     analyze_parser.add_argument("--dashboard", help="Path to save the generated HTML dashboard")
