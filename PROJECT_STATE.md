@@ -1,7 +1,7 @@
 # Heimr.ai Project State - 2025-12-05
 
-**Last Updated:** 2025-12-05T20:10:00+01:00
-**Status:** Active Development (Phase: Validation & Refinement)
+**Last Updated:** 2025-12-05T21:55:00+01:00
+**Status:** Active Development (Phase: UX Refinement & Feature Completion)
 
 ## 1. Core Analysis Engine (`heimr/`)
 The brain of the operation. Parses load test data, detects anomalies, and uses LLMs for RCA.
@@ -10,10 +10,12 @@ The brain of the operation. Parses load test data, detects anomalies, and uses L
 |-----------|-----------|---------------|---------------|
 | **Parsers** | Started with JTL -> Added k6, Gatling, Locust -> Refined k6 for granular/summary JSON. | **Mature**. Supports all major formats. k6 parser robust to mixed output. | - Support for JMeter CSV (if different from JTL).<br>- Streaming parsing for massive files. |
 | **Detector** | Basic threshold detection -> Statistical anomaly detection (Z-score/IQR). | **Stable**. Detects latency spikes effectively. | - Add trend detection (gradual degradation).<br>- Correlate anomalies across multiple metrics. |
-| **LLM Integration** | Placeholder -> Local Ollama support -> **Enhanced prompts with full data context**. | **Excellent**. Now extracts actual Prometheus stats (avg/min/max/trend), categorizes logs by level, and reports slowest trace spans with operation names. | - Fine-tune prompts for DB query analysis when Tempo has DB spans. |
-| **Observability Clients** | Basic HTTP requests -> Added Prometheus, Loki, Tempo clients -> Fixed timeouts & error handling. | **Robust**. Handles timeouts and empty data gracefully. | - Support for authenticated endpoints (Basic Auth/Bearer).<br>- More complex PromQL queries for specific insights. |
-| **CLI** | Simple args -> Added subcommands (`analyze`, `config-init`) -> Added YAML config support -> **Added comparison args**. | **User-Friendly**. `--config` and `config-init` make it easy to use. Comparison feature for regression testing. | - Add `dashboard` command for HTML generation. |
-| **Comparator** | **New** -> `heimr/comparator.py` created. | **Production-Ready**. Compares metrics, anomalies, Prometheus, logs, and traces. Generates separate comparison report with verdict. | - Add statistical significance testing.<br>- Add comparison visualization. |
+| **LLM Integration** | Placeholder -> Local Ollama support -> Enhanced prompts -> **AI-FIRST BY DEFAULT**. | **Excellent**. LLM analysis runs automatically with Ollama/Llama3.1:8b. Full data context (metrics, logs, traces). | - Fine-tune prompts for specific failure scenarios. |
+| **Observability Clients** | Basic HTTP requests -> Added Prometheus, Loki, Tempo clients -> **Unified URL/file detection**. | **Robust**. Auto-detects URLs vs file paths. Handles timeouts and empty data gracefully. | - Support for authenticated endpoints (Basic Auth/Bearer). |
+| **CLI** | Simple args -> Subcommands -> YAML config -> Comparison -> **MASSIVELY SIMPLIFIED**. | **Excellent**. 41% fewer arguments. AI-first, auto-generated outputs. | - Add batch processing command. |
+| **Comparator** | New -> Production-ready -> **Auto-generated alongside reports**. | **Production-Ready**. Automatically creates comparison reports with `_comparison` suffix. | - Add statistical significance testing. |
+| **PDF Generator** | **New** -> `heimr/pdf_generator.py` created. | **Production-Ready**. Professional PDFs with custom styling, headers, footers, page numbers. Auto-generated for all markdown reports. | - Add custom branding options. |
+| **Dashboard** | Non-existent -> Created -> **Auto-generated**. | **Advanced**. HTML dashboards with Chart.js visualizations. Auto-generated alongside reports. | - Add interactive filtering. |
 
 ## 2. Test Environment (`k8s/`)
 The playground for validating Heimr. A complete microservices setup on Minikube.
@@ -39,19 +41,68 @@ The manual.
 |-----------|-----------|---------------|---------------|
 | **Strategy** | Mental model -> `TESTING_STRATEGY.md`. | **Clear**. Defines phases and success criteria. | - Update with latest CLI usage.<br>- Add troubleshooting guide. |
 | **Walkthrough** | `task.md` -> `walkthrough.md`. | **Up-to-date**. Guides user through deployment and testing. | - Add screenshots/diagrams. |
+| **README** | Basic -> Feature-rich -> **UPDATED**. | **Excellent**. Reflects all new features: PDF export, auto-generation, simplified CLI, AI-first approach. | - Add video demo. |
 
 ## 5. Reporting & Visualization
 The face of the results.
 
 | Component | Evolution | Current State | Pending Tasks |
 |-----------|-----------|---------------|---------------|
-| **Markdown Report** | Simple text -> Structured sections -> **Enhanced**. | **Excellent**. Includes Business Summary & Per-Endpoint KPI Table. | - Add PDF export. |
-| **HTML Dashboard** | **Non-existent** -> `heimr/dashboard.py`. | **Advanced**. Grid layout, separate charts, system metrics. | - **Parked**. Future improvements moved to `IDEAS.md` (Grafana). |
-| **Comparison Report** | **New** -> Integrated into CLI. | **Production-Ready**. Compares baseline vs current with verdict, deltas, and recommendations. | - Add trend analysis across multiple runs. |
+| **Markdown Report** | Simple text -> Structured sections -> Enhanced. | **Excellent**. Includes Business Summary & Per-Endpoint KPI Table. | - Add custom templates. |
+| **PDF Report** | **New** -> Auto-generated. | **Production-Ready**. Professional formatting, auto-generated alongside markdown. | - Add custom branding. |
+| **HTML Dashboard** | Non-existent -> Created -> **Auto-generated**. | **Advanced**. Grid layout, separate charts, system metrics. Auto-generated alongside reports. | - Add interactive filtering. |
+| **Comparison Report** | New -> Integrated -> **Auto-generated**. | **Production-Ready**. Compares baseline vs current with verdict, deltas, and recommendations. Auto-generated with `_comparison` suffix. | - Add trend analysis across multiple runs. |
 
 ---
 
 ## Recent Changes (2025-12-05)
+
+### Major UX Overhaul - Simplified CLI & AI-First Approach
+
+**Problem**: Too many CLI arguments (17), confusing options, AI analysis was optional.
+
+**Solution**: Massive simplification and paradigm shift:
+
+1.  **PDF Export Feature** (`heimr/pdf_generator.py`):
+    *   Auto-generates professional PDFs alongside markdown reports
+    *   Custom CSS with headers, footers, page numbers
+    *   No separate `--pdf` argument needed
+
+2.  **Auto-Generated Outputs**:
+    *   Removed `--pdf` and `--dashboard` arguments
+    *   One `--output` creates 3 files: `.md`, `.pdf`, `.html`
+    *   Comparison reports auto-generated with `_comparison` suffix
+
+3.  **Unified Observability Arguments**:
+    *   Consolidated `--prometheus-url` and `--prometheus-file` into `--prometheus`
+    *   Same for `--loki` and `--tempo`
+    *   Auto-detects URLs vs file paths
+
+4.  **AI-First by Default** (BREAKING CHANGE):
+    *   Removed `--explain` flag
+    *   LLM analysis now runs automatically
+    *   Default: Ollama at `http://localhost:11434/v1` with `llama3.1:8b`
+    *   Added `--no-llm` to disable (rare edge cases)
+
+**Result**: CLI reduced from 17 to 10 arguments (41% reduction). Much more intuitive and powerful.
+
+**Before**:
+```bash
+heimr analyze results.json --explain \
+  --prometheus-url http://localhost:9090 \
+  --output report.md \
+  --pdf report.pdf \
+  --dashboard dashboard.html
+```
+
+**Now**:
+```bash
+heimr analyze results.json \
+  --prometheus http://localhost:9090 \
+  --output report.md
+# Auto-creates: report.md, report.pdf, report.html
+# AI analysis runs automatically!
+```
 
 ### LLM Prompt Overhaul (`heimr/llm.py`)
 **Problem**: LLM was only receiving metadata (e.g., "cpu_usage: 50 data points") instead of actual values, causing it to ask readers to "check CPU metrics manually."

@@ -84,25 +84,39 @@ No vendor lock-in. Use what you already have.
 
 ```bash
 pip install heimr-ai
+
+# Install Ollama for local AI analysis (recommended)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama3.1:8b
 ```
 
 ### Basic Analysis
 
 ```bash
 # Analyze any load test result
-heimr analyze results.jtl
+# AI analysis runs automatically!
+heimr analyze results.jtl --output report.md
 
-# Get AI-powered explanation
-heimr analyze results.jtl --explain --output report.md
+# Creates 3 files automatically:
+# - report.md (Markdown report)
+# - report.pdf (PDF version)
+# - report.html (Interactive dashboard)
 ```
 
 ### With Full Observability
 
 ```bash
-heimr analyze results.jtl --explain \
-  --prometheus-url http://localhost:9090 \
-  --loki-url http://localhost:3100 \
-  --tempo-url http://localhost:3200 \
+heimr analyze results.jtl \
+  --prometheus http://localhost:9090 \
+  --loki http://localhost:3100 \
+  --tempo http://localhost:3200 \
+  --output report.md
+
+# Or use file paths instead of URLs:
+heimr analyze results.jtl \
+  --prometheus ./metrics.json \
+  --loki ./logs.json \
+  --tempo ./traces.json \
   --output report.md
 ```
 
@@ -111,45 +125,69 @@ heimr analyze results.jtl --explain \
 Instead of specifying all options on the command line, you can use a YAML config file:
 
 ```bash
+# Generate template config
+heimr config-init
+
 # Use config file (CLI args override config values)
 heimr analyze results.jtl --config heimr.yaml
-
-# Short form
-heimr analyze results.jtl -c heimr.yaml
 ```
 
 Example `heimr.yaml`:
 
 ```yaml
-# Observability sources
-prometheus_url: http://localhost:9090
-loki_url: http://localhost:3100
-tempo_url: http://localhost:3200
+# Observability sources (URL or file path)
+prometheus: http://localhost:9090
+loki: http://localhost:3100
+tempo: http://localhost:3200
 
-# LLM configuration
-explain: true
-llm_url: http://localhost:11434/v1
+# LLM configuration (defaults shown)
+llm_url: http://localhost:11434/v1  # Ollama
 llm_model: llama3.1:8b
 
 # Output
 output: ./reports/analysis.md
+
+# Comparison (optional)
+compare_baseline: ./baseline/results.json
+compare_prometheus: ./baseline/metrics.json
 ```
 
 See `heimr.yaml.example` for the full template with all options.
 
-**Result**: A comprehensive Markdown report with:
+**Result**: Three comprehensive reports automatically generated:
 
-- Statistical summary (P50, P95, P99, error rate)
+1. **Markdown Report** (`report.md`):
+   - Statistical summary (P50, P95, P99, error rate)
+   - Detected anomalies with timestamps
+   - Infrastructure correlation (CPU spikes, memory leaks)
+   - Log analysis (error patterns, warnings)
+   - Trace analysis (slow spans, bottlenecks)
+   - **AI-generated root cause explanation and recommendations**
 
-- Detected anomalies with timestamps
+2. **PDF Report** (`report.pdf`):
+   - Professional formatting with headers and page numbers
+   - Suitable for stakeholder presentations
+   - Automatically generated alongside markdown
 
-- Infrastructure correlation (CPU spikes, memory leaks)
+3. **Interactive Dashboard** (`report.html`):
+   - Real-time charts and visualizations
+   - CPU, memory, latency, and error rate graphs
+   - Filterable and exportable data
 
-- Log analysis (error patterns, warnings)
+### Comparison Reports
 
-- Trace analysis (slow spans, bottlenecks)
+Compare current results against a baseline for regression testing:
 
-- **AI-generated root cause explanation and recommendations**
+```bash
+heimr analyze current.json \
+  --compare-baseline baseline.json \
+  --compare-prometheus baseline_metrics.json \
+  --output report.md
+
+# Creates additional comparison files:
+# - report_comparison.md
+# - report_comparison.pdf
+```
 
 ---
 
