@@ -65,7 +65,6 @@ def merge_config_with_args(args, config: dict):
         'compare_prometheus': 'compare_prometheus',
         'compare_loki': 'compare_loki',
         'compare_tempo': 'compare_tempo',
-        'comparison': 'comparison',
     }
     
     for config_key, arg_key in key_mapping.items():
@@ -174,7 +173,7 @@ def main():
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
   prometheus, loki, tempo, llm_url, llm_model, explain,
   output, format, compare_baseline, compare_prometheus,
-  compare_loki, compare_tempo, comparison.
+  compare_loki, compare_tempo.
   Run 'heimr config-init' to generate a template.
   Note: PDFs and HTML dashboards are automatically generated alongside markdown reports.""")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
@@ -192,8 +191,6 @@ def main():
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file for comparison")
     analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file for comparison")
     analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file for comparison")
-    analyze_parser.add_argument("--comparison", help="Path to save the comparison report (Markdown format)")
-
 
 
 
@@ -558,7 +555,7 @@ output: ./reports/analysis.md
 
 
             # Generate Comparison Report if requested
-            if args.comparison and args.compare_baseline:
+            if args.compare_baseline and args.output:
                 print("\n--- Generating Comparison Report ---")
                 try:
                     from heimr.comparator import PerformanceComparator
@@ -648,17 +645,20 @@ output: ./reports/analysis.md
                         traces_comparison
                     )
                     
+                    # Auto-generate comparison path based on output path
+                    comparison_path = args.output.rsplit('.', 1)[0] + '_comparison.md'
+                    
                     # Save comparison report
-                    with open(args.comparison, 'w') as f:
+                    with open(comparison_path, 'w') as f:
                         f.write(comparison_report)
                     
-                    print(f"✅ Comparison report saved to: {args.comparison}")
+                    print(f"✅ Comparison report saved to: {comparison_path}")
                     
                     # Automatically generate PDF for comparison report
                     try:
                         from heimr.pdf_generator import PDFGenerator
                         pdf_gen = PDFGenerator()
-                        pdf_path = args.comparison.rsplit('.', 1)[0] + '.pdf'
+                        pdf_path = comparison_path.rsplit('.', 1)[0] + '.pdf'
                         pdf_gen.generate_pdf(comparison_report, pdf_path)
                         print(f"✅ Comparison PDF saved to: {pdf_path}")
                     except Exception as e:
