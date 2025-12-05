@@ -164,6 +164,10 @@ def main():
     analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file for comparison")
     analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file for comparison")
     analyze_parser.add_argument("--comparison", help="Path to save the comparison report (Markdown format)")
+    
+    # PDF export
+    analyze_parser.add_argument("--pdf", help="Path to save the report as PDF (requires markdown report)")
+
 
 
     args = parser.parse_args()
@@ -488,6 +492,25 @@ output: ./reports/analysis.md
 
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
+                
+                # Generate PDF if requested
+                if args.pdf:
+                    print("\n--- Generating PDF Report ---")
+                    try:
+                        from heimr.pdf_generator import PDFGenerator
+                        pdf_gen = PDFGenerator()
+                        
+                        # Read the markdown report we just saved
+                        with open(args.output, 'r', encoding='utf-8') as f:
+                            markdown_content = f.read()
+                        
+                        # Generate PDF
+                        pdf_gen.generate_pdf(markdown_content, args.pdf)
+                        print(f"✅ PDF report saved to: {args.pdf}")
+                    except Exception as e:
+                        print(f"Warning: Failed to generate PDF: {e}")
+                        import traceback
+                        traceback.print_exc()
 
             # Generate Dashboard if requested
             if args.dashboard:
