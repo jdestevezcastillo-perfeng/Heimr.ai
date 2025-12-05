@@ -58,7 +58,6 @@ def merge_config_with_args(args, config: dict):
         'tempo_file': 'tempo',  # Backward compatibility
         'llm_url': 'llm_url',
         'llm_model': 'llm_model',
-        'explain': 'explain',
         'output': 'output',
         'format': 'format',
         'compare_baseline': 'compare_baseline',
@@ -171,19 +170,19 @@ def main():
     )
     analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
-  prometheus, loki, tempo, llm_url, llm_model, explain,
+  prometheus, loki, tempo, llm_url, llm_model,
   output, format, compare_baseline, compare_prometheus,
   compare_loki, compare_tempo.
   Run 'heimr config-init' to generate a template.
-  Note: PDFs and HTML dashboards are automatically generated alongside markdown reports.""")
+  Note: AI analysis is enabled by default. PDFs and HTML dashboards are auto-generated.""")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
-    analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
+    analyze_parser.add_argument("--no-llm", action="store_true", help="Disable AI-powered analysis (enabled by default)")
     analyze_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file (e.g., http://localhost:9090 or ./metrics.json)")
     analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
     analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
-    analyze_parser.add_argument("--llm-url", help="Base URL for a local LLM API (e.g., http://localhost:11434/v1 for Ollama)")
-    analyze_parser.add_argument("--llm-model", help="Name of the LLM model to use (e.g., gpt-5.1, claude-sonnet-4-5-20250514, llama3)")
+    analyze_parser.add_argument("--llm-url", default="http://localhost:11434/v1", help="Base URL for LLM API (default: Ollama at http://localhost:11434/v1)")
+    analyze_parser.add_argument("--llm-model", default="llama3.1:8b", help="LLM model to use (default: llama3.1:8b)")
     
     
     # Comparison arguments
@@ -426,9 +425,9 @@ output: ./reports/analysis.md
             else:
                 print("No errors or anomalies detected.")
 
-            # 6. Explain (Optional)
+            # 6. AI Analysis (enabled by default)
             full_explanation = ""
-            if args.explain:
+            if not args.no_llm:
                 print("\n--- AI Analysis (Heimr) ---")
                 
                 try:
@@ -438,8 +437,7 @@ output: ./reports/analysis.md
                     )
                     
                     print(f"Using LLM Provider: {llm.provider.upper()}")
-                    if args.llm_url:
-                        print(f"Model: {args.llm_model or 'llama3'}")
+                    print(f"Model: {args.llm_model}")
                     
                     # Pass metrics, logs, and traces to LLM
                     explanation_generator = llm.generate_explanation(stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
@@ -451,6 +449,10 @@ output: ./reports/analysis.md
                     print("\n")
                 except ValueError as e:
                     print(f"Error: {e}")
+                    print("Tip: Make sure Ollama is running with: ollama serve")
+                except Exception as e:
+                    print(f"Warning: LLM analysis failed: {e}")
+                    print("Continuing with statistical analysis only...")
 
             # Save report if requested
             if args.output:
