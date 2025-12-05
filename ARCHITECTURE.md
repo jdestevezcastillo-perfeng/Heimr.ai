@@ -149,18 +149,27 @@ def detect_anomalies(df, prometheus_metrics, loki_logs, tempo_traces):
 
 ## LLM Integration
 
-### Why Local LLM (Llama 3.1)?
+### LLM Strategy & Model Tiers
 
-**Primary**: Local Llama 3.1:8b via Ollama
+Heimr supports a tiered approach to local LLMs to accommodate different hardware capabilities:
 
-**Reasoning**:
-- **Privacy**: Load test data stays local
-- **Cost**: No per-token charges
-- **Speed**: Fast enough for batch analysis
-- **Quality**: Performs well on technical tasks
-- **Offline**: No internet required
+**1. Small Tier** (`llama3.2:3b`)
+- **Target**: Laptops with <8GB RAM, CI/CD pipelines
+- **Pros**: Extremely fast, low memory (~2GB)
+- **Cons**: Limited reasoning, concise outputs
 
-**Optional**: OpenAI, Anthropic for comparison/fallback
+**2. Medium Tier** (`llama3.1:8b`) - **DEFAULT**
+- **Target**: Standard dev machines (16GB RAM)
+- **Pros**: Good balance of instruction following and speed (~5GB)
+- **Cons**: Can struggle with complex multi-signal correlation
+
+**3. Large Tier** (`qwen2.5:14b`)
+- **Target**: Workstations (16GB-24GB RAM allowed)
+- **Selection**: Chosen over Llama 3.1 70B (which requires ~40GB RAM)
+- **Pros**: Superior reasoning, "Small but Mighty" performance (~9GB)
+- **Cons**: Slower generation speed
+
+**Cloud Options**: OpenAI (GPT-4o) and Anthropic (Claudia 3.5 Sonnet) are supported for users without local GPU capability.
 
 ### Prompt Engineering
 

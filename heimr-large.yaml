@@ -1,0 +1,17 @@
+# Heimr Configuration for LARGE Tier (70B Model)
+prometheus_url: "http://localhost:9090"
+loki_url: "http://localhost:3100"
+tempo_url: "http://localhost:3200"
+
+# LLM Configuration - Large Tier
+llm_provider: "ollama"
+llm_url: "http://localhost:11434/v1"
+llm_model: "qwen2.5:14b"
+
+# Analysis Settings
+analysis_depth: "deep"  # Use deep analysis for the large model
+include_code_snippets: true
+max_context_tokens: 16000 # 14B can handle context well
+
+output_path: "./reports/large_tier_test"
+output_format: "markdown"
