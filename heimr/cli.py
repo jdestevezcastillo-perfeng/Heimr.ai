@@ -57,7 +57,6 @@ def merge_config_with_args(args, config: dict):
         'llm_model': 'llm_model',
         'explain': 'explain',
         'output': 'output',
-        'dashboard': 'dashboard',
         'format': 'format',
         'compare_baseline': 'compare_baseline',
         'compare_prometheus': 'compare_prometheus',
@@ -156,13 +155,12 @@ def main():
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
   prometheus_url, prometheus_file, loki_url, loki_file,
   tempo_url, tempo_file, llm_url, llm_model, explain,
-  output, dashboard, format,
-  compare_baseline, compare_prometheus, compare_loki, compare_tempo, comparison.
+  output, format, compare_baseline, compare_prometheus,
+  compare_loki, compare_tempo, comparison.
   Run 'heimr config-init' to generate a template.
-  Note: PDFs are automatically generated alongside markdown reports.""")
+  Note: PDFs and HTML dashboards are automatically generated alongside markdown reports.""")
     analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
-    analyze_parser.add_argument("--dashboard", help="Path to save the generated HTML dashboard")
     analyze_parser.add_argument("--explain", action="store_true", help="Enable AI-powered Root Cause Analysis (requires API key or local LLM)")
     analyze_parser.add_argument("--prometheus-url", help="URL of the Prometheus server to fetch system metrics (e.g., http://localhost:9090)")
     analyze_parser.add_argument("--prometheus-file", help="Path to a local JSON file containing Prometheus metrics")
@@ -524,15 +522,17 @@ output: ./reports/analysis.md
                 except Exception as e:
                     print(f"Warning: Failed to generate PDF: {e}")
 
-
-            # Generate Dashboard if requested
-            if args.dashboard:
+                # Automatically generate HTML dashboard alongside markdown
+                print("\n--- Generating HTML Dashboard ---")
                 try:
                     from heimr.dashboard import DashboardGenerator
                     dashboard_gen = DashboardGenerator(df, stats, prom_metrics)
-                    dashboard_gen.generate(args.dashboard)
+                    dashboard_path = args.output.rsplit('.', 1)[0] + '.html'
+                    dashboard_gen.generate(dashboard_path)
+                    print(f"✅ Dashboard saved to: {dashboard_path}")
                 except Exception as e:
                     print(f"Warning: Failed to generate dashboard: {e}")
+
 
             # Generate Comparison Report if requested
             if args.comparison and args.compare_baseline:
