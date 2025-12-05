@@ -54,16 +54,15 @@ llm_model: llama3.1:8b
 # ============================================================================
 
 # Path to save the analysis report (Markdown format)
+# Note: PDF version is automatically generated alongside the markdown file
 output: ./reports/analysis.md
 
 # Path to save the HTML dashboard (optional)
 # dashboard: ./reports/dashboard.html
 
-# Path to save the PDF report (optional, requires output to be set)
-# pdf: ./reports/analysis.pdf
-
 # File format (auto-detected if not specified)
 # format: k6  # Options: jtl, k6, gatling, locust
+
 
 # ============================================================================
 # Comparison Settings (Optional - for regression testing)
