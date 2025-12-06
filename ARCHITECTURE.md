@@ -174,7 +174,7 @@ Heimr supports a tiered approach to local LLMs to accommodate different hardware
 - **Pros**: Superior reasoning, "Small but Mighty" performance (~9GB)
 - **Cons**: Slower generation speed
 
-**Cloud Options**: OpenAI (GPT-4o) and Anthropic (Claudia 3.5 Sonnet) are supported for users without local GPU capability.
+**Cloud Options**: OpenAI (GPT-4o) and Anthropic (Claude Sonnet 4) are supported for users without local GPU capability.
 
 ### Prompt Engineering
 
@@ -366,4 +366,4 @@ python scripts/analyze_reports.py
 
 ## License
 
-Proprietary. All Rights Reserved.
+AGPL v3. See [LICENSE](./LICENSE) for details.

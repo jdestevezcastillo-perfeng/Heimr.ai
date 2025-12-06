@@ -96,10 +96,8 @@ Heimr.ai/
 │   │   ├── loki.py       # Loki client
 │   │   └── tempo.py      # Tempo client
 │   ├── detector.py        # Anomaly detection
-│   ├── llm.py            # LLM integration
-│   └── cli.py            # CLI interface
-│   ├── llm.py            # LLM integration
-│   └── cli.py            # CLI interface
+│   ├── llm.py             # LLM integration
+│   └── cli.py             # CLI interface
 ├── tests/                 # Test suite
 ├── data/                  # Test data and mocks
 ├── docs/                  # Documentation
@@ -390,15 +388,14 @@ Closes #42
 
 ## Questions?
 
-- 📧 Email: [dev@heimr.ai](mailto:dev@heimr.ai)
-- 💬 Discord: [Join our community](https://discord.gg/heimr)
-- 🐛 Issues: [GitHub Issues](https://github.com/heimr-ai/heimr/issues)
+- 📧 Email: [jd.estevezcastillo@gmail.com](mailto:jd.estevezcastillo@gmail.com)
+- 🐛 Issues: [GitHub Issues](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues)
 
 ---
 
 ## License
 
-By contributing to Heimr, you agree that your contributions will be licensed under the project's proprietary license.
+By contributing to Heimr, you agree that your contributions will be licensed under the AGPL v3 license.
 
 ---
 

@@ -46,7 +46,7 @@ Heimr doesn't just look at latency. It correlates:
 
 - ✅ Error rates and response codes
 
-**156 failure scenarios** built-in, from cache stampedes to memory leaks.
+**140+ failure scenarios** built-in, from cache stampedes to memory leaks.
 
 ### 🤖 LLM-Powered Root Cause Analysis
 
@@ -234,9 +234,9 @@ No data ever leaves your infrastructure:
 
 For enhanced analysis, optionally use:
 
-- OpenAI ChatGPT-5.1
+- OpenAI GPT-4o
 
-- Anthropic Claude Sonnet 4.5
+- Anthropic Claude Sonnet 4
 
 **You control** where your data goes.
 
@@ -263,7 +263,7 @@ For enhanced analysis, optionally use:
 
 ## 📊 Supported Failure Scenarios
 
-Heimr recognizes **156 common failure patterns**, including:
+Heimr recognizes **140+ common failure patterns**, including:
 
 **Performance Issues**:
 
@@ -312,7 +312,7 @@ Heimr recognizes **156 common failure patterns**, including:
 Fine-tune LLM analysis for your domain:
 
 ```bash
-heimr analyze results.jtl --explain \
+heimr analyze results.jtl \
   --prompt-template custom_prompt.txt
 ```
 
@@ -327,7 +327,7 @@ analyzer = Analyzer(
     llm_model="llama3.1:8b"
 )
 
-report = analyzer.analyze(explain=True)
+report = analyzer.analyze()
 print(report.summary)
 print(report.root_causes)
 print(report.recommendations)
