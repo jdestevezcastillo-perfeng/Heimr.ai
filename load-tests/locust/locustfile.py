@@ -1,66 +1,90 @@
 # Copyright (c) 2025 Juan Estevez Castillo
 # Licensed under AGPL v3. Commercial licenses available.
-"""
-Locust load test for Heimr test application
-"""
-from locust import HttpUser, task, between
-import random
-import json
+# See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
 
-class TestAppUser(HttpUser):
-    """User that interacts with the test application."""
+"""
+Heimr Demo - Locust Load Test
+Run: locust -f locustfile.py --headless -u 10 -r 1 --run-time 5m --csv=results/locust
+"""
+
+import random
+import time
+from locust import HttpUser, task, between
+
+
+class DemoUser(HttpUser):
+    """Simulates user behavior on the demo application."""
     
-    wait_time = between(0.5, 2)
+    wait_time = between(0.5, 2.5)  # Think time between requests
     
-    @task(4)
-    def list_users(self):
-        """List users - fast indexed query (weight: 4)."""
-        with self.client.get("/api/users?limit=10", catch_response=True) as response:
+    @task(40)
+    def get_users(self):
+        """Fetch users list - most common action."""
+        with self.client.get("/api/users", catch_response=True) as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Status: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
     
-    @task(2)
-    def query_audit_logs(self):
-        """Query audit logs - SLOW unindexed query (weight: 2)."""
-        with self.client.get("/api/audit-logs?limit=50", catch_response=True, name="/api/audit-logs") as response:
+    @task(30)
+    def get_products(self):
+        """Fetch product catalog."""
+        with self.client.get("/api/products", catch_response=True) as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Status: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
     
-    @task(2)
-    def create_user(self):
-        """Create a new user (weight: 2)."""
+    @task(15)
+    def create_order(self):
+        """Create a new order - simulates purchase."""
         payload = {
-            "username": f"locust_user_{random.randint(1, 100000)}",
-            "email": f"locust_{random.randint(1, 100000)}@example.com"
+            "userId": random.randint(1, 3),
+            "productId": random.randint(1, 3),
+            "quantity": random.randint(1, 5),
         }
-        with self.client.post("/api/users", json=payload, catch_response=True) as response:
-            if response.status_code == 200:
+        
+        with self.client.post(
+            "/api/orders",
+            json=payload,
+            catch_response=True
+        ) as response:
+            if response.status_code == 201:
                 response.success()
             else:
-                response.failure(f"Status: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
     
-    @task(1)
+    @task(10)
     def health_check(self):
-        """Health check (weight: 1)."""
+        """Basic health check."""
         self.client.get("/health")
     
-    @task(1)
-    def count_audit_logs(self):
-        """Count audit logs (weight: 1)."""
-        with self.client.get("/api/audit-logs/count", catch_response=True) as response:
+    @task(5)
+    def slow_endpoint(self):
+        """Hit the slow endpoint - tests timeout handling."""
+        with self.client.get(
+            "/api/slow",
+            timeout=10,
+            catch_response=True
+        ) as response:
             if response.status_code == 200:
-                data = response.json()
-                if "count" in data:
-                    response.success()
-                else:
-                    response.failure("Missing count field")
+                response.success()
             else:
-                response.failure(f"Status: {response.status_code}")
+                response.failure(f"Status {response.status_code}")
+    
+    def on_start(self):
+        """Called when a simulated user starts."""
+        # Initial health check to warm up
+        self.client.get("/health")
 
 
-# Run with:
-# locust -f locustfile.py --host=http://localhost:30808 -u 10 -r 2 -t 5m --csv=load-tests/results/locust
+class AdminUser(HttpUser):
+    """Simulates admin/monitoring behavior - fewer users."""
+    
+    weight = 1  # 1 admin for every 10 regular users
+    wait_time = between(5, 10)
+    
+    @task
+    def check_health(self):
+        """Periodic health monitoring."""
+        self.client.get("/health")
