@@ -25,7 +25,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Start Mock Application
         run: |
@@ -49,7 +49,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           python3 heimr/cli.py analyze results.json \
-            --format k6 \
+
             --tag "commit=${GITHUB_SHA}" \
             --tag "branch=${GITHUB_REF_NAME}" \
             --fail-condition "p95_latency > 1000" \
@@ -61,4 +61,4 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: 'heimr-junit.xml'
+          report_paths: "heimr-junit.xml"
