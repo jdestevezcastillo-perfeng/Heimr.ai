@@ -49,9 +49,9 @@ heimr analyze [FILE] [OPTIONS]
 
 - `--config`: Path to config file (default: `heimr.yaml`)
 - `--output`: Output file path (default: `report.md`)
-- `--prometheus`: Prometheus URL
-- `--loki`: Loki URL
-- `--tempo`: Tempo URL
+- `--prometheus`: Prometheus URL or path to metrics file (auto-detected)
+- `--loki`: Loki URL or path to logs file (auto-detected)
+- `--tempo`: Tempo URL or path to traces file (auto-detected)
 - `--llm-url`: LLM API URL (default: `http://localhost:11434/v1`)
 - `--llm-model`: Model name (default: `llama3.1:8b`)
 - `--explain/--no-explain`: Enable/disable LLM explanations (default: True)
@@ -73,8 +73,13 @@ Heimr uses `heimr.yaml` for configuration.
 ```yaml
 # Observability
 prometheus: http://localhost:9090
+# prometheus: ./metrics.json  # or local file
+
 loki: http://localhost:3100
+# loki: ./logs.json
+
 tempo: http://localhost:3200
+# tempo: ./traces.json
 
 # AI Analysis
 llm_url: http://localhost:11434/v1
