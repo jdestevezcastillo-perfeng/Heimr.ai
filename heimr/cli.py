@@ -354,7 +354,7 @@ output: ./reports/analysis.md
 
             # --- REPORT SPECIFICATION: LEVEL 1 (Header) ---
             print("\n" + "="*50)
-            print("HELM REPORT (Level 1)")
+            print("HEIMR REPORT (Level 1)")
             print("="*50)
             print(f"{'Metric':<25} | {'Value':<15}")
             print("-" * 43)
