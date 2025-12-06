@@ -18,7 +18,7 @@ This document contains technical details for developers and contributors.
 
 ### High-Level Flow
 
-```
+```text
 Load Test Results → Parser → Anomaly Detector → Multi-Signal Analyzer → LLM → Report
                        ↓            ↓                    ↓
                   Prometheus    Loki Logs          Tempo Traces
@@ -61,11 +61,13 @@ Load Test Results → Parser → Anomaly Detector → Multi-Signal Analyzer → 
 We evaluated several ML approaches:
 
 **Isolation Forest** (PyOD):
+
 - ❌ Required constant parameter tuning (contamination, threshold)
 - ❌ Produced false positives on healthy baselines
 - ❌ Black box - hard to explain WHY something is an anomaly
 
 **Specialized Time Series Models** (THEMIS, MAAT, AnomalyBERT):
+
 - ❌ Overkill for simple load test analysis (100 data points)
 - ❌ Designed for complex multivariate forecasting (1000s of time steps)
 - ❌ Require large training datasets and fine-tuning
@@ -154,16 +156,19 @@ def detect_anomalies(df, prometheus_metrics, loki_logs, tempo_traces):
 Heimr supports a tiered approach to local LLMs to accommodate different hardware capabilities:
 
 **1. Small Tier** (`llama3.2:3b`)
+
 - **Target**: Laptops with <8GB RAM, CI/CD pipelines
 - **Pros**: Extremely fast, low memory (~2GB)
 - **Cons**: Limited reasoning, concise outputs
 
 **2. Medium Tier** (`llama3.1:8b`) - **DEFAULT**
+
 - **Target**: Standard dev machines (16GB RAM)
 - **Pros**: Good balance of instruction following and speed (~5GB)
 - **Cons**: Can struggle with complex multi-signal correlation
 
 **3. Large Tier** (`qwen2.5:14b`)
+
 - **Target**: Workstations (16GB-24GB RAM allowed)
 - **Selection**: Chosen over Llama 3.1 70B (which requires ~40GB RAM)
 - **Pros**: Superior reasoning, "Small but Mighty" performance (~9GB)
@@ -216,11 +221,13 @@ Be technical but clear. Cite specific evidence from the data.
 We plan to fine-tune Llama 3 on performance analysis tasks:
 
 **Training Data**:
+
 - 156 failure scenarios
 - Load test results → Root cause analysis pairs
 - Real-world incident reports (anonymized)
 
 **Expected Improvement**:
+
 - More accurate root cause identification
 - Better correlation across signals
 - Domain-specific terminology
@@ -234,6 +241,7 @@ We plan to fine-tune Llama 3 on performance analysis tasks:
 For testing and validation, we generate scenario-specific mock data:
 
 **Load Test Results**:
+
 - Healthy: Tight latency distribution (100-120ms)
 - Latency Spike: 10% extreme outliers (3-5s)
 - Bimodal: 40% slow (3-5s), 60% fast (80-150ms)
@@ -241,11 +249,13 @@ For testing and validation, we generate scenario-specific mock data:
 - CPU Saturation: Sudden spike after warmup
 
 **Observability Data**:
+
 - Prometheus: Scenario-specific CPU/memory patterns
 - Loki: Relevant error messages (cache miss, GC pause, etc.)
 - Tempo: Detailed span breakdowns showing root causes
 
 **156 Scenarios** covering:
+
 - API issues (latency, errors, rate limiting)
 - Infrastructure (OOM, CPU, network)
 - Database (slow queries, deadlocks)
@@ -261,41 +271,49 @@ For testing and validation, we generate scenario-specific mock data:
 #### 1. Specialized ML Models
 
 **THEMIS** (HuggingFace):
+
 - Foundation model for time series anomaly detection
 - Pre-trained on Chronos dataset
 - **Verdict**: Overkill for load test analysis
 
 **MAAT** (Mamba-SSM):
+
 - State-of-the-art for multivariate time series
 - **Verdict**: Requires multivariate data (we have univariate latency)
 
 **AnomalyBERT**:
+
 - BERT-based time series anomaly detection
 - **Verdict**: Too complex, requires large training datasets
 
 #### 2. Traditional ML
 
 **Isolation Forest**:
+
 - Initially used
 - **Issues**: Parameter tuning, false positives
 - **Replaced with**: Simple statistical methods
 
 **DBSCAN**:
+
 - Density-based clustering
 - **Verdict**: Not ideal for 1D time series
 
 **LOF** (Local Outlier Factor):
+
 - Measures local density deviation
 - **Verdict**: Slower than needed, similar results to simpler methods
 
 #### 3. Time Series Methods
 
 **ARIMA, Prophet, Seasonal Decomposition**:
+
 - **Verdict**: Overkill for simple load tests, assumes temporal ordering
 
 ### Final Decision
 
 **Simple statistical methods + LLM analysis** is the optimal approach:
+
 - ✅ Explainable
 - ✅ Fast
 - ✅ No false positives
@@ -312,7 +330,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ### Code Structure
 
-```
+```text
 heimr/
 ├── parsers/          # Load test result parsers
 │   ├── jtl.py       # JMeter

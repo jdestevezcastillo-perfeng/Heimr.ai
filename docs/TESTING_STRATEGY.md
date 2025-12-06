@@ -4,7 +4,7 @@ This document outlines the comprehensive testing and validation strategy for Hei
 
 ## Test Environment Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Minikube Cluster                                  │
 │                                                                          │
