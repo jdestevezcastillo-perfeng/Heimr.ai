@@ -100,7 +100,7 @@ def get_parser(filepath: str, format_arg: str = None):
     if filepath.endswith('.log'):
         return GatlingParser(filepath)
 
-    raise ValueError("Could not detect file format. Please use --format.")
+    raise ValueError("Could not detect file format.")
 
 
 def print_banner():
