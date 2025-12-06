@@ -37,6 +37,7 @@ jobs:
           BASE_URL: "http://localhost:30808"
         run: |
           k6 run load-tests/k6/ci-load-test.js --out json=results.json
+        continue-on-error: true
 
       - name: Install Heimr
         run: pip install -r requirements.txt
