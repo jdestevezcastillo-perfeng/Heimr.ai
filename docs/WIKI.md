@@ -108,7 +108,7 @@ llm_model: llama3.1:8b              # Default model (Medium)
 # Model Options (Pull these via 'ollama pull <model>'):
 # - Small:  llama3.2:3b   (~2GB VRAM)  - Good for laptops, CI/CD
 # - Medium: llama3.1:8b   (~5GB VRAM)  - Best balance of speed/quality [DEFAULT]
-# - Large:  llama3.3:70b  (~40GB VRAM) - Maximum reasoning capability (requires powerful GPU)
+# - Large:  qwen2.5:14b   (~9GB VRAM)  - High quality reasoning (fits on 12GB GPU)
 
 # 2. Cloud LLMs (OpenAI / Anthropic)
 # ----------------------------------------------------------------------------

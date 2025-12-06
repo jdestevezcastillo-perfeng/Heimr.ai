@@ -224,7 +224,7 @@ def main():
     analyze_parser.add_argument("--llm-model", default=None, help="""LLM model to use. Options:
   - small:  llama3.2:3b  (~2GB, laptops/CI/CD)
   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
-  - large:  llama3.3:70b (~21GB, RTX 4090+, best quality)
+  - large:  qwen2.5:14b  (~9GB VRAM) - High quality reasoning (fits on 12GB GPU)
   Or specify any model name directly (e.g., llama3.1:405b, gpt-4o)""")
 
     # Comparison arguments

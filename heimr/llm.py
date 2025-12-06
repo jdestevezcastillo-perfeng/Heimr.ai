@@ -8,7 +8,7 @@ from typing import Dict, Any
 MODEL_TIERS = {
     'small': 'llama3.2:3b',           # ~2GB, laptops/CI/CD
     'medium': 'llama3.1:8b',          # ~5GB, default
-    'large': 'llama3.3:70b-instruct-q4_K_M'  # ~21GB, RTX 4090+
+    'large': 'qwen2.5:14b'  # ~9GB VRAM, High reasoning
 }
 
 
