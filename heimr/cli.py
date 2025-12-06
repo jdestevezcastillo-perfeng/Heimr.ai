@@ -596,10 +596,10 @@ output: ./reports/analysis.md
                     kpi_table += "| Metric | Value | Threshold (Ref) |\n|---|---|---|\n"
                     kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n"
                     kpi_table += f"| Error Rate | {kpi_data['errors']['rate']:.2f}% | < 1.0% |\n"
-                    kpi_table += f"| Throughput | {
-                        kpi_data['throughput']['requests_per_second']:.2f} req/s | {
-                        kpi_data['throughput']['bytes_in_per_second'] /
-                        1024:.2f} KB/s in |\n\n"
+                    kpi_table += (
+                        f"| Throughput | {kpi_data['throughput']['requests_per_second']:.2f} req/s | "
+                        f"{kpi_data['throughput']['bytes_in_per_second'] / 1024:.2f} KB/s in |\n\n"
+                    )
 
                     # Level 2 Details
                     kpi_table += "## Level 3: Per Endpoint Breakdown\n"
@@ -626,12 +626,10 @@ output: ./reports/analysis.md
                                 p95 = group['elapsed'].quantile(0.95)
                                 p99 = group['elapsed'].quantile(0.99)
 
-                                kpi_table += f"| {name} | {count} | {
-                                    throughput:.2f} | {
-                                    error_rate:.2f}% | {
-                                    avg:.2f} | {
-                                    p95:.2f} | {
-                                    p99:.2f} |\n"
+                                kpi_table += (
+                                    f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | "
+                                    f"{avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
+                                )
                         else:
                             print(f"Warning: 'endpoint' column not found in DataFrame. Columns: {df.columns.tolist()}")
                             kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
