@@ -311,29 +311,21 @@ Please structure your response exactly as follows:
 
                 # Format based on metric type
                 if 'cpu' in metric_name.lower():
-                    pod_summaries.append(f"  - Pod '{pod_name}': Avg={avg_val *
-                                                                      100:.1f}%, Min={min_val *
-                                                                                      100:.1f}%, Max={max_val *
-                                                                                                      100:.1f}%, Trend={trend_text}")
+                    pod_summaries.append(
+                        f"  - Pod '{pod_name}': Avg={avg_val * 100:.1f}%, Min={min_val * 100:.1f}%, "
+                        f"Max={max_val * 100:.1f}%, Trend={trend_text}"
+                    )
                 elif 'memory' in metric_name.lower():
                     # Convert bytes to MB
                     pod_summaries.append(
-                        f"  - Pod '{pod_name}': Avg={
-                            avg_val /
-                            1024 /
-                            1024:.1f}MB, Min={
-                            min_val /
-                            1024 /
-                            1024:.1f}MB, Max={
-                            max_val /
-                            1024 /
-                            1024:.1f}MB, Trend={trend_text}")
+                        f"  - Pod '{pod_name}': Avg={avg_val / 1024 / 1024:.1f}MB, "
+                        f"Min={min_val / 1024 / 1024:.1f}MB, Max={max_val / 1024 / 1024:.1f}MB, Trend={trend_text}"
+                    )
                 else:
                     pod_summaries.append(
-                        f"  - Pod '{pod_name}': Avg={
-                            avg_val:.2f}, Min={
-                            min_val:.2f}, Max={
-                            max_val:.2f}, Trend={trend_text}")
+                        f"  - Pod '{pod_name}': Avg={avg_val:.2f}, Min={min_val:.2f}, "
+                        f"Max={max_val:.2f}, Trend={trend_text}"
+                    )
 
             if all_values:
                 overall_max = max(all_values)
@@ -463,10 +455,8 @@ Please structure your response exactly as follows:
             max_duration = max(durations)
             min_duration = min(durations)
             sections.append(
-                f"- Duration Stats: Avg={
-                    avg_duration:.2f}ms, Min={
-                    min_duration:.2f}ms, Max={
-                    max_duration:.2f}ms")
+                f"- Duration Stats: Avg={avg_duration:.2f}ms, Min={min_duration:.2f}ms, Max={max_duration:.2f}ms"
+            )
 
         if operations:
             op_summary = ", ".join([f"'{op}': {count}" for op, count in sorted(
@@ -483,10 +473,7 @@ Please structure your response exactly as follows:
             sections.append("\n**Slowest Spans** (Top 5):")
             for span in span_details[:5]:
                 sections.append(
-                    f"  - {
-                        span['operation']}: {
-                        span['duration']:.2f}ms (Status: {
-                        span['status']}, Trace: {
-                        span['trace_id']})")
+                    f"  - {span['operation']}: {span['duration']:.2f}ms (Status: {span['status']}, Trace: {span['trace_id']})"
+                )
 
         return "\n".join(sections)
