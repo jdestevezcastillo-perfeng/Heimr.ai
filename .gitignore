@@ -46,3 +46,25 @@ junit.xml
 summary.md
 *.jtl
 baseline.jtl
+
+# Local-only files (not for public repo)
+PROJECT_STATE.md
+FAILURE_SCENARIOS.md
+heimr-large.yaml
+heimr-test.yaml
+mock_server.py
+release.sh
+requirements_heimr.txt
+results-70b.json
+results.json
+scripts/analyze_reports.py
+scripts/deploy-test-env.sh
+scripts/generate_mock_data.py
+scripts/inject-chaos.sh
+scripts/quick_validate.py
+scripts/regenerate_reports.py
+scripts/regenerate_sample_reports.py
+scripts/run-chaos-scenario.sh
+scripts/run-integration-test.sh
+scripts/validate_mock_reports.py
+scripts/validate_scenarios.py
