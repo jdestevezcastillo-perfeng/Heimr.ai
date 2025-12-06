@@ -85,23 +85,38 @@ ollama pull llama3.1:8b
 
 ```
 Heimr.ai/
-├── heimr/                  # Main package
-│   ├── parsers/           # Load test result parsers
-│   │   ├── jtl.py        # JMeter parser
-│   │   ├── k6.py         # k6 parser
-│   │   ├── gatling.py    # Gatling parser
-│   │   └── locust.py     # Locust parser
-│   ├── observability/     # Observability integrations
-│   │   ├── prometheus.py # Prometheus client
-│   │   ├── loki.py       # Loki client
-│   │   └── tempo.py      # Tempo client
-│   ├── detector.py        # Anomaly detection
-│   ├── llm.py             # LLM integration
-│   └── cli.py             # CLI interface
-├── tests/                 # Test suite
-├── data/                  # Test data and mocks
-├── docs/                  # Documentation
-└── demos/                 # Demo scripts
+├── heimr/                     # Main package
+│   ├── parsers/               # Load test result parsers
+│   │   ├── base.py            # Base parser class
+│   │   ├── jtl.py             # JMeter parser
+│   │   ├── k6.py              # k6 parser
+│   │   ├── gatling.py         # Gatling parser
+│   │   ├── locust.py          # Locust parser
+│   │   └── har.py             # HAR (HTTP Archive) parser
+│   ├── reporters/             # Output formatters
+│   │   ├── github.py          # GitHub Actions summary
+│   │   └── junit.py           # JUnit XML for CI/CD
+│   ├── cli.py                 # CLI interface & orchestration
+│   ├── detector.py            # Statistical anomaly detection
+│   ├── kpi.py                 # KPI calculations
+│   ├── llm.py                 # LLM integration (Ollama, OpenAI, Anthropic)
+│   ├── comparator.py          # Baseline comparison engine
+│   ├── pdf_generator.py       # PDF report generation
+│   ├── setup_llm.py           # LLM setup wizard
+│   ├── prometheus.py          # Prometheus metrics client
+│   ├── loki.py                # Loki logs client
+│   └── tempo.py               # Tempo traces client
+├── docs/                      # Documentation
+│   ├── WIKI.md                # Wiki index
+│   └── wiki/                  # Wiki pages (10 pages)
+├── tests/                     # Test suite
+├── load-tests/                # Load test scripts (k6, JMeter, Gatling, Locust)
+├── k8s/                       # Kubernetes manifests for test environment
+├── demos/                     # Demo scripts and examples
+├── website/                   # Landing page (heimr.ai)
+├── setup.py                   # Package configuration
+├── requirements.txt           # Dependencies
+└── heimr.yaml.example         # Example configuration file
 ```
 
 ---
