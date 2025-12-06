@@ -146,10 +146,9 @@ heimr analyze new-test.json \
 
 ---
 
-## Immediate Roadmap
-1. ✅ **Refine LLM Prompts**: Done (full data extraction).
-2. ✅ **Build Dashboard**: Done (Grid Layout).
-3. ✅ **Comparison Feature**: Done (regression testing with separate report).
-4. **Next**: Re-run load tests with Tempo collecting to verify DB span visibility.
-5. **Future**: Expand chaos scenarios (CPU, Memory), Grafana integration, PDF export.
+**Next Step**: Wait for user feedback / Start Grafana Integration.
 
+## Immediate Priorities (Refined Roadmap)
+1.  [x] **CI/CD Integration**: Gating, GitHub Actions Summary, JUnit XML.
+2.  [ ] **Grafana Integration**: Real-time dashboards.
+3.  [ ] **Trend Analysis**: Historical tracking (Low Priority).
