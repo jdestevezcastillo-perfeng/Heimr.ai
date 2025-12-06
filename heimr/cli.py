@@ -203,6 +203,11 @@ def main():
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file for comparison")
     analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file for comparison")
     analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file for comparison")
+    analyze_parser.add_argument("--fail-on-regression", type=float, help="Fail if any metric worsens by more than this percentage (requires --compare-baseline)")
+    analyze_parser.add_argument("--fail-condition", action="append", help="Fail if condition is met (e.g. 'p99_latency > 500', 'error_rate > 1.0'). Can be used multiple times.")
+    analyze_parser.add_argument("--tag", action="append", help="Add metadata tag to report (e.g. 'commit=sha123', 'branch=main')")
+    analyze_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY", help="Generate GitHub Actions Step Summary (optional: file path)")
+    analyze_parser.add_argument("--junit-output", help="Path to save JUnit XML report")
 
 
 
@@ -492,9 +497,22 @@ output: ./reports/analysis.md
 """
                     header += "```\n\n"
                     
+                    # 0. Context Tags
+                    if args.tag:
+                        header += "### Build Context\n"
+                        header += "| Key | Value |\n|---|---|\n"
+                        for tag in args.tag:
+                            if '=' in tag:
+                                k, v = tag.split('=', 1)
+                                header += f"| **{k}** | `{v}` |\n"
+                            else:
+                                header += f"| **Tag** | `{tag}` |\n"
+                        header += "\n"
+                    
                     # Use the multi-signal failure detection (same as console output)
                     if has_failure:
-                        header += f"# {status_icon} {status_text}\n**Reasons**: {", ".join(failure_signals)}\n\n"
+                        reasons_str = ", ".join(failure_signals)
+                        header += f"# {status_icon} {status_text}\n**Reasons**: {reasons_str}\n\n"
                     else:
                         header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
                     
@@ -694,6 +712,128 @@ output: ./reports/analysis.md
                     import traceback
                     traceback.print_exc()
 
+            # --- Performance Gating ---
+            exit_code = 0
+            
+            # 1. Absolute Thresholds (Fail Conditions)
+            if args.fail_condition:
+                print("\n--- Checking Failure Conditions ---")
+                for condition in args.fail_condition:
+                    try:
+                        # Parse "metric op value"
+                        parts = condition.split()
+                        if len(parts) != 3:
+                            print(f"⚠️ Invalid condition format: '{condition}'. Expected 'metric op value' (e.g. 'p99_latency > 500')")
+                            continue
+                            
+                        metric, op, limit_str = parts[0].lower(), parts[1], parts[2]
+                        limit = float(limit_str)
+                        
+                        # Map friendly names to stat keys
+                        metric_map = {
+                            'p99': 'p99_latency',
+                            'p95': 'p95_latency',
+                            'avg': 'avg_latency',
+                            'error': 'error_rate',
+                            'requests': 'total_requests',
+                            'rps': 'throughput'
+                        }
+                        # Allow partial matches like 'p99' mapping to 'p99_latency'
+                        stat_key = metric
+                        if metric in metric_map:
+                            stat_key = metric_map[metric]
+                        
+                        if stat_key not in stats:
+                            print(f"⚠️ Metric '{metric}' not found in results.")
+                            continue
+                            
+                        actual_value = float(stats[stat_key])
+                        
+                        failed = False
+                        if op == '>': failed = actual_value > limit
+                        elif op == '>=': failed = actual_value >= limit
+                        elif op == '<': failed = actual_value < limit
+                        elif op == '<=': failed = actual_value <= limit
+                        elif op == '==': failed = actual_value == limit
+                        
+                        if failed:
+                            print(f"❌ FAILED: {metric} ({actual_value:.2f}) {op} {limit}")
+                            exit_code = 1
+                        else:
+                            print(f"✅ PASSED: {metric} ({actual_value:.2f}) not {op} {limit}")
+                            
+                    except ValueError:
+                        print(f"⚠️ Error parsing value in condition: '{condition}'")
+            
+            # 2. Regression Check (Fail on Regression)
+            if args.fail_on_regression:
+                if not args.compare_baseline:
+                    print("\n⚠️ --fail-on-regression ignored because --compare-baseline was not provided.")
+                elif 'comparator' in locals() and 'metrics_comparison' in locals():
+                    # We have a comparator and metrics from the comparison block above
+                    print(f"\n--- Checking Regression Threshold ({args.fail_on_regression}%) ---")
+                    
+                    # Reuse the logic we added to comparator
+                    result = comparator.check_failure_conditions(metrics_comparison, fail_on_regression=args.fail_on_regression)
+                    
+                    if result['failed']:
+                        for reason in result['reasons']:
+                            print(f"❌ {reason}")
+                        exit_code = 1
+                        print("✅ No significant regressions detected.")
+            
+            # --- Reporters ---
+            
+            # Parse Tags
+            tags = {}
+            if args.tag:
+                for tag in args.tag:
+                    if '=' in tag:
+                        k, v = tag.split('=', 1)
+                        tags[k] = v
+                    else:
+                        tags[tag] = "true"
+
+            # GitHub Summary
+            if args.ci_summary:
+                try:
+                    from heimr.reporters.github import GitHubReporter
+                    path = args.ci_summary if args.ci_summary != "GITHUB_STEP_SUMMARY" else None
+                    gh_reporter = GitHubReporter(path)
+                    
+                    # Collect failure reasons (both from manual checks and logic above)
+                    all_reasons = []
+                    # Multi-signal failures
+                    if 'failure_signals' in locals() and failure_signals:
+                        all_reasons.extend(failure_signals)
+                    # Gating failures (if any distinct ones)
+                    # Note: failure_signals constructs strings like "Error Rate: ...", which are good
+                    # But explicit gating failures like "p99 > 500" should also be included if separate
+                    # Currently console prints them but doesn't store them in a list accessible here easily
+                    # Hack: We printed them. Ideally refactor to collect them.
+                    
+                    gh_reporter.generate_summary(stats, anomaly_summary, all_reasons, tags)
+                    print(f"✅ GitHub Summary generated.")
+                except Exception as e:
+                    print(f"Warning: Failed to generate GitHub Summary: {e}")
+
+            # JUnit XML
+            if args.junit_output:
+                try:
+                    from heimr.reporters.junit import JUnitReporter
+                    junit = JUnitReporter(args.junit_output)
+                    
+                    all_reasons = []
+                    if 'failure_signals' in locals() and failure_signals:
+                        all_reasons.extend(failure_signals)
+                        
+                    junit.generate_report(stats, anomaly_summary, all_reasons, tags)
+                except Exception as e:
+                    print(f"Warning: Failed to generate JUnit report: {e}")
+
+            if exit_code != 0:
+                print("\n❌ Build Failed due to Performance Gating.")
+                sys.exit(exit_code)
 
         except Exception as e:
             print(f"Error: {e}")

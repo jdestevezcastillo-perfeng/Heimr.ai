@@ -338,6 +338,77 @@ class PerformanceComparator:
         
         return "\n".join(report)
     
+    def check_failure_conditions(
+        self,
+        metrics_comparison: Dict[str, Any],
+        fail_on_regression: float = None,
+        fail_conditions: List[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Check if the comparison fails based on defined conditions.
+        
+        Args:
+            metrics_comparison: Result from compare_metrics()
+            fail_on_regression: Percentage threshold (e.g. 10 for 10%)
+            fail_conditions: List of strings like "p99_latency > 500"
+            
+        Returns:
+            Dict with 'failed' (bool) and 'reasons' (List[str])
+        """
+        failed = False
+        reasons = []
+        
+        # 1. Check Regression Threshold
+        if fail_on_regression is not None:
+            for metric, data in metrics_comparison.items():
+                # Only check degradations (not improvements)
+                if not data['improved'] and data['pct_change'] > fail_on_regression:
+                    # Skip if baseline was 0 and we can't calculate a meaningful % change
+                    if data['baseline'] == 0: 
+                        continue
+                        
+                    failed = True
+                    reasons.append(
+                        f"Regression detected: {metric} worsened by {data['pct_change']:.1f}% "
+                        f"(Threshold: {fail_on_regression}%)"
+                    )
+        
+        # 2. Check Absolute Thresholds
+        if fail_conditions:
+            current_stats = self.current
+            for condition in fail_conditions:
+                try:
+                    # Basic parsing: "p99_latency > 500"
+                    # Supports >, <, >=, <=
+                    parts = condition.split()
+                    if len(parts) != 3:
+                        print(f"Warning: Invalid condition format '{condition}'. Expected 'metric op value'")
+                        continue
+                        
+                    metric_name, op, threshold_str = parts[0], parts[1], parts[2]
+                    threshold = float(threshold_str)
+                    
+                    if metric_name not in current_stats:
+                        print(f"Warning: Unknown metric '{metric_name}' in condition")
+                        continue
+                        
+                    value = float(current_stats[metric_name])
+                    
+                    condition_met = False
+                    if op == '>': condition_met = value > threshold
+                    elif op == '>=': condition_met = value >= threshold
+                    elif op == '<': condition_met = value < threshold
+                    elif op == '<=': condition_met = value <= threshold
+                    
+                    if condition_met:
+                        failed = True
+                        reasons.append(f"Failure condition met: {metric_name} ({value}) {op} {threshold}")
+                        
+                except Exception as e:
+                    print(f"Error parsing condition '{condition}': {e}")
+        
+        return {'failed': failed, 'reasons': reasons}
+
     def _calculate_verdict(self, metrics: Dict[str, Any], anomalies: Dict[str, Any]) -> str:
         """Calculate overall verdict based on comparison."""
         regressions = sum(1 for m in metrics.values() if not m['improved'] and m['pct_change'] != 0)
