@@ -84,22 +84,41 @@ Heimr looks for a configuration file only when specified via `--config`. CLI arg
 # It automatically detects if the value is a URL (starts with http) or a file path.
 
 # Prometheus (Metrics)
-prometheus: http://localhost:9090
-# prometheus: ./data/metrics.json
+prometheus: http://localhost:9090   # Default Prometheus URL
+# prometheus: ./data/metrics.json     # Or local file
 
 # Loki (Logs)
-loki: http://localhost:3100
-# loki: ./data/logs.json
+loki: http://localhost:3100          # Default Loki URL
+# loki: ./data/logs.json               # Or local file
 
 # Tempo (Traces)
-tempo: http://localhost:3200
-# tempo: ./data/traces.json
+tempo: http://localhost:3200          # Default Tempo URL
+# tempo: ./data/traces.json            # Or local file
 
 # ============================================================================
 # AI Analysis
 # ============================================================================
-llm_url: http://localhost:11434/v1  # Ollama default
-llm_model: llama3.1:8b              # Local model name
+# Heimr supports both local (Ollama) and cloud (OpenAI, Anthropic) models.
+
+# 1. Local LLM (Ollama) - Recommended for Privacy
+# ----------------------------------------------------------------------------
+llm_url: http://localhost:11434/v1  # Default Ollama API URL
+llm_model: llama3.1:8b              # Default model (Medium)
+
+# Model Options (Pull these via 'ollama pull <model>'):
+# - Small:  llama3.2:3b   (~2GB VRAM)  - Good for laptops, CI/CD
+# - Medium: llama3.1:8b   (~5GB VRAM)  - Best balance of speed/quality [DEFAULT]
+# - Large:  llama3.3:70b  (~40GB VRAM) - Maximum reasoning capability (requires powerful GPU)
+
+# 2. Cloud LLMs (OpenAI / Anthropic)
+# ----------------------------------------------------------------------------
+# To use cloud models, DO NOT set llm_url (leave it commented or empty).
+# Instead, set the following environment variables:
+#   export OPENAI_API_KEY="sk-..."      -> uses gpt-4o by default
+#   export ANTHROPIC_API_KEY="sk-..."   -> uses claude-3-5-sonnet by default
+#
+# You can override the specific cloud model name using llm_model:
+# llm_model: gpt-4-turbo
 
 # ============================================================================
 # Reporting
