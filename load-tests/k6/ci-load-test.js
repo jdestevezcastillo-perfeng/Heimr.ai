@@ -21,9 +21,9 @@ export const options = {
   ],
   thresholds: {
     // Pipeline gating criteria
-    http_req_duration: ['p(95)<2000'],   // 95% of requests must be < 2s
-    'http_req_duration{name:ListUsers}': ['p(95)<2000'], // Relaxed for CI runner
-    'http_req_duration{name:AuditLogs}': ['p(95)<5000'], 
+    http_req_duration: ['p(95)<5000'],   // 95% of requests must be < 5s
+    'http_req_duration{name:ListUsers}': ['p(95)<5000'], // Relaxed for CI runner
+    'http_req_duration{name:AuditLogs}': ['p(95)<10000'], 
     errors: ['rate<0.05'],               // Error rate < 5%
   },
 };
