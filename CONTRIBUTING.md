@@ -215,17 +215,69 @@ def test_detects_latency_spike():
     assert any("Anomalies" in s for s in signals)
 ```
 
-### Testing with Mock Data
+### Development Scripts
 
-You can run the included test suite to validate changes:
+The `scripts/` directory contains utilities for testing and validating Heimr. See [scripts/README.md](scripts/README.md) for full documentation.
+
+#### Generate Mock Data
+
+Creates synthetic load test results and observability data for all 140+ failure scenarios:
 
 ```bash
-# Run pytest (includes unit and integration tests)
-pytest
-
-# Validate output generation
-python tests/validate_outputs.py
+python scripts/generate_mock_data.py
 ```
+
+This generates `data/mocks/<SCENARIO_ID>/` directories with JMeter, k6, Gatling, Locust files plus Prometheus/Loki/Tempo snapshots.
+
+#### Quick Validation (No LLM)
+
+Fast check that anomaly detection works correctly. Good for CI:
+
+```bash
+python scripts/quick_validate.py
+```
+
+- `API-001` (Healthy) should `PASS`
+- All failure scenarios should `FAIL`
+
+#### Full Validation (With LLM)
+
+Runs complete analysis including AI-generated reports:
+
+```bash
+# Local Ollama
+python scripts/validate_scenarios.py \
+  --llm-url http://localhost:11434/v1 \
+  --llm-model llama3.1:8b
+
+# OpenAI
+python scripts/validate_scenarios.py \
+  --provider openai \
+  --api-key $OPENAI_API_KEY
+```
+
+#### Report Analysis
+
+Cross-reference reports with expected behavior:
+
+```bash
+python scripts/analyze_reports.py
+python scripts/validate_mock_reports.py
+```
+
+### Load Test Scripts
+
+The `load-tests/` directory contains sample load test scripts for all supported tools:
+
+```
+load-tests/
+├── k6/          # k6 JavaScript scripts
+├── jmeter/      # JMeter JMX files
+├── gatling/     # Gatling Scala simulations
+└── locust/      # Locust Python scripts
+```
+
+Use these as reference implementations or to test Heimr against real load test output.
 
 ---
 
