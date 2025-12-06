@@ -78,6 +78,12 @@ No vendor lock-in. Use what you already have.
 
 ---
 
+## 📚 Documentation
+
+**[→ Full Documentation](docs/WIKI.md)** — Quick Start, CLI Reference, Configuration, AI Engine, Python API, CI/CD, Troubleshooting, and more.
+
+---
+
 ## 🚀 Quick Start
 
 ### Installation
