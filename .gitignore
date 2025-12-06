@@ -23,7 +23,7 @@ chaos-generator/terraform/terraform.tfstate.backup
 data/
 logs/
 *.log
-.github/workflows/
+
 
 # Build artifacts
 build/
