@@ -4,3 +4,5 @@
 from .jtl import JTLParser
 from .k6 import K6Parser
 from .gatling import GatlingParser
+
+__all__ = ['JTLParser', 'K6Parser', 'GatlingParser']

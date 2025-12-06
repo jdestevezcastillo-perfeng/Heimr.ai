@@ -27,7 +27,7 @@ class PrometheusClient:
             }
             response = requests.get(self.api_url, params=params)
             response.raise_for_status()
-            
+
             result = response.json()
             if result['status'] == 'success':
                 return result['data']['result']
@@ -52,15 +52,15 @@ class PrometheusClient:
                 return {}
 
         metrics = {}
-        
+
         # Example queries - adjust based on actual environment
         # Example queries - adjust based on actual environment
         queries = {
             'cpu_usage': 'sum(rate(container_cpu_usage_seconds_total{namespace="heimr-test", image!=""}[1m]))',
             'memory_usage': 'sum(container_memory_usage_bytes{namespace="heimr-test", image!=""})'
         }
-        
+
         for name, query in queries.items():
             metrics[name] = self.query_metric(query, start_time, end_time)
-            
+
         return metrics

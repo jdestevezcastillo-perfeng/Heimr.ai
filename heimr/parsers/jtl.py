@@ -17,11 +17,11 @@ class JTLParser(BaseParser):
         try:
             # Read CSV
             self.df = pd.read_csv(self.filepath)
-            
+
             # Convert timestamp to datetime
             if 'timeStamp' in self.df.columns:
                 self.df['timestamp_dt'] = pd.to_datetime(self.df['timeStamp'], unit='ms')
-            
+
             # Ensure numeric types for key metrics
             numeric_cols = ['elapsed', 'Latency', 'bytes', 'sentBytes', 'responseCode', 'allThreads', 'grpThreads']
             for col in numeric_cols:
@@ -39,7 +39,7 @@ class JTLParser(BaseParser):
             # bytes -> bytes_recv
             if 'bytes' in self.df.columns:
                 self.df['bytes_recv'] = self.df['bytes']
-            
+
             # sentBytes -> bytes_sent
             if 'sentBytes' in self.df.columns:
                 self.df['bytes_sent'] = self.df['sentBytes']
@@ -49,11 +49,11 @@ class JTLParser(BaseParser):
                 self.df['vus'] = self.df['allThreads']
             elif 'grpThreads' in self.df.columns:
                 self.df['vus'] = self.df['grpThreads']
-            
+
             # endpoint/label
             if 'label' in self.df.columns:
                 self.df['endpoint'] = self.df['label']
-            
+
             # method (usually not in JTL, default to mixed/unknown)
             self.df['method'] = 'mixed'
 
@@ -68,7 +68,7 @@ class JTLParser(BaseParser):
         """
         if self.df is None:
             raise ValueError("Data not parsed yet. Call parse() first.")
-        
+
         stats = {
             'total_requests': len(self.df),
             'start_time': self.df['timestamp_dt'].min(),

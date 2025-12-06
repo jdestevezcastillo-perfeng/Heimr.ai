@@ -24,8 +24,8 @@ class K6Parser(BaseParser):
                         entry = json.loads(line)
                         if not isinstance(entry, dict):
                             continue
-                            
-                            
+
+
                         if entry.get('type') == 'Point' and entry.get('metric') == 'http_req_duration':
                             # k6 'http_req_duration' is the total time for the request
                             status = str(entry['data']['tags'].get('status', '200'))
@@ -60,7 +60,7 @@ class K6Parser(BaseParser):
                 'avg_latency': 0,
                 'error_rate': 0
             }
-        
+
         stats = {
             'total_requests': len(self.df),
             'start_time': self.df['timestamp_dt'].min(),

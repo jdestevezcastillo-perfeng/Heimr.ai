@@ -28,7 +28,7 @@ class LokiClient:
             }
             response = requests.get(self.api_url, params=params)
             response.raise_for_status()
-            
+
             result = response.json()
             if result.get('status') == 'success':
                 # Extract log lines

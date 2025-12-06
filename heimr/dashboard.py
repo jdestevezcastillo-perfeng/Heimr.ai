@@ -25,16 +25,16 @@ class DashboardGenerator:
             })
             # Flatten columns
             df_resampled.columns = ['avg_latency', 'p95_latency', 'p99_latency', 'throughput']
-            
+
             # Calculate errors per second
             errors_resampled = self.df[~self.df['success']].set_index('timestamp_dt').resample('1s').count()['success']
             df_resampled['errors'] = errors_resampled.fillna(0)
-            
+
             # Fill NaN latencies
             df_resampled['avg_latency'] = df_resampled['avg_latency'].fillna(0)
             df_resampled['p95_latency'] = df_resampled['p95_latency'].fillna(0)
             df_resampled['p99_latency'] = df_resampled['p99_latency'].fillna(0)
-            
+
             timestamps = df_resampled.index.strftime('%H:%M:%S').tolist()
             avg_latency_data = df_resampled['avg_latency'].round(2).tolist()
             p95_latency_data = df_resampled['p95_latency'].round(2).tolist()
@@ -53,13 +53,13 @@ class DashboardGenerator:
         cpu_data = []
         mem_data = []
         prom_timestamps = []
-        
+
         if self.prom_metrics:
             if 'cpu_usage' in self.prom_metrics and self.prom_metrics['cpu_usage']:
                 cpu_values = self.prom_metrics['cpu_usage'][0]['values']
                 prom_timestamps = [pd.to_datetime(float(v[0]), unit='s').strftime('%H:%M:%S') for v in cpu_values]
                 cpu_data = [float(v[1]) * 100 for v in cpu_values]
-            
+
             if 'memory_usage' in self.prom_metrics and self.prom_metrics['memory_usage']:
                 mem_values = self.prom_metrics['memory_usage'][0]['values']
                 # If timestamps differ slightly, we might need to align, but usually they are scraped together

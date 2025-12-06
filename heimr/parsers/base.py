@@ -51,17 +51,17 @@ class BaseParser(ABC):
                     df[col] = True
                 else:
                     df[col] = None # Strings
-            
+
             # Enforce types
             try:
                 if dtype == 'datetime64[ns, UTC]':
                      df[col] = pd.to_datetime(df[col], utc=True)
                 else:
                      df[col] = df[col].astype(dtype)
-            except Exception as e:
+            except Exception:
                 # Fallback for tough casting
                 pass
-                
+
         return df[list(self.UNIFIED_COLUMNS.keys())]
 
     @abstractmethod

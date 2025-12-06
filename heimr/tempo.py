@@ -11,7 +11,7 @@ class TempoClient:
     """
     def __init__(self, url: str = "http://localhost:3200", file_path: str = None):
         self.url = url.rstrip('/')
-        # Tempo uses the same API structure as Jaeger or Zipkin usually, 
+        # Tempo uses the same API structure as Jaeger or Zipkin usually,
         # but often exposes a search API at /api/search
         self.api_url = f"{self.url}/api/search"
         self.file_path = file_path
@@ -34,7 +34,7 @@ class TempoClient:
             # print(f"DEBUG: Querying Tempo at {self.api_url} with params {params}")
             response = requests.get(self.api_url, params=params, timeout=5)
             response.raise_for_status()
-            
+
             result = response.json()
             # Result is usually a list of traces
             return result.get('traces', [])

@@ -12,7 +12,7 @@ from datetime import datetime
 
 class PDFGenerator:
     """Generate PDF reports from Markdown content."""
-    
+
     # CSS styling for professional PDF reports
     PDF_CSS = """
     @page {
@@ -171,7 +171,7 @@ class PDFGenerator:
         page-break-after: avoid;
     }
     """
-    
+
     def __init__(self):
         """Initialize PDF generator."""
         self.md = markdown.Markdown(extensions=[
@@ -181,7 +181,7 @@ class PDFGenerator:
             'nl2br',
             'sane_lists'
         ])
-    
+
     def generate_pdf(self, markdown_content: str, output_path: str):
         """
         Convert markdown content to PDF.
@@ -192,7 +192,7 @@ class PDFGenerator:
         """
         # Convert markdown to HTML
         html_content = self.md.convert(markdown_content)
-        
+
         # Wrap in HTML document structure
         full_html = f"""
         <!DOCTYPE html>
@@ -215,13 +215,13 @@ class PDFGenerator:
         </body>
         </html>
         """
-        
+
         # Generate PDF
         HTML(string=full_html).write_pdf(
             output_path,
             stylesheets=[CSS(string=self.PDF_CSS)]
         )
-    
+
     def generate_from_file(self, markdown_file: str, output_path: str):
         """
         Convert markdown file to PDF.
@@ -232,5 +232,5 @@ class PDFGenerator:
         """
         with open(markdown_file, 'r', encoding='utf-8') as f:
             markdown_content = f.read()
-        
+
         self.generate_pdf(markdown_content, output_path)

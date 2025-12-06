@@ -26,7 +26,7 @@ class GatlingParser(BaseParser):
                         start_ts = int(parts[4])
                         end_ts = int(parts[5])
                         status = parts[6] if len(parts) > 6 else 'OK'
-                        
+
                         row = {
                             'timestamp_dt': pd.to_datetime(end_ts, unit='ms'),
                             'elapsed': float(end_ts - start_ts),
@@ -54,7 +54,7 @@ class GatlingParser(BaseParser):
                 'avg_latency': 0,
                 'error_rate': 0
             }
-        
+
         return {
             'total_requests': len(self.df),
             'start_time': self.df['timestamp_dt'].min(),

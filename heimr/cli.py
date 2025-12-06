@@ -31,10 +31,10 @@ def load_config(config_path: str) -> dict:
     """
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
-    
+
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f) or {}
-    
+
     # Convert YAML keys (snake_case) to argparse format (with underscores)
     # YAML uses snake_case, argparse dest uses underscores
     return config
@@ -65,14 +65,14 @@ def merge_config_with_args(args, config: dict):
         'compare_loki': 'compare_loki',
         'compare_tempo': 'compare_tempo',
     }
-    
+
     for config_key, arg_key in key_mapping.items():
         if config_key in config:
             # Only set from config if CLI arg was not provided
             current_value = getattr(args, arg_key, None)
             if current_value is None or (isinstance(current_value, bool) and not current_value):
                 setattr(args, arg_key, config[config_key])
-    
+
     return args
 
 
@@ -85,7 +85,7 @@ def get_parser(filepath: str, format_arg: str = None):
         if format_arg == 'k6': return K6Parser(filepath)
         if format_arg == 'gatling': return GatlingParser(filepath)
         if format_arg == 'locust': return LocustParser(filepath)
-    
+
     # Auto-detect
     if filepath.endswith('.jtl') or filepath.endswith('.csv'):
         # Check if it's a Locust history file
@@ -96,7 +96,7 @@ def get_parser(filepath: str, format_arg: str = None):
         return K6Parser(filepath)
     if filepath.endswith('.log'):
         return GatlingParser(filepath)
-    
+
     raise ValueError("Could not detect file format. Please use --format.")
 
 def print_banner():
@@ -113,22 +113,22 @@ def print_banner():
 def print_status(stats, anomaly_summary):
     failed = False
     reasons = []
-    
+
     if stats.get('error_rate', 0) > 0:
         failed = True
         reasons.append(f"Error Rate: {stats['error_rate']:.2f}%")
-    
+
     if anomaly_summary['count'] > 0:
         failed = True
         reasons.append(f"Anomalies: {anomaly_summary['count']}")
-        
+
     print("\\n" + "="*50)
     if failed:
-        print(f"\\033[1;31m❌ FAILED\\033[0m")
-        print(f"\033[1;31m❌ FAILED\033[0m")
+        print("\\033[1;31m❌ FAILED\\033[0m")
+        print("\033[1;31m❌ FAILED\033[0m")
         print(f"Reasons: {', '.join(reasons)}")
     else:
-        print(f"\033[1;32m✅ PASSED\033[0m")
+        print("\033[1;32m✅ PASSED\033[0m")
         print("No errors or anomalies detected.")
     print("="*50 + "\n")
 
@@ -139,7 +139,7 @@ def parse_url_or_file(value):
     """
     if not value:
         return None, None
-    
+
     # Check if it's a URL
     if value.startswith('http://') or value.startswith('https://'):
         return value, None
@@ -196,8 +196,8 @@ def main():
   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
   - large:  llama3.3:70b (~21GB, RTX 4090+, best quality)
   Or specify any model name directly (e.g., llama3.1:405b, gpt-4o)""")
-    
-    
+
+
     # Comparison arguments
     analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file for comparison")
@@ -268,10 +268,10 @@ output: ./reports/analysis.md
         if os.path.exists(output_path):
             print(f"Error: {output_path} already exists. Use -o to specify a different path.")
             sys.exit(1)
-        
+
         with open(output_path, 'w') as f:
             f.write(config_content)
-        
+
         print(f"✓ Created config file: {output_path}")
         print(f"\nUsage: heimr analyze results.jtl -c {output_path}")
         sys.exit(0)
@@ -289,7 +289,7 @@ output: ./reports/analysis.md
                 config = load_config(args.config)
                 args = merge_config_with_args(args, config)
                 print(f"Loaded config from: {args.config}")
-            
+
             # Smart LLM URL Detection
             # If user didn't specify URL, and no API keys are present, default to Local Ollama.
             # If keys ARE present, leave URL as None so LLMClient chooses Cloud Provider.
@@ -297,11 +297,11 @@ output: ./reports/analysis.md
                 has_api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY")
                 if not has_api_key:
                     args.llm_url = "http://localhost:11434/v1"
-            
+
             # Set default model if not configured
             if not args.llm_model:
                 args.llm_model = "medium"
-            
+
             # Detect format if not specified
             file_format = args.format
             if not file_format:
@@ -323,7 +323,7 @@ output: ./reports/analysis.md
                                 file_format = 'har'
                             else:
                                 file_format = 'jtl'
-                    except:
+                    except Exception:
                         file_format = 'jtl'
 
             # Select parser
@@ -340,15 +340,15 @@ output: ./reports/analysis.md
                 file_parser = JTLParser(args.file)
 
             print_banner()
-            
+
             print(f"Analyzing {args.file} ({file_format})...")
             df = file_parser.parse()
-            
+
             # --- KPI Engine Integration ---
             from heimr.kpi import KPIEngine
             kpi = KPIEngine(df)
             kpi_data = kpi.get_kpi_dict()
-            
+
             # Legacy stats adapter for existing consumers (detectors, etc)
             stats = {
                 'total_requests': kpi_data['throughput']['total_requests'],
@@ -364,7 +364,7 @@ output: ./reports/analysis.md
                 'max_latency': kpi_data['latency']['max'],
                 'throughput': kpi_data['throughput']['requests_per_second']
             }
-            
+
             if df.empty:
                 print("No data found.")
                 return
@@ -385,7 +385,7 @@ output: ./reports/analysis.md
             print(f"{'Requests':<25} | {kpi_data['throughput']['total_requests']:,}")
             print(f"{'Throughput':<25} | {kpi_data['throughput']['requests_per_second']:.2f} req/s")
             print(f"{'Error Rate':<25} | {kpi_data['errors']['rate']:.2f}%")
-        
+
             print(f"{'Latency P50':<25} | {kpi_data['latency']['p50']:.2f} ms")
             print(f"{'Latency P95':<25} | {kpi_data['latency']['p95']:.2f} ms")
             print(f"{'Latency P99':<25} | {kpi_data['latency']['p99']:.2f} ms")
@@ -394,7 +394,7 @@ output: ./reports/analysis.md
             # --- REPORT SPECIFICATION: LEVEL 2 (Summary) ---
             print("\n--- Summary (Level 2) ---")
             print(f"Concurrency: Max {kpi_data['concurrency']['max']} VUs, Avg {kpi_data['concurrency']['avg']} VUs")
-            
+
             # Anomaly details
             print(f"Anomalies: {anomaly_summary['count']} detected")
             if anomaly_summary['count'] > 0:
@@ -442,22 +442,22 @@ output: ./reports/analysis.md
 
             # Multi-Signal Detection: Check for failures across multiple signals
             failure_signals = []
-            
+
             # Signal 1: Anomalies detected
             if anomaly_summary['count'] > 0:
                 failure_signals.append(f"Anomalies: {anomaly_summary['count']}")
-            
+
             # Signal 2: Error rate > 0%
             if stats.get('error_rate', 0) > 0:
                 failure_signals.append(f"Error Rate: {stats['error_rate']:.2f}%")
-            
+
             # Signal 3: High CPU usage in Prometheus
             if prom_metrics and 'cpu_usage' in prom_metrics and len(prom_metrics['cpu_usage']) > 0:
                 cpu_values = [float(v[1]) for v in prom_metrics['cpu_usage'][0]['values']]
                 avg_cpu = sum(cpu_values) / len(cpu_values) if cpu_values else 0
                 if avg_cpu > 0.8:  # 80% CPU
                     failure_signals.append(f"High CPU: {avg_cpu*100:.1f}%")
-            
+
             # Signal 4: Memory growth in Prometheus
             if prom_metrics and 'memory_usage' in prom_metrics and len(prom_metrics['memory_usage']) > 0:
                 mem_values = [int(v[1]) for v in prom_metrics['memory_usage'][0]['values']]
@@ -465,13 +465,13 @@ output: ./reports/analysis.md
                     mem_growth = (mem_values[-1] - mem_values[0]) / mem_values[0]
                     if mem_growth > 0.5:  # 50% growth
                         failure_signals.append(f"Memory Growth: {mem_growth*100:.1f}%")
-            
+
             # Signal 5: ERROR/WARN logs in Loki
             if loki_logs:
                 error_count = sum(1 for log in loki_logs if 'level=error' in log or 'level=warn' in log)
                 if error_count > 0:
                     failure_signals.append(f"Error/Warn Logs: {error_count}")
-            
+
             # Signal 6: Slow traces in Tempo (only if significantly above P99)
             # Don't flag if traces are just slightly above P99 (normal variance)
             if tempo_traces and len(tempo_traces) > 5:  # Only flag if > 5 slow traces
@@ -480,13 +480,13 @@ output: ./reports/analysis.md
                 very_slow_traces = [t for t in tempo_traces if t.get('duration', 0) > p99 * 2]
                 if len(very_slow_traces) > 0:
                     failure_signals.append(f"Very Slow Traces: {len(very_slow_traces)}")
-            
+
             # Determine overall status
             has_failure = len(failure_signals) > 0
             status_icon = "❌" if has_failure else "✅"
             status_text = "FAILED" if has_failure else "PASSED"
-            
-            print(f"\\n--- Overall Status ---")
+
+            print("\n--- Overall Status ---")
             print(f"# {status_icon} {status_text}")
             if has_failure:
                 print(f"**Reasons**: {', '.join(failure_signals)}")
@@ -497,19 +497,19 @@ output: ./reports/analysis.md
             full_explanation = ""
             if not args.no_llm:
                 print("\n--- AI Analysis (Heimr) ---")
-                
+
                 try:
                     llm = LLMClient(
                         base_url=args.llm_url,
                         model=args.llm_model
                     )
-                    
+
                     print(f"Using LLM Provider: {llm.provider.upper()}")
                     print(f"Model: {args.llm_model}")
-                    
+
                     # Pass metrics, logs, and traces to LLM
                     explanation_generator = llm.generate_explanation(stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
-                    
+
                     print("\n", end="", flush=True)
                     for chunk in explanation_generator:
                         print(chunk, end="", flush=True)
@@ -521,7 +521,7 @@ output: ./reports/analysis.md
                 except Exception as e:
                     print(f"Warning: LLM analysis failed: {e}")
                     print("Continuing with statistical analysis only...")
-            
+
             # --- CLI Exit Code Logic based on Gating ---
             # Revisit fail-on-regression later (requires comparator), for now check absolute conditions if provided
             if args.fail_condition:
@@ -542,7 +542,7 @@ output: ./reports/analysis.md
   ▀██▀  ▀██▄▄▀█▄▄▄▄██▄██ ██ ██ ▀█▄█▀  ██ ▄▀█▄██▄██
 """
                     header += "```\n\n"
-                    
+
                     # 0. Context Tags
                     if args.tag:
                         header += "### Build Context\n"
@@ -554,19 +554,19 @@ output: ./reports/analysis.md
                             else:
                                 header += f"| **Tag** | `{tag}` |\n"
                         header += "\n"
-                    
+
                     # Use the multi-signal failure detection (same as console output)
                     if has_failure:
                         reasons_str = ", ".join(failure_signals)
                         header += f"# {status_icon} {status_text}\n**Reasons**: {reasons_str}\n\n"
                     else:
                         header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
-                    
+
                     # Construct KPI Table (Per Endpoint)
                     # LEVEL 1 Table for Report
                     kpi_table = "## Level 1: Primary KPIs\n"
                     kpi_table += "| Metric | Value | Threshold (Ref) |\n|---|---|---|\n"
-                    kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n" 
+                    kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n"
                     kpi_table += f"| Error Rate | {kpi_data['errors']['rate']:.2f}% | < 1.0% |\n"
                     kpi_table += f"| Throughput | {kpi_data['throughput']['requests_per_second']:.2f} req/s | {kpi_data['throughput']['bytes_in_per_second']/1024:.2f} KB/s in |\n\n"
 
@@ -574,7 +574,7 @@ output: ./reports/analysis.md
                     kpi_table += "## Level 3: Per Endpoint Breakdown\n"
                     kpi_table += "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
                     kpi_table += "|---|---|---|---|---|---|---|\n"
-                    
+
                     if not df.empty:
                         # Check if 'name' column exists (it does from UnifiedSchema: 'endpoint')
                         if 'endpoint' in df.columns:
@@ -585,19 +585,19 @@ output: ./reports/analysis.md
                                 # Duration for this specific endpoint's activity
                                 duration_sec = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
                                 throughput = count / duration_sec if duration_sec > 0 else 0
-                                
+
                                 error_count = len(group[~group['success']])
                                 error_rate = (error_count / count) * 100
-                                
+
                                 avg = group['elapsed'].mean()
                                 p95 = group['elapsed'].quantile(0.95)
                                 p99 = group['elapsed'].quantile(0.99)
-                                
+
                                 kpi_table += f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | {avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
                         else:
                             print(f"Warning: 'endpoint' column not found in DataFrame. Columns: {df.columns.tolist()}")
                             kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
-                        
+
                         # Add Aggregate Row
                         total_count = kpi_data['throughput']['total_requests']
                         total_throughput = kpi_data['throughput']['requests_per_second']
@@ -605,7 +605,7 @@ output: ./reports/analysis.md
                         total_avg = kpi_data['latency']['avg']
                         total_p95 = kpi_data['latency']['p95']
                         total_p99 = kpi_data['latency']['p99']
-                        
+
                         kpi_table += f"| **TOTAL** | **{total_count}** | **{total_throughput:.2f}** | **{total_error_rate:.2f}%** | **{total_avg:.2f}** | **{total_p95:.2f}** | **{total_p99:.2f}** |\n"
                     else:
                         kpi_table += "| No data | - | - | - | - | - | - |\n"
@@ -620,17 +620,17 @@ output: ./reports/analysis.md
 
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
-                
+
                 # Automatically generate PDF alongside markdown
                 print("\n--- Generating PDF Report ---")
                 try:
                     from heimr.pdf_generator import PDFGenerator
                     pdf_gen = PDFGenerator()
-                    
+
                     # Read the markdown report we just saved
                     with open(args.output, 'r', encoding='utf-8') as f:
                         markdown_content = f.read()
-                    
+
                     # Generate PDF with same name but .pdf extension
                     pdf_path = args.output.rsplit('.', 1)[0] + '.pdf'
                     pdf_gen.generate_pdf(markdown_content, pdf_path)
@@ -655,11 +655,11 @@ output: ./reports/analysis.md
                 print("\n--- Generating Comparison Report ---")
                 try:
                     from heimr.comparator import PerformanceComparator
-                    
+
                     # Load baseline data
                     print(f"Loading baseline: {args.compare_baseline}")
                     baseline_format = args.format or 'k6'  # Use same format as current
-                    
+
                     if baseline_format == 'k6':
                         baseline_parser = K6Parser(args.compare_baseline)
                     elif baseline_format == 'gatling':
@@ -668,10 +668,10 @@ output: ./reports/analysis.md
                         baseline_parser = LocustParser(args.compare_baseline)
                     else:
                         baseline_parser = JTLParser(args.compare_baseline)
-                    
+
                     baseline_df = baseline_parser.parse()
                     baseline_stats = baseline_parser.get_summary_stats()
-                    
+
                     # Calculate extended baseline stats
                     if not baseline_df.empty:
                         baseline_stats['median_latency'] = baseline_df['elapsed'].median()
@@ -680,23 +680,23 @@ output: ./reports/analysis.md
                         baseline_stats['error_count'] = len(baseline_df[~baseline_df['success']])
                         duration_sec = (baseline_stats['end_time'] - baseline_stats['start_time']).total_seconds()
                         baseline_stats['throughput'] = baseline_stats['total_requests'] / duration_sec if duration_sec > 0 else 0
-                    
+
                     # Detect baseline anomalies
                     baseline_detector = AnomalyDetector(baseline_df)
                     baseline_anomalies_result = baseline_detector.detect_latency_anomalies()
                     baseline_anomaly_summary = baseline_detector.get_anomaly_summary(baseline_anomalies_result)
-                    
+
                     # Load baseline observability data
                     baseline_prom_metrics = {}
                     baseline_loki_logs = []
                     baseline_tempo_traces = []
-                    
+
                     if args.compare_prometheus:
                         print(f"Loading baseline Prometheus metrics: {args.compare_prometheus}")
                         import json
                         with open(args.compare_prometheus, 'r') as f:
                             baseline_prom_metrics = json.load(f)
-                    
+
                     if args.compare_loki:
                         print(f"Loading baseline Loki logs: {args.compare_loki}")
                         import json
@@ -706,32 +706,32 @@ output: ./reports/analysis.md
                                 for stream in loki_data['data']['result']:
                                     for value in stream['values']:
                                         baseline_loki_logs.append(value[1])
-                    
+
                     if args.compare_tempo:
                         print(f"Loading baseline Tempo traces: {args.compare_tempo}")
                         import json
                         with open(args.compare_tempo, 'r') as f:
                             tempo_data = json.load(f)
                             baseline_tempo_traces = tempo_data.get('data', [])
-                    
+
                     # Create comparator and run comparison
                     comparator = PerformanceComparator(baseline_stats, stats)
-                    
+
                     metrics_comparison = comparator.compare_metrics()
                     anomalies_comparison = comparator.compare_anomalies(baseline_anomaly_summary, anomaly_summary)
-                    
+
                     prometheus_comparison = None
                     if baseline_prom_metrics and prom_metrics:
                         prometheus_comparison = comparator.compare_prometheus(baseline_prom_metrics, prom_metrics)
-                    
+
                     logs_comparison = None
                     if baseline_loki_logs and loki_logs:
                         logs_comparison = comparator.compare_logs(baseline_loki_logs, loki_logs)
-                    
+
                     traces_comparison = None
                     if baseline_tempo_traces and tempo_traces:
                         traces_comparison = comparator.compare_traces(baseline_tempo_traces, tempo_traces)
-                    
+
                     # Generate comparison report
                     comparison_report = comparator.generate_comparison_report(
                         metrics_comparison,
@@ -740,16 +740,16 @@ output: ./reports/analysis.md
                         logs_comparison,
                         traces_comparison
                     )
-                    
+
                     # Auto-generate comparison path based on output path
                     comparison_path = args.output.rsplit('.', 1)[0] + '_comparison.md'
-                    
+
                     # Save comparison report
                     with open(comparison_path, 'w') as f:
                         f.write(comparison_report)
-                    
+
                     print(f"✅ Comparison report saved to: {comparison_path}")
-                    
+
                     # Automatically generate PDF for comparison report
                     try:
                         from heimr.pdf_generator import PDFGenerator
@@ -759,7 +759,7 @@ output: ./reports/analysis.md
                         print(f"✅ Comparison PDF saved to: {pdf_path}")
                     except Exception as e:
                         print(f"Warning: Failed to generate comparison PDF: {e}")
-                    
+
                 except Exception as e:
                     print(f"Warning: Failed to generate comparison report: {e}")
                     import traceback
@@ -767,7 +767,7 @@ output: ./reports/analysis.md
 
             # --- Performance Gating ---
             exit_code = 0
-            
+
             # 1. Absolute Thresholds (Fail Conditions)
             if args.fail_condition:
                 print("\n--- Checking Failure Conditions ---")
@@ -778,10 +778,10 @@ output: ./reports/analysis.md
                         if len(parts) != 3:
                             print(f"⚠️ Invalid condition format: '{condition}'. Expected 'metric op value' (e.g. 'p99_latency > 500')")
                             continue
-                            
+
                         metric, op, limit_str = parts[0].lower(), parts[1], parts[2]
                         limit = float(limit_str)
-                        
+
                         # Map friendly names to stat keys
                         metric_map = {
                             'p99': 'p99_latency',
@@ -795,29 +795,29 @@ output: ./reports/analysis.md
                         stat_key = metric
                         if metric in metric_map:
                             stat_key = metric_map[metric]
-                        
+
                         if stat_key not in stats:
                             print(f"⚠️ Metric '{metric}' not found in results.")
                             continue
-                            
+
                         actual_value = float(stats[stat_key])
-                        
+
                         failed = False
                         if op == '>': failed = actual_value > limit
                         elif op == '>=': failed = actual_value >= limit
                         elif op == '<': failed = actual_value < limit
                         elif op == '<=': failed = actual_value <= limit
                         elif op == '==': failed = actual_value == limit
-                        
+
                         if failed:
                             print(f"❌ FAILED: {metric} ({actual_value:.2f}) {op} {limit}")
                             exit_code = 1
                         else:
                             print(f"✅ PASSED: {metric} ({actual_value:.2f}) not {op} {limit}")
-                            
+
                     except ValueError:
                         print(f"⚠️ Error parsing value in condition: '{condition}'")
-            
+
             # 2. Regression Check (Fail on Regression)
             if args.fail_on_regression:
                 if not args.compare_baseline:
@@ -825,18 +825,18 @@ output: ./reports/analysis.md
                 elif 'comparator' in locals() and 'metrics_comparison' in locals():
                     # We have a comparator and metrics from the comparison block above
                     print(f"\n--- Checking Regression Threshold ({args.fail_on_regression}%) ---")
-                    
+
                     # Reuse the logic we added to comparator
                     result = comparator.check_failure_conditions(metrics_comparison, fail_on_regression=args.fail_on_regression)
-                    
+
                     if result['failed']:
                         for reason in result['reasons']:
                             print(f"❌ {reason}")
                         exit_code = 1
                         print("✅ No significant regressions detected.")
-            
+
             # --- Reporters ---
-            
+
             # Parse Tags
             tags = {}
             if args.tag:
@@ -853,7 +853,7 @@ output: ./reports/analysis.md
                     from heimr.reporters.github import GitHubReporter
                     path = args.ci_summary if args.ci_summary != "GITHUB_STEP_SUMMARY" else None
                     gh_reporter = GitHubReporter(path)
-                    
+
                     # Collect failure reasons (both from manual checks and logic above)
                     all_reasons = []
                     # Multi-signal failures
@@ -864,9 +864,9 @@ output: ./reports/analysis.md
                     # But explicit gating failures like "p99 > 500" should also be included if separate
                     # Currently console prints them but doesn't store them in a list accessible here easily
                     # Hack: We printed them. Ideally refactor to collect them.
-                    
+
                     gh_reporter.generate_summary(stats, anomaly_summary, all_reasons, tags)
-                    print(f"✅ GitHub Summary generated.")
+                    print("✅ GitHub Summary generated.")
                 except Exception as e:
                     print(f"Warning: Failed to generate GitHub Summary: {e}")
 
@@ -875,11 +875,11 @@ output: ./reports/analysis.md
                 try:
                     from heimr.reporters.junit import JUnitReporter
                     junit = JUnitReporter(args.junit_output)
-                    
+
                     all_reasons = []
                     if 'failure_signals' in locals() and failure_signals:
                         all_reasons.extend(failure_signals)
-                        
+
                     junit.generate_report(stats, anomaly_summary, all_reasons, tags)
                 except Exception as e:
                     print(f"Warning: Failed to generate JUnit report: {e}")
