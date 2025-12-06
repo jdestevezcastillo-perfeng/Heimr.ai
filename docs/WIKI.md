@@ -58,36 +58,54 @@ heimr analyze [FILE] [OPTIONS]
 
 ### `config-init`
 
-Generate a default configuration file.
+Generates a template configuration file (`heimr.yaml`) in the current directory. This is the easiest way to get started without typing long command-line arguments.
 
 ```bash
-heimr config-init [filename]
+# Create heimr.yaml in current dir
+heimr config-init
+
+# Create with custom name
+heimr config-init my_config.yaml
 ```
 
 ---
 
 ## Configuration
 
-Heimr uses `heimr.yaml` for configuration.
+Heimr looks for a configuration file only when specified via `--config`. CLI arguments always take precedence over configuration file values.
+
+### Example `heimr.yaml`
 
 ```yaml
-# Observability
+# ============================================================================
+# Observability Sources
+# ============================================================================
+# Heimr can fetch data from live URLs OR read from local JSON files.
+# It automatically detects if the value is a URL (starts with http) or a file path.
+
+# Prometheus (Metrics)
 prometheus: http://localhost:9090
-# prometheus: ./metrics.json  # or local file
+# prometheus: ./data/metrics.json
 
+# Loki (Logs)
 loki: http://localhost:3100
-# loki: ./logs.json
+# loki: ./data/logs.json
 
+# Tempo (Traces)
 tempo: http://localhost:3200
-# tempo: ./traces.json
+# tempo: ./data/traces.json
 
+# ============================================================================
 # AI Analysis
-llm_url: http://localhost:11434/v1
-llm_model: llama3.1:8b
+# ============================================================================
+llm_url: http://localhost:11434/v1  # Ollama default
+llm_model: llama3.1:8b              # Local model name
 
+# ============================================================================
 # Reporting
+# ============================================================================
 output: ./reports/analysis.md
-format: jtl  # optional override
+format: jtl  # optional override (jtl, k6, gatling, locust)
 ```
 
 ---
