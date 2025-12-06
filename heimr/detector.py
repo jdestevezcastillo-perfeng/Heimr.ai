@@ -71,8 +71,8 @@ class AnomalyDetector:
         anomalies = anomalies.drop_duplicates()
         
         # Sort by timestamp if available
-        if 'timeStamp' in anomalies.columns:
-            anomalies = anomalies.sort_values('timeStamp')
+        if 'timestamp_dt' in anomalies.columns:
+            anomalies = anomalies.sort_values('timestamp_dt')
         
         return anomalies
     
@@ -92,5 +92,5 @@ class AnomalyDetector:
             "count": len(anomalies),
             "avg_latency": anomalies['elapsed'].mean(),
             "max_latency": anomalies['elapsed'].max(),
-            "timestamps": anomalies['timeStamp'].tolist() if 'timeStamp' in anomalies.columns else []
+            "timestamps": anomalies['timestamp_dt'].tolist() if 'timestamp_dt' in anomalies.columns else []
         }
