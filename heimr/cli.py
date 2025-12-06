@@ -19,7 +19,7 @@ from heimr.tempo import TempoClient
 def load_config(config_path: str) -> dict:
     """
     Load configuration from a YAML file.
-    
+
     Example heimr.yaml:
         prometheus_url: http://localhost:9090
         loki_url: http://localhost:3100
@@ -81,10 +81,14 @@ def get_parser(filepath: str, format_arg: str = None):
     Returns the appropriate parser based on file extension or argument.
     """
     if format_arg:
-        if format_arg == 'jtl': return JTLParser(filepath)
-        if format_arg == 'k6': return K6Parser(filepath)
-        if format_arg == 'gatling': return GatlingParser(filepath)
-        if format_arg == 'locust': return LocustParser(filepath)
+        if format_arg == 'jtl':
+            return JTLParser(filepath)
+        if format_arg == 'k6':
+            return K6Parser(filepath)
+        if format_arg == 'gatling':
+            return GatlingParser(filepath)
+        if format_arg == 'locust':
+            return LocustParser(filepath)
 
     # Auto-detect
     if filepath.endswith('.jtl') or filepath.endswith('.csv'):
@@ -99,16 +103,18 @@ def get_parser(filepath: str, format_arg: str = None):
 
     raise ValueError("Could not detect file format. Please use --format.")
 
+
 def print_banner():
     banner = """
-   ▄▄▄  ▄▄▄                                    
-  █▀██  ██                                     
+   ▄▄▄  ▄▄▄
+  █▀██  ██
     ██  ██         ▀▀ ▄        ▄             ▀▀
     ██████   ▄█▀█▄ ██ ███▄███▄ ████▄   ▄▀▀█▄ ██
     ██  ██   ██▄█▀ ██ ██ ██ ██ ██      ▄█▀██ ██
   ▀██▀  ▀██▄▄▀█▄▄▄▄██▄██ ██ ▀█▄█▀  ██ ▄▀█▄██▄██
 """
-    print(f"\\033[1;36m{banner}\\033[0m") # Cyan
+    print(f"\\033[1;36m{banner}\\033[0m")  # Cyan
+
 
 def print_status(stats, anomaly_summary):
     failed = False
@@ -122,7 +128,7 @@ def print_status(stats, anomaly_summary):
         failed = True
         reasons.append(f"Anomalies: {anomaly_summary['count']}")
 
-    print("\\n" + "="*50)
+    print("\\n" + "=" * 50)
     if failed:
         print("\\033[1;31m❌ FAILED\\033[0m")
         print("\033[1;31m❌ FAILED\033[0m")
@@ -130,7 +136,8 @@ def print_status(stats, anomaly_summary):
     else:
         print("\033[1;32m✅ PASSED\033[0m")
         print("No errors or anomalies detected.")
-    print("="*50 + "\n")
+    print("=" * 50 + "\n")
+
 
 def parse_url_or_file(value):
     """
@@ -147,6 +154,7 @@ def parse_url_or_file(value):
         # It's a file path
         return None, value
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Heimr.ai - AI-Powered Load Test Analysis",
@@ -160,7 +168,8 @@ def main():
         help="Generate an example heimr.yaml config file.",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    config_parser.add_argument("--output", "-o", default="heimr.yaml", help="Output path for the config file (default: heimr.yaml)")
+    config_parser.add_argument("--output", "-o", default="heimr.yaml",
+                               help="Output path for the config file (default: heimr.yaml)")
 
     # Setup-LLM command
     setup_parser = subparsers.add_parser(
@@ -168,8 +177,10 @@ def main():
         help="Setup Ollama and Llama 3.1 for AI analysis.",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    setup_parser.add_argument("--non-interactive", action="store_true", help="Run in non-interactive mode (auto-install)")
-
+    setup_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Run in non-interactive mode (auto-install)")
 
     # Analyze command
     analyze_parser = subparsers.add_parser(
@@ -184,32 +195,58 @@ def main():
   compare_loki, compare_tempo.
   Run 'heimr config-init' to generate a template.
   Note: AI analysis is enabled by default. PDFs and HTML dashboards are auto-generated.""")
-    analyze_parser.add_argument("--format", choices=['jtl', 'k6', 'gatling', 'locust'], help="Explicitly specify the file format (auto-detected by default)")
+    analyze_parser.add_argument(
+        "--format",
+        choices=[
+            'jtl',
+            'k6',
+            'gatling',
+            'locust'],
+        help="Explicitly specify the file format (auto-detected by default)")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
-    analyze_parser.add_argument("--no-llm", action="store_true", help="Disable AI-powered analysis (enabled by default)")
-    analyze_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file (e.g., http://localhost:9090 or ./metrics.json)")
-    analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
-    analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
-    analyze_parser.add_argument("--llm-url", default=None, help="Base URL for LLM API (default: http://localhost:11434/v1 if no API keys present)")
+    analyze_parser.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Disable AI-powered analysis (enabled by default)")
+    analyze_parser.add_argument(
+        "--prometheus",
+        help="Prometheus server URL or path to JSON file (e.g., http://localhost:9090 or ./metrics.json)")
+    analyze_parser.add_argument(
+        "--loki",
+        help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
+    analyze_parser.add_argument(
+        "--tempo",
+        help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
+    analyze_parser.add_argument(
+        "--llm-url",
+        default=None,
+        help="Base URL for LLM API (default: http://localhost:11434/v1 if no API keys present)")
     analyze_parser.add_argument("--llm-model", default=None, help="""LLM model to use. Options:
   - small:  llama3.2:3b  (~2GB, laptops/CI/CD)
   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
   - large:  llama3.3:70b (~21GB, RTX 4090+, best quality)
   Or specify any model name directly (e.g., llama3.1:405b, gpt-4o)""")
 
-
     # Comparison arguments
     analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file for comparison")
     analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file for comparison")
     analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file for comparison")
-    analyze_parser.add_argument("--fail-on-regression", type=float, help="Fail if any metric worsens by more than this percentage (requires --compare-baseline)")
-    analyze_parser.add_argument("--fail-condition", action="append", help="Fail if condition is met (e.g. 'p99_latency > 500', 'error_rate > 1.0'). Can be used multiple times.")
-    analyze_parser.add_argument("--tag", action="append", help="Add metadata tag to report (e.g. 'commit=sha123', 'branch=main')")
-    analyze_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY", help="Generate GitHub Actions Step Summary (optional: file path)")
+    analyze_parser.add_argument(
+        "--fail-on-regression",
+        type=float,
+        help="Fail if any metric worsens by more than this percentage (requires --compare-baseline)")
+    analyze_parser.add_argument(
+        "--fail-condition",
+        action="append",
+        help="Fail if condition is met (e.g. 'p99_latency > 500', 'error_rate > 1.0'). Can be used multiple times.")
+    analyze_parser.add_argument(
+        "--tag",
+        action="append",
+        help="Add metadata tag to report (e.g. 'commit=sha123', 'branch=main')")
+    analyze_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY",
+                                help="Generate GitHub Actions Step Summary (optional: file path)")
     analyze_parser.add_argument("--junit-output", help="Path to save JUnit XML report")
-
-
 
     args = parser.parse_args()
 
@@ -357,7 +394,7 @@ output: ./reports/analysis.md
                 'avg_latency': kpi_data['latency']['avg'],
                 'p95_latency': kpi_data['latency']['p95'],
                 'p99_latency': kpi_data['latency']['p99'],
-                'p50_latency': kpi_data['latency']['p50'], # Explicit P50
+                'p50_latency': kpi_data['latency']['p50'],  # Explicit P50
                 'error_rate': kpi_data['errors']['rate'],
                 'median_latency': kpi_data['latency']['p50'],
                 'min_latency': kpi_data['latency']['min'],
@@ -375,12 +412,12 @@ output: ./reports/analysis.md
             anomaly_summary = detector.get_anomaly_summary(anomalies)
 
             # --- REPORT SPECIFICATION: LEVEL 1 (Header) ---
-            print("\n" + "="*50)
+            print("\n" + "=" * 50)
             print("HEIMR REPORT (Level 1)")
-            print("="*50)
+            print("=" * 50)
             print(f"{'Metric':<25} | {'Value':<15}")
             print("-" * 43)
-            print(f"{'Result':<25} | {'PENDING'}") # Placeholder
+            print(f"{'Result':<25} | {'PENDING'}")  # Placeholder
             print(f"{'Duration':<25} | {kpi_data['duration']:.2f} s")
             print(f"{'Requests':<25} | {kpi_data['throughput']['total_requests']:,}")
             print(f"{'Throughput':<25} | {kpi_data['throughput']['requests_per_second']:.2f} req/s")
@@ -398,7 +435,7 @@ output: ./reports/analysis.md
             # Anomaly details
             print(f"Anomalies: {anomaly_summary['count']} detected")
             if anomaly_summary['count'] > 0:
-                 print(f"  Avg Anomaly Latency: {anomaly_summary['avg_latency']:.2f} ms")
+                print(f"  Avg Anomaly Latency: {anomaly_summary['avg_latency']:.2f} ms")
 
             # 3. Prometheus Metrics (Optional)
             prom_metrics = {}
@@ -435,7 +472,8 @@ output: ./reports/analysis.md
                     tempo = TempoClient(url=tempo_url or "http://localhost:3200", file_path=tempo_file)
                     # Fetch traces slower than P99 latency
                     min_duration = int(stats.get('p99_latency', 1000))
-                    tempo_traces = tempo.get_slow_traces(stats['start_time'], stats['end_time'], min_duration_ms=min_duration)
+                    tempo_traces = tempo.get_slow_traces(
+                        stats['start_time'], stats['end_time'], min_duration_ms=min_duration)
                     print(f"Fetched {len(tempo_traces)} slow traces (> {min_duration}ms).")
                 except Exception as e:
                     print(f"Warning: Failed to fetch Tempo traces: {e}")
@@ -456,7 +494,7 @@ output: ./reports/analysis.md
                 cpu_values = [float(v[1]) for v in prom_metrics['cpu_usage'][0]['values']]
                 avg_cpu = sum(cpu_values) / len(cpu_values) if cpu_values else 0
                 if avg_cpu > 0.8:  # 80% CPU
-                    failure_signals.append(f"High CPU: {avg_cpu*100:.1f}%")
+                    failure_signals.append(f"High CPU: {avg_cpu * 100:.1f}%")
 
             # Signal 4: Memory growth in Prometheus
             if prom_metrics and 'memory_usage' in prom_metrics and len(prom_metrics['memory_usage']) > 0:
@@ -464,7 +502,7 @@ output: ./reports/analysis.md
                 if len(mem_values) >= 2:
                     mem_growth = (mem_values[-1] - mem_values[0]) / mem_values[0]
                     if mem_growth > 0.5:  # 50% growth
-                        failure_signals.append(f"Memory Growth: {mem_growth*100:.1f}%")
+                        failure_signals.append(f"Memory Growth: {mem_growth * 100:.1f}%")
 
             # Signal 5: ERROR/WARN logs in Loki
             if loki_logs:
@@ -508,7 +546,8 @@ output: ./reports/analysis.md
                     print(f"Model: {args.llm_model}")
 
                     # Pass metrics, logs, and traces to LLM
-                    explanation_generator = llm.generate_explanation(stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
+                    explanation_generator = llm.generate_explanation(
+                        stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
 
                     print("\n", end="", flush=True)
                     for chunk in explanation_generator:
@@ -525,8 +564,8 @@ output: ./reports/analysis.md
             # --- CLI Exit Code Logic based on Gating ---
             # Revisit fail-on-regression later (requires comparator), for now check absolute conditions if provided
             if args.fail_condition:
-                 # Minimal check
-                 pass
+                # Minimal check
+                pass
 
             # Save report if requested
             if args.output:
@@ -534,8 +573,8 @@ output: ./reports/analysis.md
                     # Generate header for file (no ANSI colors)
                     header = "```text\n"
                     header += """
-   ▄▄▄  ▄▄▄                                    
-  █▀██  ██                                     
+   ▄▄▄  ▄▄▄
+  █▀██  ██
     ██  ██         ▀▀ ▄        ▄             ▀▀
     ██████   ▄█▀█▄ ██ ███▄███▄ ████▄   ▄▀▀█▄ ██
     ██  ██   ██▄█▀ ██ ██ ██ ██ ██      ▄█▀██ ██
@@ -568,7 +607,10 @@ output: ./reports/analysis.md
                     kpi_table += "| Metric | Value | Threshold (Ref) |\n|---|---|---|\n"
                     kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n"
                     kpi_table += f"| Error Rate | {kpi_data['errors']['rate']:.2f}% | < 1.0% |\n"
-                    kpi_table += f"| Throughput | {kpi_data['throughput']['requests_per_second']:.2f} req/s | {kpi_data['throughput']['bytes_in_per_second']/1024:.2f} KB/s in |\n\n"
+                    kpi_table += f"| Throughput | {
+                        kpi_data['throughput']['requests_per_second']:.2f} req/s | {
+                        kpi_data['throughput']['bytes_in_per_second'] /
+                        1024:.2f} KB/s in |\n\n"
 
                     # Level 2 Details
                     kpi_table += "## Level 3: Per Endpoint Breakdown\n"
@@ -583,7 +625,9 @@ output: ./reports/analysis.md
                             for name, group in grouped:
                                 count = len(group)
                                 # Duration for this specific endpoint's activity
-                                duration_sec = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
+                                duration_sec = (
+                                    group['timestamp_dt'].max() -
+                                    group['timestamp_dt'].min()).total_seconds()
                                 throughput = count / duration_sec if duration_sec > 0 else 0
 
                                 error_count = len(group[~group['success']])
@@ -593,7 +637,12 @@ output: ./reports/analysis.md
                                 p95 = group['elapsed'].quantile(0.95)
                                 p99 = group['elapsed'].quantile(0.99)
 
-                                kpi_table += f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | {avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
+                                kpi_table += f"| {name} | {count} | {
+                                    throughput:.2f} | {
+                                    error_rate:.2f}% | {
+                                    avg:.2f} | {
+                                    p95:.2f} | {
+                                    p99:.2f} |\n"
                         else:
                             print(f"Warning: 'endpoint' column not found in DataFrame. Columns: {df.columns.tolist()}")
                             kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
@@ -616,7 +665,6 @@ output: ./reports/analysis.md
                     else:
                         # Fallback if LLM didn't include placeholder
                         full_explanation = f"{kpi_table}\n\n" + full_explanation
-
 
                     f.write(header + full_explanation)
                 print(f"✅ Report saved to: {args.output}")
@@ -649,7 +697,6 @@ output: ./reports/analysis.md
                 except Exception as e:
                     print(f"Warning: Failed to generate dashboard: {e}")
 
-
             # Generate Comparison Report if requested
             if args.compare_baseline and args.output:
                 print("\n--- Generating Comparison Report ---")
@@ -679,7 +726,8 @@ output: ./reports/analysis.md
                         baseline_stats['max_latency'] = baseline_df['elapsed'].max()
                         baseline_stats['error_count'] = len(baseline_df[~baseline_df['success']])
                         duration_sec = (baseline_stats['end_time'] - baseline_stats['start_time']).total_seconds()
-                        baseline_stats['throughput'] = baseline_stats['total_requests'] / duration_sec if duration_sec > 0 else 0
+                        baseline_stats['throughput'] = baseline_stats['total_requests'] / \
+                            duration_sec if duration_sec > 0 else 0
 
                     # Detect baseline anomalies
                     baseline_detector = AnomalyDetector(baseline_df)
@@ -776,7 +824,8 @@ output: ./reports/analysis.md
                         # Parse "metric op value"
                         parts = condition.split()
                         if len(parts) != 3:
-                            print(f"⚠️ Invalid condition format: '{condition}'. Expected 'metric op value' (e.g. 'p99_latency > 500')")
+                            print(
+                                f"⚠️ Invalid condition format: '{condition}'. Expected 'metric op value' (e.g. 'p99_latency > 500')")
                             continue
 
                         metric, op, limit_str = parts[0].lower(), parts[1], parts[2]
@@ -803,11 +852,16 @@ output: ./reports/analysis.md
                         actual_value = float(stats[stat_key])
 
                         failed = False
-                        if op == '>': failed = actual_value > limit
-                        elif op == '>=': failed = actual_value >= limit
-                        elif op == '<': failed = actual_value < limit
-                        elif op == '<=': failed = actual_value <= limit
-                        elif op == '==': failed = actual_value == limit
+                        if op == '>':
+                            failed = actual_value > limit
+                        elif op == '>=':
+                            failed = actual_value >= limit
+                        elif op == '<':
+                            failed = actual_value < limit
+                        elif op == '<=':
+                            failed = actual_value <= limit
+                        elif op == '==':
+                            failed = actual_value == limit
 
                         if failed:
                             print(f"❌ FAILED: {metric} ({actual_value:.2f}) {op} {limit}")
@@ -827,7 +881,8 @@ output: ./reports/analysis.md
                     print(f"\n--- Checking Regression Threshold ({args.fail_on_regression}%) ---")
 
                     # Reuse the logic we added to comparator
-                    result = comparator.check_failure_conditions(metrics_comparison, fail_on_regression=args.fail_on_regression)
+                    result = comparator.check_failure_conditions(
+                        metrics_comparison, fail_on_regression=args.fail_on_regression)
 
                     if result['failed']:
                         for reason in result['reasons']:
@@ -893,6 +948,7 @@ output: ./reports/analysis.md
             sys.exit(1)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

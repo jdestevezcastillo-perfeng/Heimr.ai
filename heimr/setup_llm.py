@@ -162,9 +162,9 @@ def setup_llm(interactive=True):
     Main setup function.
     Returns True if LLM is ready, False otherwise.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🏠 Heimr.ai - LLM Setup")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Step 1: Check if Ollama is installed
     if check_ollama_installed():
@@ -212,9 +212,9 @@ def setup_llm(interactive=True):
             print(f"\n⚠️  Please pull the model manually: ollama pull {model_name}")
             return False
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🎉 LLM setup complete! Heimr is ready to use.")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     return True
 

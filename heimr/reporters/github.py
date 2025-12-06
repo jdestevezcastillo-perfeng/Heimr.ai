@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 class GitHubReporter:
     """
     Generates a GitHub Actions Step Summary.
@@ -56,9 +57,9 @@ class GitHubReporter:
         summary.append(f"| P99 Latency | {stats.get('p99_latency', 0):.2f} | ms | |")
 
         if anomalies['count'] > 0:
-             summary.append(f"| **Anomalies** | 🔴 **{anomalies['count']}** | 0 | ❌ |")
+            summary.append(f"| **Anomalies** | 🔴 **{anomalies['count']}** | 0 | ❌ |")
         else:
-             summary.append("| Anomalies | 0 | 0 | ✅ |")
+            summary.append("| Anomalies | 0 | 0 | ✅ |")
 
         summary.append("")
 

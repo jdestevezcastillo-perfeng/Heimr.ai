@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
+
 class JUnitReporter:
     """
     Generates JUnit XML reports for CI/CD test dashboards.
@@ -24,19 +25,28 @@ class JUnitReporter:
         })
 
         # Test Case 1: Error Rate
-        tc_errors = ET.SubElement(testsuite, "testcase", {"name": "Error Rate Check", "classname": "Performance.ErrorRate"})
+        tc_errors = ET.SubElement(
+            testsuite, "testcase", {
+                "name": "Error Rate Check", "classname": "Performance.ErrorRate"})
         if stats.get('error_rate', 0) > 0:
             failure = ET.SubElement(tc_errors, "failure", {"message": f"Error Rate is {stats['error_rate']:.2f}%"})
             failure.text = f"Error Rate exceeded 0%. Value: {stats['error_rate']:.2f}%"
 
         # Test Case 2: Anomalies
-        tc_anomalies = ET.SubElement(testsuite, "testcase", {"name": "Anomaly Detection", "classname": "Performance.Anomalies"})
+        tc_anomalies = ET.SubElement(
+            testsuite, "testcase", {
+                "name": "Anomaly Detection", "classname": "Performance.Anomalies"})
         if anomalies['count'] > 0:
-            failure = ET.SubElement(tc_anomalies, "failure", {"message": f"{anomalies['count']} Latency Anomalies Detected"})
+            failure = ET.SubElement(
+                tc_anomalies, "failure", {
+                    "message": f"{
+                        anomalies['count']} Latency Anomalies Detected"})
             failure.text = f"Found {anomalies['count']} anomalies. Max Latency: {anomalies['max_latency']:.2f}ms"
 
         # Test Case 3: Thresholds / Gating
-        tc_gating = ET.SubElement(testsuite, "testcase", {"name": "Performance Gating", "classname": "Performance.Gating"})
+        tc_gating = ET.SubElement(
+            testsuite, "testcase", {
+                "name": "Performance Gating", "classname": "Performance.Gating"})
         if failure_reasons:
             # Filter for non-error/non-anomaly reasons if possible, or just dump all failures here
             gating_failures = [r for r in failure_reasons if "Error Rate" not in r and "Anomalies" not in r]

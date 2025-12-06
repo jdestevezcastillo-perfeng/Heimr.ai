@@ -6,10 +6,12 @@ Anomaly detection using statistical methods.
 """
 import pandas as pd
 
+
 class AnomalyDetector:
     """
     Detects anomalies in load test metrics using statistical methods.
     """
+
     def __init__(self, df: pd.DataFrame):
         self.df = df
 

@@ -68,7 +68,8 @@ class PerformanceComparator:
         else:
             return False
 
-    def compare_anomalies(self, baseline_anomalies: Dict[str, Any], current_anomalies: Dict[str, Any]) -> Dict[str, Any]:
+    def compare_anomalies(self, baseline_anomalies: Dict[str, Any],
+                          current_anomalies: Dict[str, Any]) -> Dict[str, Any]:
         """Compare anomaly detection results."""
         baseline_count = baseline_anomalies.get('count', 0)
         current_count = current_anomalies.get('count', 0)
@@ -260,7 +261,8 @@ class PerformanceComparator:
         if delta > 0:
             report.append(f"⚠️ **Regression**: {delta} more anomalies detected ({baseline_count} → {current_count})")
         elif delta < 0:
-            report.append(f"✅ **Improvement**: {abs(delta)} fewer anomalies detected ({baseline_count} → {current_count})")
+            report.append(
+                f"✅ **Improvement**: {abs(delta)} fewer anomalies detected ({baseline_count} → {current_count})")
         else:
             report.append(f"➖ **No change**: {current_count} anomalies detected in both runs")
 
@@ -279,11 +281,17 @@ class PerformanceComparator:
                 if 'cpu' in metric:
                     # Show absolute change in percentage points for clarity
                     abs_change = (current_avg - baseline_avg) * 100
-                    report.append(f"**{metric_name}**: {baseline_avg*100:.1f}% → {current_avg*100:.1f}% ({abs_change:+.1f}pp)")
+                    report.append(f"**{metric_name}**: {baseline_avg *
+                                                        100:.1f}% → {current_avg *
+                                                                     100:.1f}% ({abs_change:+.1f}pp)")
                 elif 'memory' in metric:
                     # Show absolute change in MB
                     abs_change_mb = (current_avg - baseline_avg) / 1024 / 1024
-                    report.append(f"**{metric_name}**: {baseline_avg/1024/1024:.1f}MB → {current_avg/1024/1024:.1f}MB ({abs_change_mb:+.1f}MB, {pct_change:+.1f}%)")
+                    report.append(f"**{metric_name}**: {baseline_avg /
+                                                        1024 /
+                                                        1024:.1f}MB → {current_avg /
+                                                                       1024 /
+                                                                       1024:.1f}MB ({abs_change_mb:+.1f}MB, {pct_change:+.1f}%)")
 
                 if data['regression']:
                     report.append("  - ⚠️ Resource usage increased significantly")
@@ -299,11 +307,19 @@ class PerformanceComparator:
 
             if error_delta != 0:
                 status = "⚠️" if error_delta > 0 else "✅"
-                report.append(f"{status} **Errors**: {logs_comparison['baseline_errors']} → {logs_comparison['current_errors']} ({error_delta:+})")
+                report.append(
+                    f"{status} **Errors**: {
+                        logs_comparison['baseline_errors']} → {
+                        logs_comparison['current_errors']} ({
+                        error_delta:+})")
 
             if warn_delta != 0:
                 status = "⚠️" if warn_delta > 0 else "✅"
-                report.append(f"{status} **Warnings**: {logs_comparison['baseline_warnings']} → {logs_comparison['current_warnings']} ({warn_delta:+})")
+                report.append(
+                    f"{status} **Warnings**: {
+                        logs_comparison['baseline_warnings']} → {
+                        logs_comparison['current_warnings']} ({
+                        warn_delta:+})")
 
             report.append("")
 
@@ -324,7 +340,12 @@ class PerformanceComparator:
                 report.append("| Operation | Baseline Avg | Current Avg | Change |")
                 report.append("|-----------|--------------|-------------|--------|")
                 for op in traces_comparison['slower_operations']:
-                    report.append(f"| `{op['operation']}` | {op['baseline_avg']:.2f}ms | {op['current_avg']:.2f}ms | {op['pct_change']:+.1f}% |")
+                    report.append(
+                        f"| `{
+                            op['operation']}` | {
+                            op['baseline_avg']:.2f}ms | {
+                            op['current_avg']:.2f}ms | {
+                            op['pct_change']:+.1f}% |")
                 report.append("")
 
         # Recommendations
@@ -346,12 +367,12 @@ class PerformanceComparator:
     ) -> Dict[str, Any]:
         """
         Check if the comparison fails based on defined conditions.
-        
+
         Args:
             metrics_comparison: Result from compare_metrics()
             fail_on_regression: Percentage threshold (e.g. 10 for 10%)
             fail_conditions: List of strings like "p99_latency > 500"
-            
+
         Returns:
             Dict with 'failed' (bool) and 'reasons' (List[str])
         """
@@ -395,10 +416,14 @@ class PerformanceComparator:
                     value = float(current_stats[metric_name])
 
                     condition_met = False
-                    if op == '>': condition_met = value > threshold
-                    elif op == '>=': condition_met = value >= threshold
-                    elif op == '<': condition_met = value < threshold
-                    elif op == '<=': condition_met = value <= threshold
+                    if op == '>':
+                        condition_met = value > threshold
+                    elif op == '>=':
+                        condition_met = value >= threshold
+                    elif op == '<':
+                        condition_met = value < threshold
+                    elif op == '<=':
+                        condition_met = value <= threshold
 
                     if condition_met:
                         failed = True
@@ -443,13 +468,16 @@ class PerformanceComparator:
 
         # Check for new anomalies
         if anomalies.get('delta', 0) > 0:
-            recommendations.append(f"New anomalies detected ({anomalies['delta']}) - correlate with recent code or infrastructure changes")
+            recommendations.append(
+                f"New anomalies detected ({
+                    anomalies['delta']}) - correlate with recent code or infrastructure changes")
 
         # Check for resource regressions
         if prometheus:
             for metric, data in prometheus.items():
                 if data.get('regression'):
-                    recommendations.append(f"{metric.replace('_', ' ').title()} increased significantly - review resource allocation")
+                    recommendations.append(f"{metric.replace('_',
+                                                             ' ').title()} increased significantly - review resource allocation")
 
         # Check for new slow operations
         if traces and traces.get('new_slow_operations'):

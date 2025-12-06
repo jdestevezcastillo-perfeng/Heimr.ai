@@ -11,10 +11,12 @@ MODEL_TIERS = {
     'large': 'llama3.3:70b-instruct-q4_K_M'  # ~21GB, RTX 4090+
 }
 
+
 class LLMClient:
     """
     Client for interacting with LLMs (OpenAI, Anthropic, Ollama/Local) to generate explanations.
     """
+
     def __init__(self, base_url: str = None, model: str = None):
         self.base_url = base_url
         # Resolve model tier alias to actual model name
@@ -39,7 +41,7 @@ class LLMClient:
             return "openai"
         else:
             raise ValueError(
-                "\n" + "="*60 + "\n"
+                "\n" + "=" * 60 + "\n"
                 "❌ No LLM configuration found!\n\n"
                 "Heimr requires AI analysis. Please choose one option:\n\n"
                 "Option 1 - Local LLM (Recommended, Privacy-First):\n"
@@ -51,24 +53,43 @@ class LLMClient:
                 "  Set: export ANTHROPIC_API_KEY='sk-ant-...'\n\n"
                 "Option 4 - Statistical Analysis Only:\n"
                 "  Add: --no-llm (anomaly detection only, no AI insights)\n"
-                + "="*60
+                + "=" * 60
             )
 
-    def generate_explanation(self, summary_stats: Dict[str, Any], anomalies_summary: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+    def generate_explanation(self,
+                             summary_stats: Dict[str,
+                                                 Any],
+                             anomalies_summary: Dict[str,
+                                                     Any],
+                             prom_metrics: Dict[str,
+                                                Any] = None,
+                             loki_logs: list = None,
+                             tempo_traces: list = None):
         """
         Generates a natural language explanation based on test stats, anomalies, and observability data.
         Returns a generator that yields chunks of the explanation.
         """
         if self.provider == "openai":
-            yield from self._generate_openai_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+            yield from self._generate_openai_explanation(
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
         elif self.provider == "anthropic":
-            yield from self._generate_anthropic_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+            yield from self._generate_anthropic_explanation(
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
         elif self.provider == "local":
-            yield from self._generate_local_explanation(summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+            yield from self._generate_local_explanation(
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
         else:
             raise NotImplementedError(f"Provider {self.provider} not implemented.")
 
-    def _generate_openai_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+    def _generate_openai_explanation(self,
+                                     stats: Dict[str,
+                                                 Any],
+                                     anomalies: Dict[str,
+                                                     Any],
+                                     prom_metrics: Dict[str,
+                                                        Any] = None,
+                                     loki_logs: list = None,
+                                     tempo_traces: list = None):
         try:
             from openai import OpenAI
 
@@ -79,7 +100,11 @@ class LLMClient:
             stream = client.chat.completions.create(
                 model=model_to_use,
                 messages=[
-                    {"role": "system", "content": "You are a performance engineering expert. Analyze the following load test results."},
+                    {
+                        "role": "system",
+                        "content": "You are a performance engineering expert. "
+                                   "Analyze the following load test results."
+                    },
                     {"role": "user", "content": prompt}
                 ],
                 stream=True
@@ -92,7 +117,15 @@ class LLMClient:
         except Exception as e:
             yield f"Error calling OpenAI: {e}"
 
-    def _generate_anthropic_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+    def _generate_anthropic_explanation(self,
+                                        stats: Dict[str,
+                                                    Any],
+                                        anomalies: Dict[str,
+                                                        Any],
+                                        prom_metrics: Dict[str,
+                                                           Any] = None,
+                                        loki_logs: list = None,
+                                        tempo_traces: list = None):
         try:
             import anthropic
 
@@ -111,7 +144,15 @@ class LLMClient:
         except Exception as e:
             yield f"Error calling Anthropic: {e}"
 
-    def _generate_local_explanation(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None):
+    def _generate_local_explanation(self,
+                                    stats: Dict[str,
+                                                Any],
+                                    anomalies: Dict[str,
+                                                    Any],
+                                    prom_metrics: Dict[str,
+                                                       Any] = None,
+                                    loki_logs: list = None,
+                                    tempo_traces: list = None):
         """
         Generates explanation using Ollama or other local LLMs that support OpenAI-compatible API.
         """
@@ -129,7 +170,11 @@ class LLMClient:
             stream = client.chat.completions.create(
                 model=model_to_use,
                 messages=[
-                    {"role": "system", "content": "You are a performance engineering expert. Analyze the following load test results."},
+                    {
+                        "role": "system",
+                        "content": "You are a performance engineering expert. "
+                                   "Analyze the following load test results."
+                    },
                     {"role": "user", "content": prompt}
                 ],
                 stream=True
@@ -142,7 +187,15 @@ class LLMClient:
         except Exception as e:
             yield f"Error calling Local LLM: {e}"
 
-    def _construct_prompt(self, stats: Dict[str, Any], anomalies: Dict[str, Any], prom_metrics: Dict[str, Any] = None, loki_logs: list = None, tempo_traces: list = None) -> str:
+    def _construct_prompt(self,
+                          stats: Dict[str,
+                                      Any],
+                          anomalies: Dict[str,
+                                          Any],
+                          prom_metrics: Dict[str,
+                                             Any] = None,
+                          loki_logs: list = None,
+                          tempo_traces: list = None) -> str:
         # Format Prometheus Metrics with actual values and statistics
         prom_text = self._format_prometheus_metrics(prom_metrics)
 
@@ -250,25 +303,37 @@ Please structure your response exactly as follows:
                     quarter = len(numeric_values) // 4
                     first_quarter_avg = sum(numeric_values[:quarter]) / quarter
                     last_quarter_avg = sum(numeric_values[-quarter:]) / quarter
-                    trend = ((last_quarter_avg - first_quarter_avg) / first_quarter_avg * 100) if first_quarter_avg != 0 else 0
+                    trend = ((last_quarter_avg - first_quarter_avg) /
+                             first_quarter_avg * 100) if first_quarter_avg != 0 else 0
                     trend_text = f"{'↑' if trend > 0 else '↓'}{abs(trend):.1f}%"
                 else:
                     trend_text = "N/A"
 
                 # Format based on metric type
                 if 'cpu' in metric_name.lower():
-                    pod_summaries.append(
-                        f"  - Pod '{pod_name}': Avg={avg_val*100:.1f}%, Min={min_val*100:.1f}%, Max={max_val*100:.1f}%, Trend={trend_text}"
-                    )
+                    pod_summaries.append(f"  - Pod '{pod_name}': Avg={avg_val *
+                                                                      100:.1f}%, Min={min_val *
+                                                                                      100:.1f}%, Max={max_val *
+                                                                                                      100:.1f}%, Trend={trend_text}")
                 elif 'memory' in metric_name.lower():
                     # Convert bytes to MB
                     pod_summaries.append(
-                        f"  - Pod '{pod_name}': Avg={avg_val/1024/1024:.1f}MB, Min={min_val/1024/1024:.1f}MB, Max={max_val/1024/1024:.1f}MB, Trend={trend_text}"
-                    )
+                        f"  - Pod '{pod_name}': Avg={
+                            avg_val /
+                            1024 /
+                            1024:.1f}MB, Min={
+                            min_val /
+                            1024 /
+                            1024:.1f}MB, Max={
+                            max_val /
+                            1024 /
+                            1024:.1f}MB, Trend={trend_text}")
                 else:
                     pod_summaries.append(
-                        f"  - Pod '{pod_name}': Avg={avg_val:.2f}, Min={min_val:.2f}, Max={max_val:.2f}, Trend={trend_text}"
-                    )
+                        f"  - Pod '{pod_name}': Avg={
+                            avg_val:.2f}, Min={
+                            min_val:.2f}, Max={
+                            max_val:.2f}, Trend={trend_text}")
 
             if all_values:
                 overall_max = max(all_values)
@@ -282,7 +347,7 @@ Please structure your response exactly as follows:
                     if len(all_values) >= 2:
                         growth = (all_values[-1] - all_values[0]) / all_values[0] if all_values[0] != 0 else 0
                         if growth > 0.5:
-                            warning = f" ⚠️ MEMORY GROWTH: {growth*100:.1f}%"
+                            warning = f" ⚠️ MEMORY GROWTH: {growth * 100:.1f}%"
 
                 sections.append(f"**{metric_name}**:{warning}\n" + "\n".join(pod_summaries))
             else:
@@ -397,10 +462,15 @@ Please structure your response exactly as follows:
             avg_duration = sum(durations) / len(durations)
             max_duration = max(durations)
             min_duration = min(durations)
-            sections.append(f"- Duration Stats: Avg={avg_duration:.2f}ms, Min={min_duration:.2f}ms, Max={max_duration:.2f}ms")
+            sections.append(
+                f"- Duration Stats: Avg={
+                    avg_duration:.2f}ms, Min={
+                    min_duration:.2f}ms, Max={
+                    max_duration:.2f}ms")
 
         if operations:
-            op_summary = ", ".join([f"'{op}': {count}" for op, count in sorted(operations.items(), key=lambda x: -x[1])[:5]])
+            op_summary = ", ".join([f"'{op}': {count}" for op, count in sorted(
+                operations.items(), key=lambda x: -x[1])[:5]])
             sections.append(f"- Operations: {op_summary}")
 
         if status_codes:
@@ -412,6 +482,11 @@ Please structure your response exactly as follows:
             span_details.sort(key=lambda x: -x['duration'])
             sections.append("\n**Slowest Spans** (Top 5):")
             for span in span_details[:5]:
-                sections.append(f"  - {span['operation']}: {span['duration']:.2f}ms (Status: {span['status']}, Trace: {span['trace_id']})")
+                sections.append(
+                    f"  - {
+                        span['operation']}: {
+                        span['duration']:.2f}ms (Status: {
+                        span['status']}, Trace: {
+                        span['trace_id']})")
 
         return "\n".join(sections)

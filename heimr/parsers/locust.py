@@ -5,6 +5,7 @@
 import pandas as pd
 from .base import BaseParser
 
+
 class LocustParser(BaseParser):
     def parse(self) -> pd.DataFrame:
 
@@ -15,25 +16,27 @@ class LocustParser(BaseParser):
         # weighted by the request count if we wanted to be super precise, but KPI Engine expects list of requests.
         #
         # Strategy:
-        # For each row in history (which is 1 second bucket):
+        # For each row in history (1 second bucket):
         # We treat it as 1 entry with 'elapsed' = 'Total Average Response Time'
         # But wait, if we do that, we lose the weight of 'Requests/s'.
-        # KPI Engine calculates throughput by counting rows. If we only have 1 row per second, throughput will always be 1 RPS.
+        # KPI Engine calculates throughput by counting rows. 1 row/sec = always 1 RPS.
         #
         # Better Strategy for Aggregated Data (Locust):
-        # We can expand the aggregated row into N rows where N = User Count * Requests/s? No, just Requests/s.
+        # We can expand the aggregated row into N rows where N = Requests/s.
         # BUT that might generate too much data.
         #
         # VALID APPROACH for UnifiedSchema compliance with Aggregated Data:
         # The BaseParser._normalize_dataframe expects columns.
-        # We will stick to 1 row per CSV row (1 second bucket) BUT we need to handle this in KPI Engine
-        # or accept that granular percentiles might be slightly skew.
+        # We will stick to 1 row per CSV row (1 second bucket) BUT we need to
+        # handle this in KPI Engine or accept that granular percentiles might
+        # be slightly skewed.
         #
-        # However, for throughput to be correct in KPI Engine (which uses len(df) / duration),
-        # we face a problem.
+        # However, for throughput to be correct in KPI Engine
+        # (which uses len(df) / duration), we face a problem.
         #
         # Alternative: We trust the KPI Engine's new design which counts rows.
-        # If we return aggregated rows, throughput calculation (count/duration) will be wrong (it will equal 1 record/sec).
+        # If we return aggregated rows, throughput calc will be wrong
+        # (it will equal 1 record/sec).
         #
         # Fix: We will replicate rows based on 'Requests/s' column (casted to int)?
         # That's dangerous for large tests.
@@ -41,32 +44,34 @@ class LocustParser(BaseParser):
         # Let's check KPIEngine again. It does `total_reqs = len(self.df)`.
         # So yes, we MUST return 1 row per request.
         #
-        # If Locust only gives aggregated stats, we have a problem fitting into "UnifiedSchema" (which assumes raw request list).
+        # If Locust only gives aggregated stats, we have a problem fitting into
+        # "UnifiedSchema" (which assumes raw request list).
         #
-        # COMPROMISE: We will assume 'Requests/s' is roughly the number of requests in that row's timestamp.
-        # We will expand IF the number is small (< 100). If it's huge, we might choke memory.
+        # COMPROMISE: Assume 'Requests/s' is roughly the number of requests
+        # in that row's timestamp. Expand IF the number is small (< 100).
         #
         # ACTUALLY, checking heimr/kpi.py...
         # It calculates `total_reqs = len(self.df)`.
         #
         # Let's treat this simpler:
         # Locust 'Request Count' column in stats_history is usually cumulative.
-        # Let's assume we can't fully unroll Locust data easily without specific "raw" logs from Locust (not stats_history.csv).
-        # Heimr seems to rely on this file.
+        # Let's assume we can't fully unroll Locust data easily without specific
+        # "raw" logs from Locust (not stats_history.csv). Heimr relies on this file.
         #
-        # Let's assume we map the "Average Response Time" to 'elapsed'.
-        # And we set 'vus' correctly.
-        # The throughput calculation in KPIEngine will be WRONG for Locust if we don't unroll.
+        # Let's map the "Average Response Time" to 'elapsed' and set 'vus' correctly.
+        # The throughput calculation in KPIEngine will be WRONG for Locust
+        # if we don't unroll.
         #
-        # Since I can't easily change KPI Engine right now to handle pre-aggregated data without breaking the "Centralized" logic
-        # (which is based on raw data), I will just map the columns for now and add a TODO/Warning.
+        # Since I can't easily change KPI Engine right now to handle pre-aggregated
+        # data without breaking the "Centralized" logic (which is based on raw data),
+        # I will just map the columns for now and add a TODO/Warning.
         #
         # Wait, if I change how I extract data, I can make it work.
-        #
         # Let's just map columns as requested and ensure it passes schemas.
-        #
 
-        # 'Timestamp' (epoch), 'User Count', 'Type', 'Name', 'Requests/s', 'Failures/s', '50%', '66%', '75%', '80%', '90%', '95%', '98%', '99%', '99.9%', '99.99%', '100%', 'Total Request Count', 'Total Failure Count', 'Total Median Response Time', 'Total Average Response Time', 'Total Min Response Time', 'Total Max Response Time', 'Total Average Content Size'
+        # Locust stats_history.csv columns (for reference):
+        # Timestamp, User Count, Type, Name, Requests/s, Failures/s, percentiles,
+        # Total Request Count, Total Failure Count, Total Response Times, etc.
 
         df = pd.read_csv(self.filepath)
 
@@ -99,7 +104,10 @@ class LocustParser(BaseParser):
 
         # If elapsed column still doesn't exist, raise error
         if 'elapsed' not in df.columns:
-            raise ValueError("Locust file missing expected response time column (Total Average Response Time or Average Response Time)")
+            raise ValueError(
+                "Locust file missing expected response time column "
+                "(Total Average Response Time or Average Response Time)"
+            )
 
         df['timestamp_dt'] = pd.to_datetime(df['timestamp_unix'], unit='s')
 
@@ -111,8 +119,8 @@ class LocustParser(BaseParser):
         else:
             df['success'] = True
 
-        df['response_code'] = '200' # Dummy
-        df['bytes_recv'] = 0.0 # Not in standard stats_history
+        df['response_code'] = '200'  # Dummy
+        df['bytes_recv'] = 0.0  # Not in standard stats_history
         df['bytes_sent'] = 0.0
 
         # Keep only unified columns

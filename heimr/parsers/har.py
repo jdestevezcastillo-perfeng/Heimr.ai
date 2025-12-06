@@ -7,17 +7,18 @@ from urllib.parse import urlparse
 import pandas as pd
 from .base import BaseParser
 
+
 class HARParser(BaseParser):
     """
     Parser for HTTP Archive (HAR) format files.
-    
+
     HAR files are JSON-formatted recordings of HTTP transactions,
     commonly exported from:
     - Browser DevTools (Chrome, Firefox, Safari)
     - Playwright/Puppeteer automated tests
     - Postman/Insomnia API clients
     - Real User Monitoring (RUM) tools
-    
+
     HAR captures client-side performance including network timing,
     resource sizes, and waterfall data.
     """
@@ -25,9 +26,9 @@ class HARParser(BaseParser):
     def parse(self) -> pd.DataFrame:
         """
         Parse HAR file and convert to UnifiedSchema DataFrame.
-        
+
         Returns:
-            DataFrame with columns: timestamp_dt, elapsed, success, 
+            DataFrame with columns: timestamp_dt, elapsed, success,
             response_code, bytes_recv, bytes_sent, vus, endpoint, method
         """
         with open(self.filepath, 'r', encoding='utf-8') as f:
@@ -115,10 +116,10 @@ class HARParser(BaseParser):
     def get_metadata(self, file_path: str) -> dict:
         """
         Extract HAR metadata (browser, page info, etc.)
-        
+
         Args:
             file_path: Path to HAR file
-            
+
         Returns:
             Dictionary with HAR metadata
         """
@@ -138,7 +139,7 @@ class HARParser(BaseParser):
     def get_summary_stats(self) -> dict:
         """
         Returns basic statistics about the HAR session.
-        
+
         Returns:
             Dictionary with summary statistics
         """

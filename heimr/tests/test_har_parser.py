@@ -7,6 +7,7 @@ import os
 import pandas as pd
 from heimr.parsers.har import HARParser
 
+
 class TestHARParser(unittest.TestCase):
     """Test suite for HAR parser"""
 
@@ -26,7 +27,7 @@ class TestHARParser(unittest.TestCase):
 
         # Verify required columns exist
         required_cols = ['timestamp_dt', 'elapsed', 'success', 'response_code',
-                        'bytes_recv', 'bytes_sent', 'vus', 'endpoint', 'method']
+                         'bytes_recv', 'bytes_sent', 'vus', 'endpoint', 'method']
         for col in required_cols:
             self.assertIn(col, df.columns, f"Missing required column: {col}")
 
@@ -185,6 +186,7 @@ class TestHARParser(unittest.TestCase):
                 parser.parse()
         finally:
             os.unlink(empty_har)
+
 
 if __name__ == '__main__':
     unittest.main()

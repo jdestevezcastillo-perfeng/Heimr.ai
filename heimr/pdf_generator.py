@@ -31,14 +31,14 @@ class PDFGenerator:
             color: #666;
         }
     }
-    
+
     body {
         font-family: 'DejaVu Sans', 'Arial', sans-serif;
         font-size: 11pt;
         line-height: 1.6;
         color: #333;
     }
-    
+
     h1 {
         color: #2c3e50;
         font-size: 24pt;
@@ -47,11 +47,11 @@ class PDFGenerator:
         margin-top: 20px;
         page-break-before: always;
     }
-    
+
     h1:first-of-type {
         page-break-before: avoid;
     }
-    
+
     h2 {
         color: #34495e;
         font-size: 18pt;
@@ -59,20 +59,20 @@ class PDFGenerator:
         padding-bottom: 8px;
         margin-top: 16px;
     }
-    
+
     h3 {
         color: #7f8c8d;
         font-size: 14pt;
         margin-top: 12px;
     }
-    
+
     table {
         width: 100%;
         border-collapse: collapse;
         margin: 15px 0;
         font-size: 10pt;
     }
-    
+
     th {
         background-color: #3498db;
         color: white;
@@ -80,20 +80,20 @@ class PDFGenerator:
         text-align: left;
         font-weight: bold;
     }
-    
+
     td {
         padding: 8px;
         border-bottom: 1px solid #ddd;
     }
-    
+
     tr:nth-child(even) {
         background-color: #f8f9fa;
     }
-    
+
     tr:hover {
         background-color: #e8f4f8;
     }
-    
+
     code {
         background-color: #f4f4f4;
         padding: 2px 6px;
@@ -101,7 +101,7 @@ class PDFGenerator:
         font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
         font-size: 9pt;
     }
-    
+
     pre {
         background-color: #f8f9fa;
         border-left: 4px solid #3498db;
@@ -109,12 +109,12 @@ class PDFGenerator:
         overflow-x: auto;
         border-radius: 4px;
     }
-    
+
     pre code {
         background-color: transparent;
         padding: 0;
     }
-    
+
     blockquote {
         border-left: 4px solid #95a5a6;
         padding-left: 15px;
@@ -122,51 +122,51 @@ class PDFGenerator:
         color: #7f8c8d;
         font-style: italic;
     }
-    
+
     ul, ol {
         margin: 10px 0;
         padding-left: 30px;
     }
-    
+
     li {
         margin: 5px 0;
     }
-    
+
     strong {
         color: #2c3e50;
         font-weight: bold;
     }
-    
+
     em {
         font-style: italic;
         color: #555;
     }
-    
+
     .status-pass {
         color: #27ae60;
         font-weight: bold;
     }
-    
+
     .status-fail {
         color: #e74c3c;
         font-weight: bold;
     }
-    
+
     .status-warn {
         color: #f39c12;
         font-weight: bold;
     }
-    
+
     /* Page breaks */
     .page-break {
         page-break-after: always;
     }
-    
+
     /* Avoid breaking inside elements */
     table, pre, blockquote {
         page-break-inside: avoid;
     }
-    
+
     h1, h2, h3 {
         page-break-after: avoid;
     }
@@ -185,7 +185,7 @@ class PDFGenerator:
     def generate_pdf(self, markdown_content: str, output_path: str):
         """
         Convert markdown content to PDF.
-        
+
         Args:
             markdown_content: Markdown text to convert
             output_path: Path to save the PDF file
@@ -225,7 +225,7 @@ class PDFGenerator:
     def generate_from_file(self, markdown_file: str, output_path: str):
         """
         Convert markdown file to PDF.
-        
+
         Args:
             markdown_file: Path to markdown file
             output_path: Path to save the PDF file

@@ -5,16 +5,19 @@ import requests
 from typing import Dict, Any, List
 from datetime import datetime
 
+
 class LokiClient:
     """
     Client for querying Grafana Loki logs.
     """
+
     def __init__(self, url: str = "http://localhost:3100", file_path: str = None):
         self.url = url.rstrip('/')
         self.api_url = f"{self.url}/loki/api/v1/query_range"
         self.file_path = file_path
 
-    def query_logs(self, query: str, start_time: datetime, end_time: datetime, limit: int = 100) -> List[Dict[str, Any]]:
+    def query_logs(self, query: str, start_time: datetime, end_time: datetime,
+                   limit: int = 100) -> List[Dict[str, Any]]:
         """
         Queries Loki for logs matching the LogQL query.
         """
@@ -62,11 +65,11 @@ class LokiClient:
                     # Expecting same structure as API response or simplified
                     # Let's assume the mock generator produces the API response structure
                     if 'data' in data and 'result' in data['data']:
-                         logs = []
-                         for stream in data['data']['result']:
-                             for value in stream['values']:
-                                 logs.append(value[1]) # value is [ts, line]
-                         return logs
+                        logs = []
+                        for stream in data['data']['result']:
+                            for value in stream['values']:
+                                logs.append(value[1])  # value is [ts, line]
+                        return logs
                     return []
             except Exception as e:
                 print(f"Error reading Loki file: {e}")

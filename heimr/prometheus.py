@@ -5,16 +5,19 @@ import requests
 from typing import Dict, Any, List
 from datetime import datetime
 
+
 class PrometheusClient:
     """
     Client for querying Prometheus metrics.
     """
+
     def __init__(self, url: str = "http://localhost:9090", file_path: str = None):
         self.url = url.rstrip('/')
         self.api_url = f"{self.url}/api/v1/query_range"
         self.file_path = file_path
 
-    def query_metric(self, query: str, start_time: datetime, end_time: datetime, step: str = "15s") -> List[Dict[str, Any]]:
+    def query_metric(self, query: str, start_time: datetime, end_time: datetime,
+                     step: str = "15s") -> List[Dict[str, Any]]:
         """
         Queries Prometheus for a specific metric over a time range.
         """

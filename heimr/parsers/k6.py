@@ -7,11 +7,13 @@ import json
 from typing import Dict, Any
 from heimr.parsers.base import BaseParser
 
+
 class K6Parser(BaseParser):
     """
     Parses k6 JSON output files into a pandas DataFrame.
     Expects k6 output generated with `k6 run --out json=results.json`.
     """
+
     def parse(self) -> pd.DataFrame:
         """
         Reads the k6 JSON file and maps metrics to the internal schema.
@@ -25,20 +27,19 @@ class K6Parser(BaseParser):
                         if not isinstance(entry, dict):
                             continue
 
-
                         if entry.get('type') == 'Point' and entry.get('metric') == 'http_req_duration':
                             # k6 'http_req_duration' is the total time for the request
                             status = str(entry['data']['tags'].get('status', '200'))
                             row = {
-                                'timestamp_dt': entry['data']['time'], # ISO string, convert later
-                                'elapsed': float(entry['data']['value']), # ms
+                                'timestamp_dt': entry['data']['time'],  # ISO string, convert later
+                                'elapsed': float(entry['data']['value']),  # ms
                                 'success': int(status) < 400,
                                 'response_code': status,
                                 'endpoint': entry['data']['tags'].get('name', 'unknown'),
                                 'method': entry['data']['tags'].get('method', 'GET'),
-                                'bytes_recv': 0.0, # Not strictly in http_req_duration point
-                                'bytes_sent': 0.0, # Not strictly in http_req_duration point
-                                'vus': 1 # Default, as mapping global VU metric to request is complex here
+                                'bytes_recv': 0.0,  # Not strictly in http_req_duration point
+                                'bytes_sent': 0.0,  # Not strictly in http_req_duration point
+                                'vus': 1  # Default, as mapping global VU metric to request is complex here
                             }
                             data.append(row)
                     except (json.JSONDecodeError, KeyError, ValueError):
@@ -55,7 +56,7 @@ class K6Parser(BaseParser):
         Returns basic statistics about the test run.
         """
         if self.df is None or self.df.empty:
-             return {
+            return {
                 'total_requests': 0,
                 'avg_latency': 0,
                 'error_rate': 0

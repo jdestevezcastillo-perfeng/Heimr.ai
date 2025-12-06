@@ -4,10 +4,12 @@ import json
 import pandas as pd
 from typing import Dict, Any
 
+
 class DashboardGenerator:
     """
     Generates an interactive HTML dashboard for load test results.
     """
+
     def __init__(self, df: pd.DataFrame, stats: Dict[str, Any], prom_metrics: Dict[str, Any] = None):
         self.df = df
         self.stats = stats
@@ -65,8 +67,8 @@ class DashboardGenerator:
                 # If timestamps differ slightly, we might need to align, but usually they are scraped together
                 # For simplicity, assume same timestamps or use CPU timestamps
                 if not prom_timestamps:
-                     prom_timestamps = [pd.to_datetime(float(v[0]), unit='s').strftime('%H:%M:%S') for v in mem_values]
-                mem_data = [float(v[1]) / (1024*1024) for v in mem_values]
+                    prom_timestamps = [pd.to_datetime(float(v[0]), unit='s').strftime('%H:%M:%S') for v in mem_values]
+                mem_data = [float(v[1]) / (1024 * 1024) for v in mem_values]
 
         html_content = f"""
 <!DOCTYPE html>
@@ -84,7 +86,7 @@ class DashboardGenerator:
         .kpi-card {{ background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }}
         .kpi-value {{ font-size: 24px; font-weight: bold; color: #2c3e50; }}
         .kpi-label {{ color: #7f8c8d; font-size: 14px; }}
-        
+
         .charts-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; }}
         .chart-card {{ background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
         h1 {{ color: #2c3e50; }}

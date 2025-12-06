@@ -4,6 +4,7 @@
 import pandas as pd
 from typing import Dict, Any
 
+
 class KPIEngine:
     """
     Centralized calculation engine for Performance Report KPIs.
@@ -20,7 +21,7 @@ class KPIEngine:
             self.empty = False
             self.duration_seconds = (self.df['timestamp_dt'].max() - self.df['timestamp_dt'].min()).total_seconds()
             if self.duration_seconds <= 0:
-                self.duration_seconds = 1.0 # Prevent division by zero
+                self.duration_seconds = 1.0  # Prevent division by zero
 
     def calculate_latency_stats(self) -> Dict[str, float]:
         """Calculates p50, p90, p95, p99, min, max, stddev, avg."""
@@ -41,7 +42,11 @@ class KPIEngine:
     def calculate_throughput(self) -> Dict[str, float]:
         """Calculates throughput (RPS, Bytes/sec)."""
         if self.empty:
-            return {'requests_per_second': 0.0, 'bytes_in_per_second': 0.0, 'bytes_out_per_second': 0.0, 'total_requests': 0}
+            return {
+                'requests_per_second': 0.0,
+                'bytes_in_per_second': 0.0,
+                'bytes_out_per_second': 0.0,
+                'total_requests': 0}
 
         total_reqs = len(self.df)
         total_bytes_in = self.df['bytes_recv'].sum()
@@ -88,15 +93,14 @@ class KPIEngine:
             is_timeout = failed['response_code'].isin(['0', 'timeout'])
             classification['timeout'] = is_timeout.sum()
 
-            classification['other'] = failed_count - (classification['http_4xx'] + classification['http_5xx'] + classification['timeout'])
+            classification['other'] = failed_count - \
+                (classification['http_4xx'] + classification['http_5xx'] + classification['timeout'])
 
         return {
             'rate': (failed_count / total) * 100.0,
             'count': failed_count,
             'classification': classification
         }
-
-
 
     def calculate_concurrency(self) -> Dict[str, Any]:
         """Calculates stats about virtual users."""

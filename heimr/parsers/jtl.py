@@ -6,10 +6,12 @@ import pandas as pd
 from typing import Dict, Any
 from heimr.parsers.base import BaseParser
 
+
 class JTLParser(BaseParser):
     """
     Parses JMeter JTL files (CSV format) into a pandas DataFrame.
     """
+
     def parse(self) -> pd.DataFrame:
         """
         Reads the JTL file and performs basic preprocessing.
