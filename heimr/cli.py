@@ -190,7 +190,7 @@ def main():
     analyze_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file (e.g., http://localhost:9090 or ./metrics.json)")
     analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file (e.g., http://localhost:3100 or ./logs.json)")
     analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file (e.g., http://localhost:3200 or ./traces.json)")
-    analyze_parser.add_argument("--llm-url", default="http://localhost:11434/v1", help="Base URL for LLM API (default: Ollama at http://localhost:11434/v1)")
+    analyze_parser.add_argument("--llm-url", default=None, help="Base URL for LLM API (default: http://localhost:11434/v1 if no API keys present)")
     analyze_parser.add_argument("--llm-model", default=None, help="""LLM model to use. Options:
   - small:  llama3.2:3b  (~2GB, laptops/CI/CD)
   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
@@ -247,7 +247,7 @@ tempo: http://localhost:3200
 explain: true
 
 # Local LLM (Ollama) - recommended for privacy
-llm_url: http://localhost:11434/v1
+# llm_url: http://localhost:11434/v1
 llm_model: llama3.1:8b
 
 # Cloud LLM alternatives (set API keys as environment variables):
@@ -289,6 +289,14 @@ output: ./reports/analysis.md
                 config = load_config(args.config)
                 args = merge_config_with_args(args, config)
                 print(f"Loaded config from: {args.config}")
+            
+            # Smart LLM URL Detection
+            # If user didn't specify URL, and no API keys are present, default to Local Ollama.
+            # If keys ARE present, leave URL as None so LLMClient chooses Cloud Provider.
+            if not args.llm_url:
+                has_api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY")
+                if not has_api_key:
+                    args.llm_url = "http://localhost:11434/v1"
             
             # Set default model if not configured
             if not args.llm_model:
