@@ -12,12 +12,12 @@ const auditLogsLatency = new Trend('audit_logs_latency', true);
 // Total Duration: ~10 minutes
 export const options = {
   stages: [
-    { duration: '1m', target: 5 },    // Warm up (5 VUs)
-    { duration: '2m', target: 20 },   // Ramp up to load (20 VUs)
-    { duration: '5m', target: 20 },   // Steady state (Hold 20 VUs)
-    { duration: '1m', target: 50 },   // Stress spike (50 VUs)
-    { duration: '30s', target: 50 },  // Hold spike
-    { duration: '30s', target: 0 },   // Cool down
+    { duration: '10s', target: 5 },    // Warm up (5 VUs)
+    { duration: '10s', target: 20 },   // Ramp up to load (20 VUs)
+    { duration: '20s', target: 20 },   // Steady state (Hold 20 VUs)
+    { duration: '10s', target: 50 },   // Stress spike (50 VUs)
+    { duration: '5s', target: 50 },    // Hold spike
+    { duration: '5s', target: 0 },     // Cool down
   ],
   thresholds: {
     // Pipeline gating criteria
