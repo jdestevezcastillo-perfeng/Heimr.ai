@@ -281,17 +281,17 @@ class PerformanceComparator:
                 if 'cpu' in metric:
                     # Show absolute change in percentage points for clarity
                     abs_change = (current_avg - baseline_avg) * 100
-                    report.append(f"**{metric_name}**: {baseline_avg *
-                                                        100:.1f}% → {current_avg *
-                                                                     100:.1f}% ({abs_change:+.1f}pp)")
+                    report.append(
+                        f"**{metric_name}**: {baseline_avg * 100:.1f}% → {current_avg * 100:.1f}% "
+                        f"({abs_change:+.1f}pp)"
+                    )
                 elif 'memory' in metric:
                     # Show absolute change in MB
                     abs_change_mb = (current_avg - baseline_avg) / 1024 / 1024
-                    report.append(f"**{metric_name}**: {baseline_avg /
-                                                        1024 /
-                                                        1024:.1f}MB → {current_avg /
-                                                                       1024 /
-                                                                       1024:.1f}MB ({abs_change_mb:+.1f}MB, {pct_change:+.1f}%)")
+                    report.append(
+                        f"**{metric_name}**: {baseline_avg / 1024 / 1024:.1f}MB → "
+                        f"{current_avg / 1024 / 1024:.1f}MB ({abs_change_mb:+.1f}MB, {pct_change:+.1f}%)"
+                    )
 
                 if data['regression']:
                     report.append("  - ⚠️ Resource usage increased significantly")
@@ -308,18 +308,16 @@ class PerformanceComparator:
             if error_delta != 0:
                 status = "⚠️" if error_delta > 0 else "✅"
                 report.append(
-                    f"{status} **Errors**: {
-                        logs_comparison['baseline_errors']} → {
-                        logs_comparison['current_errors']} ({
-                        error_delta:+})")
+                    f"{status} **Errors**: {logs_comparison['baseline_errors']} → "
+                    f"{logs_comparison['current_errors']} ({error_delta:+})"
+                )
 
             if warn_delta != 0:
                 status = "⚠️" if warn_delta > 0 else "✅"
                 report.append(
-                    f"{status} **Warnings**: {
-                        logs_comparison['baseline_warnings']} → {
-                        logs_comparison['current_warnings']} ({
-                        warn_delta:+})")
+                    f"{status} **Warnings**: {logs_comparison['baseline_warnings']} → "
+                    f"{logs_comparison['current_warnings']} ({warn_delta:+})"
+                )
 
             report.append("")
 
@@ -341,11 +339,9 @@ class PerformanceComparator:
                 report.append("|-----------|--------------|-------------|--------|")
                 for op in traces_comparison['slower_operations']:
                     report.append(
-                        f"| `{
-                            op['operation']}` | {
-                            op['baseline_avg']:.2f}ms | {
-                            op['current_avg']:.2f}ms | {
-                            op['pct_change']:+.1f}% |")
+                        f"| `{op['operation']}` | {op['baseline_avg']:.2f}ms | "
+                        f"{op['current_avg']:.2f}ms | {op['pct_change']:+.1f}% |"
+                    )
                 report.append("")
 
         # Recommendations
@@ -469,15 +465,16 @@ class PerformanceComparator:
         # Check for new anomalies
         if anomalies.get('delta', 0) > 0:
             recommendations.append(
-                f"New anomalies detected ({
-                    anomalies['delta']}) - correlate with recent code or infrastructure changes")
+                f"New anomalies detected ({anomalies['delta']}) - correlate with recent code or infrastructure changes"
+            )
 
         # Check for resource regressions
         if prometheus:
             for metric, data in prometheus.items():
                 if data.get('regression'):
-                    recommendations.append(f"{metric.replace('_',
-                                                             ' ').title()} increased significantly - review resource allocation")
+                    recommendations.append(
+                        f"{metric.replace('_', ' ').title()} increased significantly - review resource allocation"
+                    )
 
         # Check for new slow operations
         if traces and traces.get('new_slow_operations'):

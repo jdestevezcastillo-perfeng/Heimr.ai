@@ -39,8 +39,9 @@ class JUnitReporter:
         if anomalies['count'] > 0:
             failure = ET.SubElement(
                 tc_anomalies, "failure", {
-                    "message": f"{
-                        anomalies['count']} Latency Anomalies Detected"})
+                    "message": f"{anomalies['count']} Latency Anomalies Detected"
+                }
+            )
             failure.text = f"Found {anomalies['count']} anomalies. Max Latency: {anomalies['max_latency']:.2f}ms"
 
         # Test Case 3: Thresholds / Gating
