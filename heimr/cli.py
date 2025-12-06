@@ -312,8 +312,19 @@ output: ./reports/analysis.md
                     file_format = 'gatling'
                 elif 'stats_history' in args.file:
                     file_format = 'locust'
+                elif args.file.endswith('.har'):
+                    file_format = 'har'
                 else:
-                    file_format = 'jtl'
+                    # Try to detect HAR by content
+                    try:
+                        with open(args.file, 'r') as f:
+                            first_chars = f.read(100)
+                            if '"log"' in first_chars and '"entries"' in first_chars:
+                                file_format = 'har'
+                            else:
+                                file_format = 'jtl'
+                    except:
+                        file_format = 'jtl'
 
             # Select parser
             if file_format == 'k6':
@@ -322,6 +333,9 @@ output: ./reports/analysis.md
                 file_parser = GatlingParser(args.file)
             elif file_format == 'locust':
                 file_parser = LocustParser(args.file)
+            elif file_format == 'har':
+                from heimr.parsers.har import HARParser
+                file_parser = HARParser(args.file)
             else:
                 file_parser = JTLParser(args.file)
 

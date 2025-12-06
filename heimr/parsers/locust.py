@@ -80,19 +80,35 @@ class LocustParser(BaseParser):
         # The user's prompt specifically asked to "why didn't you touch locust...".
         # I should just apply the schema.
         
-        df.rename(columns={
+        # Handle different response time column names
+        response_time_col = None
+        if 'Total Average Response Time' in df.columns:
+            response_time_col = 'Total Average Response Time'
+        elif 'Average Response Time' in df.columns:
+            response_time_col = 'Average Response Time'
+        
+        rename_map = {
             'Timestamp': 'timestamp_unix', 
-            'Total Average Response Time': 'elapsed',
             'User Count': 'vus',
             'Name': 'endpoint',
             'Type': 'method'
-        }, inplace=True)
+        }
+        if response_time_col:
+            rename_map[response_time_col] = 'elapsed'
+        
+        df.rename(columns=rename_map, inplace=True)
+        
+        # If elapsed column still doesn't exist, raise error
+        if 'elapsed' not in df.columns:
+            raise ValueError("Locust file missing expected response time column (Total Average Response Time or Average Response Time)")
         
         df['timestamp_dt'] = pd.to_datetime(df['timestamp_unix'], unit='s')
         
-        # Success approximation
+        # Handle different failure column names across Locust versions
         if 'Failures/s' in df.columns:
             df['success'] = df['Failures/s'] == 0
+        elif '# Failures' in df.columns:
+            df['success'] = df['# Failures'] == 0
         else:
             df['success'] = True
             
@@ -112,4 +128,21 @@ class LocustParser(BaseParser):
         self.df = self._normalize_dataframe(self.df) 
         return self.df
 
-
+    def get_summary_stats(self):
+        """Returns basic statistics about the test run."""
+        if self.df is None or self.df.empty:
+            return {
+                'total_requests': 0,
+                'avg_latency': 0,
+                'error_rate': 0
+            }
+        
+        return {
+            'total_requests': len(self.df),
+            'start_time': self.df['timestamp_dt'].min(),
+            'end_time': self.df['timestamp_dt'].max(),
+            'avg_latency': self.df['elapsed'].mean(),
+            'p95_latency': self.df['elapsed'].quantile(0.95),
+            'p99_latency': self.df['elapsed'].quantile(0.99),
+            'error_rate': (1 - self.df['success'].mean()) * 100
+        }
