@@ -40,8 +40,8 @@ class GitHubReporter:
                 summary.append(f"| **{k}** | `{v}` |")
             summary.append("")
 
-        # Metrics Table
-        summary.append("### 📊 Performance Metrics")
+        # Metrics Table (Level 1)
+        summary.append("### 📊 Primary KPIs (Level 1)")
         summary.append("| Metric | Value | Threshold | Status |")
         summary.append("|---|---|---|---|")
         
@@ -49,12 +49,11 @@ class GitHubReporter:
         def row(name, value, unit=""):
             return f"| {name} | **{value}** {unit} | - | - |"
             
-        summary.append(f"| Total Requests | {stats.get('total_requests', 0)} | | |")
-        summary.append(f"| Throughput | {stats.get('throughput', 0):.2f} | req/s | |")
-        summary.append(f"| Avg Latency | {stats.get('avg_latency', 0):.2f} | ms | |")
         summary.append(f"| P95 Latency | {stats.get('p95_latency', 0):.2f} | ms | |")
-        summary.append(f"| P99 Latency | {stats.get('p99_latency', 0):.2f} | ms | |")
         summary.append(f"| Error Rate | {stats.get('error_rate', 0):.2f} | % | |")
+        summary.append(f"| Throughput | {stats.get('throughput', 0):.2f} | req/s | |")
+        summary.append(f"| P50 Latency | {stats.get('p50_latency', 0):.2f} | ms | |")
+        summary.append(f"| P99 Latency | {stats.get('p99_latency', 0):.2f} | ms | |")
         
         if anomalies['count'] > 0:
              summary.append(f"| **Anomalies** | 🔴 **{anomalies['count']}** | 0 | ❌ |")

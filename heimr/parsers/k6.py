@@ -25,22 +25,27 @@ class K6Parser(BaseParser):
                         if not isinstance(entry, dict):
                             continue
                             
+                            
                         if entry.get('type') == 'Point' and entry.get('metric') == 'http_req_duration':
                             # k6 'http_req_duration' is the total time for the request
-                            status = int(entry['data']['tags'].get('status', 200))
+                            status = str(entry['data']['tags'].get('status', '200'))
                             row = {
-                                'timestamp_dt': pd.to_datetime(entry['data']['time']),
-                                'elapsed': entry['data']['value'], # ms
-                                'success': status < 400,
-                                'responseCode': status,
-                                'name': entry['data']['tags'].get('name', 'unknown'),
-                                'method': entry['data']['tags'].get('method', 'unknown')
+                                'timestamp_dt': entry['data']['time'], # ISO string, convert later
+                                'elapsed': float(entry['data']['value']), # ms
+                                'success': int(status) < 400,
+                                'response_code': status,
+                                'endpoint': entry['data']['tags'].get('name', 'unknown'),
+                                'method': entry['data']['tags'].get('method', 'GET'),
+                                'bytes_recv': 0.0, # Not strictly in http_req_duration point
+                                'bytes_sent': 0.0, # Not strictly in http_req_duration point
+                                'vus': 1 # Default, as mapping global VU metric to request is complex here
                             }
                             data.append(row)
-                    except json.JSONDecodeError:
+                    except (json.JSONDecodeError, KeyError, ValueError):
                         continue
 
             self.df = pd.DataFrame(data)
+            self.df = self._normalize_dataframe(self.df)
             return self.df
         except Exception as e:
             raise ValueError(f"Failed to parse k6 JSON file: {e}")

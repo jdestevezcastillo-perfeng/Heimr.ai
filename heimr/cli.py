@@ -321,17 +321,27 @@ output: ./reports/analysis.md
             
             print(f"Analyzing {args.file} ({file_format})...")
             df = file_parser.parse()
-            stats = file_parser.get_summary_stats()
             
-            # Calculate Extended Stats
-            if not df.empty:
-                stats['median_latency'] = df['elapsed'].median()
-                stats['min_latency'] = df['elapsed'].min()
-                stats['max_latency'] = df['elapsed'].max()
-                stats['error_count'] = len(df[~df['success']])
-                
-                duration_sec = (stats['end_time'] - stats['start_time']).total_seconds()
-                stats['throughput'] = stats['total_requests'] / duration_sec if duration_sec > 0 else 0
+            # --- KPI Engine Integration ---
+            from heimr.kpi import KPIEngine
+            kpi = KPIEngine(df)
+            kpi_data = kpi.get_kpi_dict()
+            
+            # Legacy stats adapter for existing consumers (detectors, etc)
+            stats = {
+                'total_requests': kpi_data['throughput']['total_requests'],
+                'start_time': df['timestamp_dt'].min() if not df.empty else None,
+                'end_time': df['timestamp_dt'].max() if not df.empty else None,
+                'avg_latency': kpi_data['latency']['avg'],
+                'p95_latency': kpi_data['latency']['p95'],
+                'p99_latency': kpi_data['latency']['p99'],
+                'p50_latency': kpi_data['latency']['p50'], # Explicit P50
+                'error_rate': kpi_data['errors']['rate'],
+                'median_latency': kpi_data['latency']['p50'],
+                'min_latency': kpi_data['latency']['min'],
+                'max_latency': kpi_data['latency']['max'],
+                'throughput': kpi_data['throughput']['requests_per_second']
+            }
             
             if df.empty:
                 print("No data found.")
@@ -342,23 +352,31 @@ output: ./reports/analysis.md
             anomalies = detector.detect_latency_anomalies()
             anomaly_summary = detector.get_anomaly_summary(anomalies)
 
-            # Print Status
-            print_status(stats, anomaly_summary)
+            # --- REPORT SPECIFICATION: LEVEL 1 (Header) ---
+            print("\n" + "="*50)
+            print("HELM REPORT (Level 1)")
+            print("="*50)
+            print(f"{'Metric':<25} | {'Value':<15}")
+            print("-" * 43)
+            print(f"{'Result':<25} | {'PENDING'}") # Placeholder
+            print(f"{'Duration':<25} | {kpi_data['duration']:.2f} s")
+            print(f"{'Requests':<25} | {kpi_data['throughput']['total_requests']:,}")
+            print(f"{'Throughput':<25} | {kpi_data['throughput']['requests_per_second']:.2f} req/s")
+            print(f"{'Error Rate':<25} | {kpi_data['errors']['rate']:.2f}%")
+        
+            print(f"{'Latency P50':<25} | {kpi_data['latency']['p50']:.2f} ms")
+            print(f"{'Latency P95':<25} | {kpi_data['latency']['p95']:.2f} ms")
+            print(f"{'Latency P99':<25} | {kpi_data['latency']['p99']:.2f} ms")
+            print("-" * 43)
 
-            print("\n--- Test Summary ---")
-            print(f"Total Requests: {stats.get('total_requests')}")
-            print(f"Avg Latency: {stats.get('avg_latency'):.2f} ms")
-            print(f"P99 Latency: {stats.get('p99_latency'):.2f} ms")
-            print(f"Error Rate: {stats.get('error_rate'):.2f}%")
+            # --- REPORT SPECIFICATION: LEVEL 2 (Summary) ---
+            print("\n--- Summary (Level 2) ---")
+            print(f"Concurrency: Max {kpi_data['concurrency']['max']} VUs, Avg {kpi_data['concurrency']['avg']} VUs")
             
-            print("\n--- Anomaly Details ---")
-            print(f"Found {anomaly_summary['count']} latency anomalies.")
+            # Anomaly details
+            print(f"Anomalies: {anomaly_summary['count']} detected")
             if anomaly_summary['count'] > 0:
-                print(f"Average Anomaly Latency: {anomaly_summary['avg_latency']:.2f} ms")
-                print(f"Max Anomaly Latency: {anomaly_summary['max_latency']:.2f} ms")
-                print("Anomaly Timestamps (first 5):")
-                for ts in anomaly_summary['timestamps'][:5]:
-                    print(f" - {ts}")
+                 print(f"  Avg Anomaly Latency: {anomaly_summary['avg_latency']:.2f} ms")
 
             # 3. Prometheus Metrics (Optional)
             prom_metrics = {}
@@ -481,6 +499,12 @@ output: ./reports/analysis.md
                 except Exception as e:
                     print(f"Warning: LLM analysis failed: {e}")
                     print("Continuing with statistical analysis only...")
+            
+            # --- CLI Exit Code Logic based on Gating ---
+            # Revisit fail-on-regression later (requires comparator), for now check absolute conditions if provided
+            if args.fail_condition:
+                 # Minimal check
+                 pass
 
             # Save report if requested
             if args.output:
@@ -493,7 +517,7 @@ output: ./reports/analysis.md
     ██  ██         ▀▀ ▄        ▄             ▀▀
     ██████   ▄█▀█▄ ██ ███▄███▄ ████▄   ▄▀▀█▄ ██
     ██  ██   ██▄█▀ ██ ██ ██ ██ ██      ▄█▀██ ██
-  ▀██▀  ▀██▄▄▀█▄▄▄▄██▄██ ██ ▀█▄█▀  ██ ▄▀█▄██▄██
+  ▀██▀  ▀██▄▄▀█▄▄▄▄██▄██ ██ ██ ▀█▄█▀  ██ ▄▀█▄██▄██
 """
                     header += "```\n\n"
                     
@@ -517,14 +541,23 @@ output: ./reports/analysis.md
                         header += f"# {status_icon} {status_text}\nNo errors or anomalies detected.\n\n"
                     
                     # Construct KPI Table (Per Endpoint)
-                    kpi_table = "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
+                    # LEVEL 1 Table for Report
+                    kpi_table = "## Level 1: Primary KPIs\n"
+                    kpi_table += "| Metric | Value | Threshold (Ref) |\n|---|---|---|\n"
+                    kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n" 
+                    kpi_table += f"| Error Rate | {kpi_data['errors']['rate']:.2f}% | < 1.0% |\n"
+                    kpi_table += f"| Throughput | {kpi_data['throughput']['requests_per_second']:.2f} req/s | {kpi_data['throughput']['bytes_in_per_second']/1024:.2f} KB/s in |\n\n"
+
+                    # Level 2 Details
+                    kpi_table += "## Level 3: Per Endpoint Breakdown\n"
+                    kpi_table += "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
                     kpi_table += "|---|---|---|---|---|---|---|\n"
                     
                     if not df.empty:
-                        # Check if 'name' column exists
-                        if 'name' in df.columns:
+                        # Check if 'name' column exists (it does from UnifiedSchema: 'endpoint')
+                        if 'endpoint' in df.columns:
                             # Group by endpoint (name)
-                            grouped = df.groupby('name')
+                            grouped = df.groupby('endpoint')
                             for name, group in grouped:
                                 count = len(group)
                                 # Duration for this specific endpoint's activity
@@ -540,18 +573,16 @@ output: ./reports/analysis.md
                                 
                                 kpi_table += f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | {avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
                         else:
-                            print(f"Warning: 'name' column not found in DataFrame. Columns: {df.columns.tolist()}")
+                            print(f"Warning: 'endpoint' column not found in DataFrame. Columns: {df.columns.tolist()}")
                             kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
                         
                         # Add Aggregate Row
-                        total_count = len(df)
-                        total_duration = (df['timestamp_dt'].max() - df['timestamp_dt'].min()).total_seconds()
-                        total_throughput = total_count / total_duration if total_duration > 0 else 0
-                        total_errors = len(df[~df['success']])
-                        total_error_rate = (total_errors / total_count) * 100
-                        total_avg = df['elapsed'].mean()
-                        total_p95 = df['elapsed'].quantile(0.95)
-                        total_p99 = df['elapsed'].quantile(0.99)
+                        total_count = kpi_data['throughput']['total_requests']
+                        total_throughput = kpi_data['throughput']['requests_per_second']
+                        total_error_rate = kpi_data['errors']['rate']
+                        total_avg = kpi_data['latency']['avg']
+                        total_p95 = kpi_data['latency']['p95']
+                        total_p99 = kpi_data['latency']['p99']
                         
                         kpi_table += f"| **TOTAL** | **{total_count}** | **{total_throughput:.2f}** | **{total_error_rate:.2f}%** | **{total_avg:.2f}** | **{total_p95:.2f}** | **{total_p99:.2f}** |\n"
                     else:
@@ -562,7 +593,7 @@ output: ./reports/analysis.md
                         full_explanation = full_explanation.replace("[KPI_TABLE]", kpi_table)
                     else:
                         # Fallback if LLM didn't include placeholder
-                        full_explanation = f"## Key Performance Indicators\n{kpi_table}\n\n" + full_explanation
+                        full_explanation = f"{kpi_table}\n\n" + full_explanation
 
 
                     f.write(header + full_explanation)
