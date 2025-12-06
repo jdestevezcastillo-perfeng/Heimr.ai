@@ -111,7 +111,6 @@ Heimr.ai/
 │   └── wiki/                  # Wiki pages (10 pages)
 ├── tests/                     # Test suite
 ├── load-tests/                # Load test scripts (k6, JMeter, Gatling, Locust)
-├── k8s/                       # Kubernetes manifests for test environment
 ├── demos/                     # Demo scripts and examples
 ├── website/                   # Landing page (heimr.ai)
 ├── setup.py                   # Package configuration

@@ -52,6 +52,8 @@ Heimr doesn't just look at latency. It correlates:
 
 After detecting issues, Heimr uses Large Language Models to:
 
+
+
 - Explain the root cause in plain English
 
 - Suggest specific remediation steps
@@ -234,9 +236,9 @@ No data ever leaves your infrastructure:
 
 For enhanced analysis, optionally use:
 
-- OpenAI GPT-4o
+- OpenAI ChatGPT-5.1
 
-- Anthropic Claude Sonnet 4
+- Anthropic Claude Sonnet 4.5
 
 **You control** where your data goes.
 
