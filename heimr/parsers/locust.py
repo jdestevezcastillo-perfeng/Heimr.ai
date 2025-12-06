@@ -15,14 +15,24 @@ class LocustParser(BaseParser):
         # Locust timestamps are unix timestamps (seconds)
         df['timestamp_dt'] = pd.to_datetime(df['Timestamp'], unit='s')
         
-        # We use "Total Average Response Time" as 'elapsed' for anomaly detection
+        # We use response time column as 'elapsed' for anomaly detection
         # Note: This is aggregated data (1 row per second usually), not per-request.
-        df['elapsed'] = df['Total Average Response Time']
+        # Support multiple Locust output formats
+        if 'Total Average Response Time' in df.columns:
+            df['elapsed'] = df['Total Average Response Time']
+        elif 'Average Response Time' in df.columns:
+            df['elapsed'] = df['Average Response Time']
+        else:
+            raise ValueError("Locust file missing expected response time column (Total Average Response Time or Average Response Time)")
         
-        # We don't have individual success/failure flags or response codes in history file
-        # But we have Failures/s. We can create a synthetic 'success' column based on Failures/s == 0
-        # This is an approximation.
-        df['success'] = df['Failures/s'] == 0
+        # Handle different failure column names across Locust versions
+        if 'Failures/s' in df.columns:
+            df['success'] = df['Failures/s'] == 0
+        elif '# Failures' in df.columns:
+            df['success'] = df['# Failures'] == 0
+        else:
+            # Default to success if no failure column found
+            df['success'] = True
         
         # Dummy response code since we don't have it
         df['responseCode'] = 200
