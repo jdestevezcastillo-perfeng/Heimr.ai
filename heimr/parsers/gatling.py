@@ -25,39 +25,26 @@ class GatlingParser(BaseParser):
                         # 0: REQUEST, 1: Scenario, 2: UserID, 3: RequestName, 4: Start, 5: End, 6: Status
                         start_ts = int(parts[4])
                         end_ts = int(parts[5])
-                        status = parts[6]
+                        # Ensure status is string
+                        status = str(status)
                         
                         row = {
                             'timestamp_dt': pd.to_datetime(end_ts, unit='ms'),
-                            'elapsed': end_ts - start_ts,
+                            'elapsed': float(end_ts - start_ts),
                             'success': status == 'OK',
-                            'responseCode': 200 if status == 'OK' else 500 # Simplified
+                            'response_code': '200' if status == 'OK' else '500', # Simplified, Gatling log might have more info
+                            'endpoint': parts[3] if len(parts) > 3 else 'unknown', # RequestName
+                            'method': 'mixed', # Not typically available in standard Gatling simulation.log
+                            'bytes_recv': 0.0,
+                            'bytes_sent': 0.0,
+                            'vus': int(parts[2]) if parts[2].isdigit() else 1 # UserID often numeric, but treat as 1 if not
                         }
                         data.append(row)
 
             self.df = pd.DataFrame(data)
+            self.df = self._normalize_dataframe(self.df)
             return self.df
         except Exception as e:
             raise ValueError(f"Failed to parse Gatling log file: {e}")
 
-    def get_summary_stats(self) -> Dict[str, Any]:
-        """
-        Returns basic statistics about the test run.
-        """
-        if self.df is None or self.df.empty:
-             return {
-                'total_requests': 0,
-                'avg_latency': 0,
-                'error_rate': 0
-            }
-        
-        stats = {
-            'total_requests': len(self.df),
-            'start_time': self.df['timestamp_dt'].min(),
-            'end_time': self.df['timestamp_dt'].max(),
-            'avg_latency': self.df['elapsed'].mean(),
-            'p95_latency': self.df['elapsed'].quantile(0.95),
-            'p99_latency': self.df['elapsed'].quantile(0.99),
-            'error_rate': (1 - self.df['success'].mean()) * 100
-        }
-        return stats
+

@@ -45,11 +45,25 @@ class JUnitReporter:
                 failure = ET.SubElement(tc_gating, "failure", {"message": "Performance thresholds violated"})
                 failure.text = "\n".join(gating_failures)
         
-        # Properties (Context Tags)
+        # Properties (Context Tags + KPIs)
+        properties = ET.SubElement(testsuite, "properties")
+        
+        # Add Key Metrics as properties
+        metrics_to_add = {
+            'heir_p99_latency': stats.get('p99_latency'),
+            'heir_p50_latency': stats.get('p50_latency'),
+            'heir_throughput': stats.get('throughput'),
+            'heir_error_rate': stats.get('error_rate'),
+            'heir_anomalies': anomalies['count']
+        }
+        
+        for k, v in metrics_to_add.items():
+            if v is not None:
+                ET.SubElement(properties, "property", {"name": k, "value": str(v)})
+
         if tags:
-            properties = ET.SubElement(testsuite, "properties")
             for k, v in tags.items():
-                prop = ET.SubElement(properties, "property", {"name": k, "value": str(v)})
+                ET.SubElement(properties, "property", {"name": k, "value": str(v)})
 
         tree = ET.ElementTree(testsuites)
         try:
