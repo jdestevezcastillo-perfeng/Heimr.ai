@@ -12,7 +12,7 @@ Welcome to the comprehensive documentation for Heimr.ai.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 Heimr operates as a pipeline:
 
@@ -31,7 +31,7 @@ Load Test Results → Parser → Anomaly Detector → Multi-Signal Analyzer → 
 
 ---
 
-## 💻 CLI Reference
+## CLI Reference
 
 ### `analyze`
 
@@ -42,9 +42,11 @@ heimr analyze [FILE] [OPTIONS]
 ```
 
 **Arguments:**
+
 - `FILE`: Path to load test result file (.jtl, .json, .log, .csv)
 
 **Options:**
+
 - `--config`: Path to config file (default: `heimr.yaml`)
 - `--output`: Output file path (default: `report.md`)
 - `--prometheus`: Prometheus URL
@@ -64,7 +66,7 @@ heimr config-init [filename]
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Heimr uses `heimr.yaml` for configuration.
 
@@ -85,38 +87,44 @@ format: jtl  # optional override
 
 ---
 
-## 💥 Failure Scenarios
+## Failure Scenarios
 
 Heimr is trained to recognize patterns across these categories:
 
 ### Performance
+
 - **Latency Spikes**: Sudden increases in P99/Max latency.
 - **Bimodal Distribution**: Indicates mixed performance characteristics (e.g., cache hits vs misses).
 - **Gradual Degradation**: Linearly increasing response times (memory leaks).
 
 ### Infrastructure
+
 - **CPU Saturation**: Sustained high CPU usage correlating with latency.
 - **Memory Leaks**: JVM/Container memory growing without reclamation.
 - **OOMKills**: Sudden pod restarts or process termination.
 
 ### Application
+
 - **Database Bottlenecks**: Slow queries, connection pool exhaustion.
 - **Cache Issues**: Stampedes, low hit rates.
 - **Dependency Failures**: Slow downstream services (via tracing).
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### "No anomalies detected"
+
 - Ensure your test duration is long enough (>1 minute).
 - Check if your observability data overlaps with the test timeframe. Timesync is critical.
 
 ### "LLM connection failed"
+
 - Verify Ollama is running: `curl http://localhost:11434`.
 - Check if the model is pulled: `ollama list`.
 
 ### "Parser error"
+
 - Ensure you have the correct file format.
 - **JMeter**: CSV format required.
 - **k6**: JSON output (`--out json=results.json`).
