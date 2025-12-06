@@ -98,10 +98,8 @@ Heimr.ai/
 │   ├── detector.py        # Anomaly detection
 │   ├── llm.py            # LLM integration
 │   └── cli.py            # CLI interface
-├── scripts/               # Utility scripts
-│   ├── generate_mock_data.py
-│   ├── validate_scenarios.py
-│   └── analyze_reports.py
+│   ├── llm.py            # LLM integration
+│   └── cli.py            # CLI interface
 ├── tests/                 # Test suite
 ├── data/                  # Test data and mocks
 ├── docs/                  # Documentation
@@ -207,15 +205,14 @@ def test_detects_latency_spike():
 
 ### Testing with Mock Data
 
+You can run the included test suite to validate changes:
+
 ```bash
-# Generate fresh mock data
-python scripts/generate_mock_data.py
+# Run pytest (includes unit and integration tests)
+pytest
 
-# Validate all scenarios
-python scripts/validate_scenarios.py --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
-
-# Analyze results
-python scripts/analyze_reports.py
+# Validate output generation
+python tests/validate_outputs.py
 ```
 
 ---
@@ -359,10 +356,8 @@ Closes #42
 
 ### Adding a New Failure Scenario
 
-1. Add to `FAILURE_SCENARIOS.md`:
-   ```markdown
-   | `NEW-001` | **New Scenario** | Description | Expected metrics | Root cause |
-   ```
+1. Add a new pattern detection to `heimr/detector.py`
+   
 
 2. Update `scripts/generate_mock_data.py`:
    ```python
