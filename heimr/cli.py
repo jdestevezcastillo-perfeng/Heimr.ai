@@ -154,6 +154,29 @@ def parse_url_or_file(value):
         return None, value
 
 
+def detect_file_format(file_path):
+    """Auto-detect load test file format."""
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == '.json':
+        return 'k6'
+    elif ext == '.log':
+        return 'gatling'
+    elif 'stats_history' in file_path:
+        return 'locust'
+    elif file_path.endswith('.har'):
+        return 'har'
+    else:
+        # Try to detect HAR by content
+        try:
+            with open(file_path, 'r') as f:
+                first_chars = f.read(100)
+                if '"log"' in first_chars and '"entries"' in first_chars:
+                    return 'har'
+        except Exception:
+            pass
+        return 'jtl'
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Heimr.ai - AI-Powered Load Test Analysis",
@@ -331,26 +354,7 @@ output: ./reports/analysis.md
                 args.llm_model = "medium"
 
             # Auto-detect format
-            ext = os.path.splitext(args.file)[1].lower()
-            if ext == '.json':
-                file_format = 'k6'
-            elif ext == '.log':
-                file_format = 'gatling'
-            elif 'stats_history' in args.file:
-                file_format = 'locust'
-            elif args.file.endswith('.har'):
-                file_format = 'har'
-            else:
-                # Try to detect HAR by content
-                try:
-                    with open(args.file, 'r') as f:
-                        first_chars = f.read(100)
-                        if '"log"' in first_chars and '"entries"' in first_chars:
-                            file_format = 'har'
-                        else:
-                            file_format = 'jtl'
-                except Exception:
-                    file_format = 'jtl'
+            file_format = detect_file_format(args.file)
 
             # Select parser
             if file_format == 'k6':
@@ -684,7 +688,7 @@ output: ./reports/analysis.md
 
                     # Load baseline data
                     print(f"Loading baseline: {args.compare_baseline}")
-                    baseline_format = args.format or 'k6'  # Use same format as current
+                    baseline_format = detect_file_format(args.compare_baseline)
 
                     if baseline_format == 'k6':
                         baseline_parser = K6Parser(args.compare_baseline)
