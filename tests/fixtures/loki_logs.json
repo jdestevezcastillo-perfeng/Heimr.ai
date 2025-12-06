@@ -1,0 +1,29 @@
+{
+    "status": "success",
+    "data": {
+        "resultType": "streams",
+        "result": [
+            {
+                "stream": {
+                    "app": "backend",
+                    "container": "api-server"
+                },
+                "values": [
+                    [
+                        "1733519000000000000",
+                        "level=error msg=\"Connection timed out\" status=504"
+                    ],
+                    [
+                        "1733519005000000000",
+                        "level=error msg=\"Database unavailable\" status=500"
+                    ],
+                    [
+                        "1733519010000000000",
+                        "level=warn msg=\"High memory usage detected\""
+                    ]
+                ]
+            }
+        ],
+        "stats": {}
+    }
+}

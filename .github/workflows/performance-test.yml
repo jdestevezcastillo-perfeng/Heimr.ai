@@ -49,7 +49,9 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           python3 heimr/cli.py analyze results.json \
-
+            --prometheus tests/fixtures/prometheus_metrics.json \
+            --loki tests/fixtures/loki_logs.json \
+            --tempo tests/fixtures/tempo_traces.json \
             --tag "commit=${GITHUB_SHA}" \
             --tag "branch=${GITHUB_REF_NAME}" \
             --fail-condition "p95_latency > 1000" \

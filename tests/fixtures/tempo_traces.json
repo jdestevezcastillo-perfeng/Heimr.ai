@@ -1,0 +1,55 @@
+{
+    "data": [
+        {
+            "traceID": "1a2b3c4d5e6f",
+            "duration": 1500000,
+            "spans": [
+                {
+                    "traceID": "1a2b3c4d5e6f",
+                    "spanID": "span1",
+                    "operationName": "/api/checkout",
+                    "startTime": 1733519000000000,
+                    "duration": 1500000,
+                    "tags": [
+                        {
+                            "key": "http.status_code",
+                            "value": "500"
+                        }
+                    ]
+                },
+                {
+                    "traceID": "1a2b3c4d5e6f",
+                    "spanID": "span2",
+                    "operationName": "db_query",
+                    "startTime": 1733519000500000,
+                    "duration": 1200000,
+                    "tags": [
+                        {
+                            "key": "db.statement",
+                            "value": "SELECT * FROM orders"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "traceID": "9z8y7x6w5v4u",
+            "duration": 2000000,
+            "spans": [
+                {
+                    "traceID": "9z8y7x6w5v4u",
+                    "spanID": "span3",
+                    "operationName": "/api/search",
+                    "startTime": 1733519002000000,
+                    "duration": 2000000,
+                    "tags": [
+                        {
+                            "key": "http.status_code",
+                            "value": "200"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
