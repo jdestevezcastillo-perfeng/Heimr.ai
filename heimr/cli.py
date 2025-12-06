@@ -59,7 +59,6 @@ def merge_config_with_args(args, config: dict):
         'llm_url': 'llm_url',
         'llm_model': 'llm_model',
         'output': 'output',
-        'format': 'format',
         'compare_baseline': 'compare_baseline',
         'compare_prometheus': 'compare_prometheus',
         'compare_loki': 'compare_loki',
@@ -191,18 +190,11 @@ def main():
     analyze_parser.add_argument("file", help="Path to the load test result file (supports .jtl, .json, .log, .csv)")
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="""Path to YAML config file. Available keys:
   prometheus, loki, tempo, llm_url, llm_model,
-  output, format, compare_baseline, compare_prometheus,
+  output, compare_baseline, compare_prometheus,
   compare_loki, compare_tempo.
   Run 'heimr config-init' to generate a template.
-  Note: AI analysis is enabled by default. PDFs and HTML dashboards are auto-generated.""")
-    analyze_parser.add_argument(
-        "--format",
-        choices=[
-            'jtl',
-            'k6',
-            'gatling',
-            'locust'],
-        help="Explicitly specify the file format (auto-detected by default)")
+  Note: AI analysis is enabled by default. PDFs are auto-generated.""")
+
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
     analyze_parser.add_argument(
         "--no-llm",
@@ -298,8 +290,7 @@ llm_model: llama3.1:8b
 # Path to save the analysis report (Markdown format)
 output: ./reports/analysis.md
 
-# File format (auto-detected if not specified)
-# format: k6  # Options: jtl, k6, gatling, locust
+
 '''
         output_path = args.output
         if os.path.exists(output_path):
@@ -339,29 +330,27 @@ output: ./reports/analysis.md
             if not args.llm_model:
                 args.llm_model = "medium"
 
-            # Detect format if not specified
-            file_format = args.format
-            if not file_format:
-                ext = os.path.splitext(args.file)[1].lower()
-                if ext == '.json':
-                    file_format = 'k6'
-                elif ext == '.log':
-                    file_format = 'gatling'
-                elif 'stats_history' in args.file:
-                    file_format = 'locust'
-                elif args.file.endswith('.har'):
-                    file_format = 'har'
-                else:
-                    # Try to detect HAR by content
-                    try:
-                        with open(args.file, 'r') as f:
-                            first_chars = f.read(100)
-                            if '"log"' in first_chars and '"entries"' in first_chars:
-                                file_format = 'har'
-                            else:
-                                file_format = 'jtl'
-                    except Exception:
-                        file_format = 'jtl'
+            # Auto-detect format
+            ext = os.path.splitext(args.file)[1].lower()
+            if ext == '.json':
+                file_format = 'k6'
+            elif ext == '.log':
+                file_format = 'gatling'
+            elif 'stats_history' in args.file:
+                file_format = 'locust'
+            elif args.file.endswith('.har'):
+                file_format = 'har'
+            else:
+                # Try to detect HAR by content
+                try:
+                    with open(args.file, 'r') as f:
+                        first_chars = f.read(100)
+                        if '"log"' in first_chars and '"entries"' in first_chars:
+                            file_format = 'har'
+                        else:
+                            file_format = 'jtl'
+                except Exception:
+                    file_format = 'jtl'
 
             # Select parser
             if file_format == 'k6':
@@ -687,15 +676,7 @@ output: ./reports/analysis.md
                     print(f"Warning: Failed to generate PDF: {e}")
 
                 # Automatically generate HTML dashboard alongside markdown
-                print("\n--- Generating HTML Dashboard ---")
-                try:
-                    from heimr.dashboard import DashboardGenerator
-                    dashboard_gen = DashboardGenerator(df, stats, prom_metrics)
-                    dashboard_path = args.output.rsplit('.', 1)[0] + '.html'
-                    dashboard_gen.generate(dashboard_path)
-                    print(f"✅ Dashboard saved to: {dashboard_path}")
-                except Exception as e:
-                    print(f"Warning: Failed to generate dashboard: {e}")
+
 
             # Generate Comparison Report if requested
             if args.compare_baseline and args.output:

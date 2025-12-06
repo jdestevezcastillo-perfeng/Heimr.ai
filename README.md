@@ -97,10 +97,9 @@ ollama pull llama3.1:8b
 # AI analysis runs automatically!
 heimr analyze results.jtl --output report.md
 
-# Creates 3 files automatically:
+# Creates 2 files automatically:
 # - report.md (Markdown report)
 # - report.pdf (PDF version)
-# - report.html (Interactive dashboard)
 ```
 
 ### With Full Observability
@@ -154,7 +153,7 @@ compare_prometheus: ./baseline/metrics.json
 
 See `heimr.yaml.example` for the full template with all options.
 
-**Result**: Three comprehensive reports automatically generated:
+**Result**: Two comprehensive reports automatically generated:
 
 1. **Markdown Report** (`report.md`):
    - Statistical summary (P50, P95, P99, error rate)
@@ -168,11 +167,6 @@ See `heimr.yaml.example` for the full template with all options.
    - Professional formatting with headers and page numbers
    - Suitable for stakeholder presentations
    - Automatically generated alongside markdown
-
-3. **Interactive Dashboard** (`report.html`):
-   - Real-time charts and visualizations
-   - CPU, memory, latency, and error rate graphs
-   - Filterable and exportable data
 
 ### Comparison Reports
 

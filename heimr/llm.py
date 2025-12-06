@@ -133,7 +133,7 @@ class LLMClient:
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
 
             with client.messages.stream(
-                model="claude-sonnet-4-5-20250929",
+                model="claude-opus-4.5",
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
             ) as stream:
