@@ -16,9 +16,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://heimr.ai",
     project_urls={
-        "Bug Tracker": "https://github.com/heimr-ai/heimr/issues",
-        "Documentation": "https://heimr.ai/docs",
-        "Source Code": "https://github.com/heimr-ai/heimr",
+        "Bug Tracker": "https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues",
+        "Documentation": "https://github.com/jdestevezcastillo-perfeng/Heimr.ai/blob/main/docs/WIKI.md",
+        "Source Code": "https://github.com/jdestevezcastillo-perfeng/Heimr.ai",
     },
     packages=find_packages(exclude=["tests", "tests.*", "scripts", "scripts.*"]),
     classifiers=[
