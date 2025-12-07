@@ -252,12 +252,18 @@
 }
 
 /* ===== Mermaid Diagrams ===== */
-.markdown-body .mermaid {
+.mermaid-diagram {
     background: rgba(0, 0, 0, 0.3);
     padding: var(--space-lg);
     border-radius: var(--radius-md);
     margin: var(--space-lg) 0;
     text-align: center;
+    overflow-x: auto;
+}
+
+.mermaid-diagram svg {
+    max-width: 100%;
+    height: auto;
 }
 
 /* ===== Footer adjustment ===== */

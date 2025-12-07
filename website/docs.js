@@ -17,6 +17,19 @@ const DOC_TITLES = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Mermaid with dark theme
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+            primaryColor: '#00ffa3',
+            primaryTextColor: '#ccd6f6',
+            primaryBorderColor: '#64ffda',
+            lineColor: '#64ffda',
+            secondaryColor: '#0a192f',
+            tertiaryColor: '#112240'
+        }
+    });
     initDocs();
     initMobileNav();
 });
@@ -58,6 +71,9 @@ async function initDocs() {
 
         // Process internal links
         processInternalLinks(contentEl);
+
+        // Render Mermaid diagrams
+        await renderMermaidDiagrams(contentEl);
 
         // Hide loading, show content
         loadingEl.style.display = 'none';
@@ -104,6 +120,30 @@ function updateActiveSidebarLink(docName) {
             link.classList.remove('active');
         }
     });
+}
+
+async function renderMermaidDiagrams(container) {
+    // Find all code blocks that contain mermaid diagrams
+    const codeBlocks = container.querySelectorAll('pre code');
+
+    for (let i = 0; i < codeBlocks.length; i++) {
+        const code = codeBlocks[i];
+        const text = code.textContent.trim();
+
+        // Check if this is a mermaid diagram (starts with flowchart, graph, sequenceDiagram, etc.)
+        if (text.match(/^(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitgraph)/)) {
+            try {
+                const { svg } = await mermaid.render(`mermaid-${i}`, text);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mermaid-diagram';
+                wrapper.innerHTML = svg;
+                code.parentElement.replaceWith(wrapper);
+            } catch (error) {
+                console.warn('Mermaid render error:', error);
+                // Keep the original code block if rendering fails
+            }
+        }
+    }
 }
 
 function processInternalLinks(container) {
