@@ -11,7 +11,7 @@ Heimr operates on a **Stateless Pipeline Architecture**. It ingests static load 
 ### System Context Diagram
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Input["📥 Input Sources"]
         direction TB
         JMeter["JMeter\n.jtl/.csv"]
