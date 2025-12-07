@@ -116,10 +116,16 @@ body {
 }
 
 .nav-logo-img {
-    width: 36px;
-    height: 36px;
+    height: 80px;
+    width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 0 8px var(--accent-glow-teal));
+    filter: drop-shadow(0 0 12px var(--accent-glow-teal));
+    transition: var(--transition-normal);
+}
+
+.nav-logo-img:hover {
+    filter: drop-shadow(0 0 20px var(--accent-glow-teal));
+    transform: scale(1.05);
 }
 
 .logo-text {
