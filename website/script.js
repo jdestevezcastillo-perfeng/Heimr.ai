@@ -1,76 +1,108 @@
-// Copyright (c) 2025 Juan Estevez Castillo
-// Licensed under AGPL v3. Commercial licenses available.
-// See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
-// Countdown Timer Script
-function updateCountdown() {
-    // Target: December 7, 2025 at 1:00 PM CET
-    const targetDate = new Date('2025-12-07T13:00:00+01:00');
-    const now = new Date();
-    const diff = targetDate - now;
-    
-    if (diff <= 0) {
-        // Countdown ended
-        document.getElementById('days').textContent = '00';
-        document.getElementById('hours').textContent = '00';
-        document.getElementById('minutes').textContent = '00';
-        document.getElementById('seconds').textContent = '00';
-        
-        // Change message
-        document.querySelector('.release-date').innerHTML = '🎉 <strong>LIVE NOW!</strong> 🎉';
-        return;
-    }
-    
-    // Calculate time units
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    // Update DOM with leading zeros
-    document.getElementById('days').textContent = String(days).padStart(2, '0');
-    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
-}
+// ===== Heimr Website Interactivity =====
 
-// Update countdown every second
-updateCountdown();
-setInterval(updateCountdown, 1000);
+document.addEventListener('DOMContentLoaded', () => {
+    initCopyButton();
+    initMobileNav();
+    initScrollEffects();
+});
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+// ===== Copy to Clipboard =====
+function initCopyButton() {
+    const copyBtn = document.querySelector('.copy-btn');
+    if (!copyBtn) return;
+
+    copyBtn.addEventListener('click', async () => {
+        const textToCopy = copyBtn.dataset.copy;
+        const copyText = copyBtn.querySelector('.copy-text');
+
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            copyBtn.classList.add('copied');
+            copyText.textContent = 'Copied!';
+
+            setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                copyText.textContent = 'Copy';
+            }, 2000);
+        } catch (err) {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            copyBtn.classList.add('copied');
+            copyText.textContent = 'Copied!';
+
+            setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                copyText.textContent = 'Copy';
+            }, 2000);
         }
     });
-});
+}
 
-// Add scanline effect on page load
-window.addEventListener('load', () => {
-    document.body.style.animation = 'none';
-    setTimeout(() => {
-        document.body.style.animation = '';
-    }, 10);
-});
+// ===== Mobile Navigation Toggle =====
+function initMobileNav() {
+    const toggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
 
-// Glitch text effect for hero title
-const glitchText = document.querySelector('.glitch');
-if (glitchText) {
-    setInterval(() => {
-        if (Math.random() > 0.95) {
-            glitchText.style.textShadow = `
-                ${Math.random() * 10 - 5}px ${Math.random() * 10 - 5}px 0 #ff00ff,
-                ${Math.random() * 10 - 5}px ${Math.random() * 10 - 5}px 0 #00ffff
-            `;
-            setTimeout(() => {
-                glitchText.style.textShadow = '0 0 30px var(--color-cyan)';
-            }, 100);
+    if (!toggle || !navLinks) return;
+
+    toggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        toggle.classList.toggle('active');
+    });
+
+    // Close menu when clicking a link
+    navLinks.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+            toggle.classList.remove('active');
+        });
+    });
+}
+
+// ===== Scroll Effects =====
+function initScrollEffects() {
+    const header = document.querySelector('.header');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+
+        // Add shadow on scroll
+        if (currentScroll > 50) {
+            header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.3)';
+        } else {
+            header.style.boxShadow = 'none';
         }
-    }, 200);
+
+        lastScroll = currentScroll;
+    });
+
+    // Intersection Observer for fade-in animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe feature cards
+    document.querySelectorAll('.feature-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
 }
