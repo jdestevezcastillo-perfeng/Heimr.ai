@@ -1,0 +1,257 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "app": "ecommerce-api",
+          "namespace": "demo",
+          "scenario": "memory-pressure"
+        },
+        "values": [
+          [
+            "1765098000000000000",
+            "level=info msg=\"Request processed\" duration=92ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098005000000000",
+            "level=info msg=\"Request processed\" duration=83ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098010000000000",
+            "level=info msg=\"Request processed\" duration=125ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098015000000000",
+            "level=info msg=\"Request processed\" duration=149ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098020000000000",
+            "level=info msg=\"Request processed\" duration=139ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098025000000000",
+            "level=info msg=\"Request processed\" duration=118ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098030000000000",
+            "level=info msg=\"Request processed\" duration=118ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098035000000000",
+            "level=info msg=\"Request processed\" duration=116ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098040000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=2411ms total_duration=4260ms heap_before=\"683MB\" heap_after=\"273MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098045000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=1310ms total_duration=4642ms heap_before=\"733MB\" heap_after=\"322MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098050000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=1669ms total_duration=3655ms heap_before=\"681MB\" heap_after=\"324MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098055000000000",
+            "level=info msg=\"Request processed\" duration=148ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098060000000000",
+            "level=info msg=\"Request processed\" duration=123ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098065000000000",
+            "level=info msg=\"Request processed\" duration=106ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098070000000000",
+            "level=info msg=\"Request processed\" duration=89ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098075000000000",
+            "level=info msg=\"Request processed\" duration=119ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098080000000000",
+            "level=info msg=\"Request processed\" duration=116ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098085000000000",
+            "level=info msg=\"Request processed\" duration=120ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098090000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=2192ms total_duration=3738ms heap_before=\"769MB\" heap_after=\"349MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098095000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=1309ms total_duration=4046ms heap_before=\"766MB\" heap_after=\"319MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098100000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=2349ms total_duration=3674ms heap_before=\"628MB\" heap_after=\"260MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098105000000000",
+            "level=info msg=\"Request processed\" duration=103ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098110000000000",
+            "level=info msg=\"Request processed\" duration=117ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098115000000000",
+            "level=info msg=\"Request processed\" duration=97ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098120000000000",
+            "level=info msg=\"Request processed\" duration=143ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098125000000000",
+            "level=info msg=\"Request processed\" duration=141ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098130000000000",
+            "level=info msg=\"Request processed\" duration=148ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098135000000000",
+            "level=warn msg=\"GC pause detected\" pause_duration=1676ms total_duration=4877ms heap_before=\"683MB\" heap_after=\"260MB\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098140000000000",
+            "level=info msg=\"Request processed\" duration=120ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098145000000000",
+            "level=info msg=\"Request processed\" duration=148ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098150000000000",
+            "level=info msg=\"Request processed\" duration=149ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098155000000000",
+            "level=info msg=\"Request processed\" duration=141ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098160000000000",
+            "level=info msg=\"Request processed\" duration=135ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098165000000000",
+            "level=info msg=\"Request processed\" duration=87ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098170000000000",
+            "level=info msg=\"Request processed\" duration=85ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098175000000000",
+            "level=info msg=\"Request processed\" duration=117ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098180000000000",
+            "level=info msg=\"Request processed\" duration=101ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098185000000000",
+            "level=info msg=\"Request processed\" duration=126ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098190000000000",
+            "level=info msg=\"Request processed\" duration=104ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098195000000000",
+            "level=info msg=\"Request processed\" duration=116ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098200000000000",
+            "level=info msg=\"Request processed\" duration=85ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098205000000000",
+            "level=info msg=\"Request processed\" duration=131ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098210000000000",
+            "level=info msg=\"Request processed\" duration=149ms status=200 endpoint=\"/api/users\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098215000000000",
+            "level=info msg=\"Request processed\" duration=99ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098220000000000",
+            "level=info msg=\"Request processed\" duration=88ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098225000000000",
+            "level=info msg=\"Request processed\" duration=138ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098230000000000",
+            "level=info msg=\"Request processed\" duration=106ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098235000000000",
+            "level=info msg=\"Request processed\" duration=142ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098240000000000",
+            "level=info msg=\"Request processed\" duration=125ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098245000000000",
+            "level=info msg=\"Request processed\" duration=96ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098250000000000",
+            "level=info msg=\"Request processed\" duration=112ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098255000000000",
+            "level=info msg=\"Request processed\" duration=142ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098260000000000",
+            "level=info msg=\"Request processed\" duration=146ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098265000000000",
+            "level=info msg=\"Request processed\" duration=116ms status=200 endpoint=\"/api/checkout\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098270000000000",
+            "level=info msg=\"Request processed\" duration=127ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098275000000000",
+            "level=info msg=\"Request processed\" duration=133ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098280000000000",
+            "level=info msg=\"Request processed\" duration=89ms status=200 endpoint=\"/api/products\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098285000000000",
+            "level=info msg=\"Request processed\" duration=114ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098290000000000",
+            "level=info msg=\"Request processed\" duration=129ms status=200 endpoint=\"/api/inventory\" scenario=\"memory-pressure-demo\""
+          ],
+          [
+            "1765098295000000000",
+            "level=info msg=\"Request processed\" duration=107ms status=200 endpoint=\"/api/orders\" scenario=\"memory-pressure-demo\""
+          ]
+        ]
+      }
+    ]
+  }
+}

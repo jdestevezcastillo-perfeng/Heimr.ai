@@ -152,25 +152,41 @@
 
         <!-- Example Output Section -->
         <section class="example-section">
-            <h2 class="section-title">Example Report Output</h2>
+            <h2 class="section-title">Real Analysis Output</h2>
+            <p class="example-subtitle">5-minute load test • 3,000 requests • Memory pressure scenario</p>
             <div class="code-block">
                 <pre><code># ❌ FAILED
-**Reasons**: Anomalies: 7, Memory Growth: 950%, Error/Warn Logs: 4
+**Reasons**: Anomalies: 108, Error/Warn Logs: 7
 
-## Executive Summary
-The load test revealed a critical memory leak causing gradual performance 
-degradation. Average latency increased from 100ms to 3000ms over the test 
-duration, with 7 anomalous spikes detected.
+## Level 1: Primary KPIs
+| Metric | Value | Reference |
+|---|---|---|
+| P95 Latency | 150.00 ms | < 500ms (API) |
+| P99 Latency | 4456.00 ms | ⚠️ GC Pauses |
+| Error Rate | 0.00% | < 1.0% |
+| Throughput | 10.00 req/s | Stable |
 
-## Root Cause Analysis
-1. **Memory Leak**: Heap usage grew from 100MB to 1GB (950% increase)
-2. **GC Pressure**: Frequent garbage collection pauses (up to 5 seconds)
-3. **Database Saturation**: Connection pool exhausted due to leaked connections
+## Level 2: Summary
+- **Concurrency**: 5 VUs sustained for 5 minutes
+- **Anomalies**: 108 detected (Avg 4021ms during GC pauses)
+- **Prometheus**: CPU spikes 60-80% during GC events
+- **Loki**: 7 GC pause warnings (1200-2500ms pauses)
+- **Tempo**: Slow traces correlated with heap pressure
 
-## Recommendations
-1. Review connection pool management in `DatabaseClient.java`
-2. Implement connection leak detection with HikariCP
-3. Add heap dump analysis to identify leak source</code></pre>
+## Level 3: Per Endpoint Breakdown
+| Endpoint | Requests | Error % | Avg (ms) | P99 (ms) |
+|---|---|---|---|---|
+| /api/checkout | 602 | 0.00% | 304.56 | 4129.39 |
+| /api/inventory | 589 | 0.00% | 187.00 | 3618.20 |
+| /api/orders | 617 | 0.00% | 228.38 | 4335.92 |
+| /api/products | 588 | 0.00% | 275.53 | 4608.99 |
+| /api/users | 604 | 0.00% | 285.47 | 4804.70 |</code></pre>
+            </div>
+            <div class="demo-link">
+                <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai/tree/main/website/demo"
+                    class="btn btn--secondary">
+                    View Full Demo →
+                </a>
             </div>
         </section>
     </main>

@@ -446,8 +446,19 @@ body {
 
 .section-title {
     font-size: 1.5rem;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-sm);
     color: var(--text-primary);
+}
+
+.example-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+    font-size: 1rem;
+}
+
+.demo-link {
+    margin-top: var(--space-lg);
+    text-align: center;
 }
 
 .code-block {

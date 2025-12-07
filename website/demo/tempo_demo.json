@@ -1,0 +1,736 @@
+{
+  "data": [
+    {
+      "traceID": "43b554bf1fb540f2b4a378ccb7a4feb8",
+      "spans": [
+        {
+          "traceID": "43b554bf1fb540f2b4a378ccb7a4feb8",
+          "spanID": "a11436f578044209",
+          "operationName": "HTTP GET /api/checkout",
+          "startTime": 1765098017000000,
+          "duration": 125541,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/checkout"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "c55a2d6af3764081a50ba33ccb2954f6",
+      "spans": [
+        {
+          "traceID": "c55a2d6af3764081a50ba33ccb2954f6",
+          "spanID": "f5c098a828c34ed9",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098041000000,
+          "duration": 4792997,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        },
+        {
+          "traceID": "c55a2d6af3764081a50ba33ccb2954f6",
+          "spanID": "114aa88ef2344ad6",
+          "parentSpanID": "f5c098a828c34ed9",
+          "operationName": "PostgreSQL query",
+          "startTime": 1765098041050000,
+          "duration": 4692997,
+          "tags": [
+            {
+              "key": "db.type",
+              "value": "postgresql"
+            },
+            {
+              "key": "db.statement",
+              "value": "SELECT * FROM orders WHERE..."
+            },
+            {
+              "key": "db.instance",
+              "value": "postgres-primary"
+            },
+            {
+              "key": "gc.pause.affected",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "41fe2858b54e458f8fac1ddd84093c48",
+      "spans": [
+        {
+          "traceID": "41fe2858b54e458f8fac1ddd84093c48",
+          "spanID": "57c6e07e6e504bef",
+          "operationName": "HTTP GET /api/orders",
+          "startTime": 1765098070000000,
+          "duration": 93271,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/orders"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "2e7b0518e8704ac6aa14029c220ac181",
+      "spans": [
+        {
+          "traceID": "2e7b0518e8704ac6aa14029c220ac181",
+          "spanID": "068a9660dfe64a35",
+          "operationName": "HTTP GET /api/products",
+          "startTime": 1765098072000000,
+          "duration": 130221,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/products"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "f67612b0157e4d8a8fd8d1d2b3b36b21",
+      "spans": [
+        {
+          "traceID": "f67612b0157e4d8a8fd8d1d2b3b36b21",
+          "spanID": "4c0d0eb4c07e4648",
+          "operationName": "HTTP GET /api/products",
+          "startTime": 1765098087000000,
+          "duration": 148857,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/products"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "5fec428ec22048a59ca65c43dac045bb",
+      "spans": [
+        {
+          "traceID": "5fec428ec22048a59ca65c43dac045bb",
+          "spanID": "01325fd0ffa54515",
+          "operationName": "HTTP GET /api/users",
+          "startTime": 1765098127000000,
+          "duration": 128844,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/users"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "ef04dbf138af4c93b9cee56e4ae10945",
+      "spans": [
+        {
+          "traceID": "ef04dbf138af4c93b9cee56e4ae10945",
+          "spanID": "de6d3aeb820e407e",
+          "operationName": "HTTP GET /api/checkout",
+          "startTime": 1765098134000000,
+          "duration": 129443,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/checkout"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "36e4c4ee57d640c3b1fb87eb90e2f326",
+      "spans": [
+        {
+          "traceID": "36e4c4ee57d640c3b1fb87eb90e2f326",
+          "spanID": "b60a1c32b352436a",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098172000000,
+          "duration": 99397,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "e610d2865dee4b998733412530207e3f",
+      "spans": [
+        {
+          "traceID": "e610d2865dee4b998733412530207e3f",
+          "spanID": "b55af7ed4d4a4562",
+          "operationName": "HTTP GET /api/users",
+          "startTime": 1765098177000000,
+          "duration": 126149,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/users"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "a381d2120aba46f98ccc64568873ed36",
+      "spans": [
+        {
+          "traceID": "a381d2120aba46f98ccc64568873ed36",
+          "spanID": "d60a390b6126425e",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098191000000,
+          "duration": 116884,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "87a38938412d4eb19a5e2915d1e4dda8",
+      "spans": [
+        {
+          "traceID": "87a38938412d4eb19a5e2915d1e4dda8",
+          "spanID": "78d3d05038be4432",
+          "operationName": "HTTP GET /api/orders",
+          "startTime": 1765098229000000,
+          "duration": 135093,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/orders"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "9283882454984e4b952597ace5ae2211",
+      "spans": [
+        {
+          "traceID": "9283882454984e4b952597ace5ae2211",
+          "spanID": "d2b3bb558c494977",
+          "operationName": "HTTP GET /api/products",
+          "startTime": 1765098250000000,
+          "duration": 123364,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/products"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "451c78c57e444687aceee9226ee91a28",
+      "spans": [
+        {
+          "traceID": "451c78c57e444687aceee9226ee91a28",
+          "spanID": "5e75817a44a24511",
+          "operationName": "HTTP GET /api/checkout",
+          "startTime": 1765098250000000,
+          "duration": 104526,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/checkout"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "961d3b8fb0ed4e478f24cf6483d66013",
+      "spans": [
+        {
+          "traceID": "961d3b8fb0ed4e478f24cf6483d66013",
+          "spanID": "963b5bfaef3d4c96",
+          "operationName": "HTTP GET /api/checkout",
+          "startTime": 1765098251000000,
+          "duration": 85526,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/checkout"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "9344c3db742e45e892d2b1edd17dca55",
+      "spans": [
+        {
+          "traceID": "9344c3db742e45e892d2b1edd17dca55",
+          "spanID": "dc786524ace94be1",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098262000000,
+          "duration": 4386875,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        },
+        {
+          "traceID": "9344c3db742e45e892d2b1edd17dca55",
+          "spanID": "26ed29228d4c47c8",
+          "parentSpanID": "dc786524ace94be1",
+          "operationName": "PostgreSQL query",
+          "startTime": 1765098262050000,
+          "duration": 4286875,
+          "tags": [
+            {
+              "key": "db.type",
+              "value": "postgresql"
+            },
+            {
+              "key": "db.statement",
+              "value": "SELECT * FROM orders WHERE..."
+            },
+            {
+              "key": "db.instance",
+              "value": "postgres-primary"
+            },
+            {
+              "key": "gc.pause.affected",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "87cdd92e73a841fd976a117dccf53cd9",
+      "spans": [
+        {
+          "traceID": "87cdd92e73a841fd976a117dccf53cd9",
+          "spanID": "a28b1e2d75744a66",
+          "operationName": "HTTP GET /api/users",
+          "startTime": 1765098264000000,
+          "duration": 103556,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/users"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "52bd7a7fc80b404582abacd7bab4e2fc",
+      "spans": [
+        {
+          "traceID": "52bd7a7fc80b404582abacd7bab4e2fc",
+          "spanID": "c86874e6ea774e64",
+          "operationName": "HTTP GET /api/orders",
+          "startTime": 1765098264000000,
+          "duration": 115757,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/orders"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "366a77cb0aae48fbb7f4a47771bc150a",
+      "spans": [
+        {
+          "traceID": "366a77cb0aae48fbb7f4a47771bc150a",
+          "spanID": "94320b3c324c4577",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098273000000,
+          "duration": 142665,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "c206b67ecffd4429b165cfe81284c676",
+      "spans": [
+        {
+          "traceID": "c206b67ecffd4429b165cfe81284c676",
+          "spanID": "1eb6b5e7341c443f",
+          "operationName": "HTTP GET /api/inventory",
+          "startTime": 1765098277000000,
+          "duration": 83965,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/inventory"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "traceID": "844ac82fb4854675b0945bc2bde358e2",
+      "spans": [
+        {
+          "traceID": "844ac82fb4854675b0945bc2bde358e2",
+          "spanID": "0bbf9504253148a6",
+          "operationName": "HTTP GET /api/checkout",
+          "startTime": 1765098282000000,
+          "duration": 113300,
+          "tags": [
+            {
+              "key": "http.method",
+              "value": "GET"
+            },
+            {
+              "key": "http.url",
+              "value": "http://api.demo.com/api/checkout"
+            },
+            {
+              "key": "http.status_code",
+              "value": 200
+            },
+            {
+              "key": "service.name",
+              "value": "ecommerce-api"
+            },
+            {
+              "key": "span.kind",
+              "value": "server"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
