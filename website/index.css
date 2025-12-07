@@ -117,8 +117,10 @@ body {
 
 .nav-logo-img {
     height: 80px;
-    width: auto;
-    object-fit: contain;
+    width: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    clip-path: circle(50%);
     filter: drop-shadow(0 0 12px var(--accent-glow-teal));
     transition: var(--transition-normal);
 }
