@@ -10,6 +10,8 @@ google-cloud-sdk/
 .venv/
 chaos-generator/
 .pytest_cache/
+project_state.yaml
+
 
 # Chaos Generator (terraform state, generated files)
 chaos-generator/terraform/.terraform/

@@ -76,6 +76,6 @@ class LokiClient:
                 return []
 
         # Generic query to find errors in all jobs (might be slow/heavy in prod)
-        query = '{job!=""} |= "error"'
+        query = '{namespace=~"heimr-(test|demo)"} |= "error"'
         logs = self.query_logs(query, start_time, end_time, limit)
         return [log['line'] for log in logs]

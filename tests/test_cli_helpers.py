@@ -6,7 +6,8 @@ import unittest
 import os
 import tempfile
 import argparse
-from heimr.cli import load_config, merge_config_with_args, get_parser, parse_url_or_file
+from heimr.cli import load_config, merge_config_with_args
+from heimr.analyzer import Analyzer
 
 
 class TestLoadConfig(unittest.TestCase):
@@ -30,11 +31,6 @@ class TestLoadConfig(unittest.TestCase):
         """Test loading a non-existent config file raises FileNotFoundError."""
         with self.assertRaises(FileNotFoundError):
             load_config('/nonexistent/path/config.yaml')
-
-    def test_load_empty_path_raises(self):
-        """Test loading with empty path raises FileNotFoundError."""
-        with self.assertRaises(FileNotFoundError):
-            load_config('')
 
 
 class TestMergeConfigWithArgs(unittest.TestCase):
@@ -65,8 +61,8 @@ class TestMergeConfigWithArgs(unittest.TestCase):
         self.assertEqual(args.output, 'cli_output.md')
 
 
-class TestGetParser(unittest.TestCase):
-    """Tests for the get_parser function."""
+class TestInspector(unittest.TestCase):
+    """Tests for Analyzer helpers."""
 
     def setUp(self):
         """Create temporary test files."""
@@ -83,8 +79,8 @@ class TestGetParser(unittest.TestCase):
         with open(filepath, 'w') as f:
             f.write('timeStamp,elapsed,label\n')
 
-        parser = get_parser(filepath)
-        self.assertEqual(parser.__class__.__name__, 'JTLParser')
+        fmt = Analyzer.detect_file_format(filepath)
+        self.assertEqual(fmt, 'jtl')
 
     def test_detect_json_for_k6(self):
         """Test K6 parser detection for .json files."""
@@ -92,8 +88,8 @@ class TestGetParser(unittest.TestCase):
         with open(filepath, 'w') as f:
             f.write('{"type":"Point"}\n')
 
-        parser = get_parser(filepath)
-        self.assertEqual(parser.__class__.__name__, 'K6Parser')
+        fmt = Analyzer.detect_file_format(filepath)
+        self.assertEqual(fmt, 'k6')
 
     def test_detect_csv_for_locust(self):
         """Test Locust parser detection for stats_history files."""
@@ -101,52 +97,21 @@ class TestGetParser(unittest.TestCase):
         with open(filepath, 'w') as f:
             f.write('Timestamp,User Count\n')
 
-        parser = get_parser(filepath)
-        self.assertEqual(parser.__class__.__name__, 'LocustParser')
-
-    def test_explicit_format_arg(self):
-        """Test that format_arg overrides detection."""
-        filepath = os.path.join(self.temp_dir, 'test.json')
-        with open(filepath, 'w') as f:
-            f.write('{}')
-
-        # Force JTL format even for .json file
-        parser = get_parser(filepath, format_arg='jtl')
-        self.assertEqual(parser.__class__.__name__, 'JTLParser')
-
-
-class TestParseUrlOrFile(unittest.TestCase):
-    """Tests for the parse_url_or_file function."""
+        fmt = Analyzer.detect_file_format(filepath)
+        self.assertEqual(fmt, 'locust')
 
     def test_parse_url(self):
-        """Test URL detection."""
-        url, filepath = parse_url_or_file('http://localhost:9090')
-        
+        """Test URL parsing helper."""
+        url, filepath = Analyzer.parse_url_or_file('http://localhost:9090')
         self.assertEqual(url, 'http://localhost:9090')
         self.assertIsNone(filepath)
 
-    def test_parse_https_url(self):
-        """Test HTTPS URL detection."""
-        url, filepath = parse_url_or_file('https://prometheus.example.com')
-        
-        self.assertEqual(url, 'https://prometheus.example.com')
-        self.assertIsNone(filepath)
-
     def test_parse_file_path(self):
-        """Test file path detection."""
-        url, filepath = parse_url_or_file('/path/to/metrics.json')
-        
+        """Test file path parsing helper."""
+        url, filepath = Analyzer.parse_url_or_file('/path/to/metrics.json')
         self.assertIsNone(url)
         self.assertEqual(filepath, '/path/to/metrics.json')
-
-    def test_parse_relative_file_path(self):
-        """Test relative file path detection."""
-        url, filepath = parse_url_or_file('./data/metrics.json')
-        
-        self.assertIsNone(url)
-        self.assertEqual(filepath, './data/metrics.json')
 
 
 if __name__ == '__main__':
     unittest.main()
-

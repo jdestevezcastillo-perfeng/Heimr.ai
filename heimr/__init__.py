@@ -5,4 +5,7 @@
 Heimr.ai - AI-Powered Load Test Analysis & Root Cause Explanation
 """
 
+from heimr.analyzer import Analyzer, AnalysisResult
+
 __version__ = "0.1.0"
+__all__ = ["Analyzer", "AnalysisResult", "__version__"]

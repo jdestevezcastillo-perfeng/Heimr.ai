@@ -57,10 +57,10 @@ class PrometheusClient:
         metrics = {}
 
         # Example queries - adjust based on actual environment
-        # Example queries - adjust based on actual environment
         queries = {
-            'cpu_usage': 'sum(rate(container_cpu_usage_seconds_total{namespace="heimr-test", image!=""}[1m]))',
-            'memory_usage': 'sum(container_memory_usage_bytes{namespace="heimr-test", image!=""})'
+            # Fallback to Node Exporter metrics if cAdvisor is not scraping containers
+            'cpu_usage': 'avg(1 - rate(node_cpu_seconds_total{mode="idle"}[1m]))',
+            'memory_usage': '1 - (sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes))'
         }
 
         for name, query in queries.items():

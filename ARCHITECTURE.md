@@ -47,9 +47,14 @@ Load Test Results → Parser → Anomaly Detector → Multi-Signal Analyzer → 
    - Cloud: OpenAI, Anthropic
    - Prompt engineering for performance analysis
 
-5. **CLI** (`heimr/cli.py`):
+5. **Analyzer** (`heimr/analyzer.py`):
+   - Core orchestration logic
+   - Pipeline management (Parse -> Detect -> AI)
+   - Public Python API
+
+6. **CLI** (`heimr/cli.py`):
    - Argument parsing
-   - Orchestration
+   - Thin wrapper around Analyzer
    - Report generation
 
 ---
@@ -343,6 +348,7 @@ heimr/
 │   └── tempo.py
 ├── detector.py       # Anomaly detection
 ├── llm.py           # LLM integration
+├── analyzer.py      # Core Analysis Pipeline
 └── cli.py           # CLI interface
 ```
 
