@@ -136,7 +136,16 @@ async function renderMermaidDiagrams(container) {
                 const { svg } = await mermaid.render(`mermaid-${i}`, text);
                 const wrapper = document.createElement('div');
                 wrapper.className = 'mermaid-diagram';
-                wrapper.innerHTML = svg;
+
+                // Add fullscreen button
+                const fullscreenBtn = document.createElement('button');
+                fullscreenBtn.className = 'mermaid-fullscreen-btn';
+                fullscreenBtn.innerHTML = '⛶';
+                fullscreenBtn.title = 'View fullscreen';
+                fullscreenBtn.onclick = () => openDiagramFullscreen(svg);
+
+                wrapper.appendChild(fullscreenBtn);
+                wrapper.innerHTML += svg;
                 code.parentElement.replaceWith(wrapper);
             } catch (error) {
                 console.warn('Mermaid render error:', error);
@@ -144,6 +153,36 @@ async function renderMermaidDiagrams(container) {
             }
         }
     }
+}
+
+function openDiagramFullscreen(svgContent) {
+    // Create fullscreen overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'mermaid-fullscreen-overlay';
+    overlay.innerHTML = `
+        <div class="mermaid-fullscreen-content">
+            <button class="mermaid-fullscreen-close" title="Close">✕</button>
+            ${svgContent}
+        </div>
+    `;
+
+    // Close on click outside or button
+    overlay.onclick = (e) => {
+        if (e.target === overlay || e.target.classList.contains('mermaid-fullscreen-close')) {
+            overlay.remove();
+        }
+    };
+
+    // Close on Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    document.body.appendChild(overlay);
 }
 
 function processInternalLinks(container) {
