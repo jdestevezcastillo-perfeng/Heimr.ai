@@ -14,35 +14,35 @@ Heimr operates on a **Stateless Pipeline Architecture**. It ingests static load 
 flowchart TD
     subgraph Input["📥 Input Sources"]
         direction TB
-        JMeter["JMeter\n.jtl/.csv"]
-        k6["k6\n.json"]
-        Gatling["Gatling\n.log"]
-        Locust["Locust\n.csv"]
-        HAR["Browser\n.har"]
+        JMeter[JMeter .jtl/.csv]
+        k6[k6 .json]
+        Gatling[Gatling .log]
+        Locust[Locust .csv]
+        HAR[Browser .har]
     end
 
     subgraph Observability["📊 Observability"]
         direction TB
-        Prom["Prometheus\nCPU/Memory/Network"]
-        Loki["Loki\nError Logs"]
-        Tempo["Tempo\nSlow Traces"]
+        Prom[Prometheus Metrics]
+        Loki[Loki Error Logs]
+        Tempo[Tempo Slow Traces]
     end
 
     subgraph Heimr["🔍 Heimr Analysis Engine"]
         direction TB
-        Parser["Parser\nNormalize to DataFrame"]
-        Detector["Statistical Detector\nZ-Score + IQR"]
-        Enricher["Signal Enricher\nMulti-Signal Correlation"]
+        Parser[Parser - DataFrame]
+        Detector[Z-Score + IQR Detector]
+        Enricher[Multi-Signal Correlator]
     end
 
     subgraph AI["🤖 AI Layer"]
         direction TB
-        Context["Context Stuffing\nCompress to Prompt"]
-        LLM["LLM Inference\nLocal or Cloud"]
+        Context[Context Stuffing]
+        LLM[LLM Root Cause Analysis]
     end
 
     subgraph Output["📄 Output"]
-        Report["Report + RCA\nMarkdown/PDF/JUnit"]
+        Report[Report: MD/PDF/JUnit]
     end
 
     Input --> Parser
