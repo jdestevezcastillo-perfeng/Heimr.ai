@@ -50,13 +50,10 @@
         </nav>
     </header>
 
-    <!-- Hero Section - Split Layout -->
+    <!-- Hero Section - Single Column -->
     <main>
         <section class="hero">
-            <div class="hero-left">
-                <img src="images/heimr_logo.png" alt="Heimr Logo" class="hero-logo-img">
-            </div>
-            <div class="hero-right">
+            <div class="hero-content">
                 <h1 class="hero-title">
                     <span class="gradient-text">See the Root. Fix the Cause.</span>
                 </h1>
@@ -66,15 +63,6 @@
                 <p class="hero-description">
                     Stop staring at charts. Let AI explain what went wrong and how to fix it.
                 </p>
-
-                <!-- Key Features -->
-                <ul class="hero-features">
-                    <li>🎯 <strong>Explainable</strong> — No black boxes. See exactly why something was flagged.</li>
-                    <li>🔍 <strong>Multi-Signal</strong> — Correlates load tests, metrics, logs, and traces.</li>
-                    <li>🤖 <strong>LLM-Powered</strong> — Root cause analysis in plain English.</li>
-                    <li>🔐 <strong>Privacy-First</strong> — Run locally with Llama 3.1. No data leaves.</li>
-                    <li>⚡ <strong>Your Stack</strong> — JMeter, k6, Gatling, Prometheus, Loki, Tempo.</li>
-                </ul>
 
                 <!-- Install Command -->
                 <div class="install-section">
@@ -104,6 +92,60 @@
                         class="btn btn--secondary">
                         Read the Docs
                     </a>
+                </div>
+
+                <!-- Supported Tools -->
+                <div class="tools-section">
+                    <h3 class="tools-label">Supports Your Stack:</h3>
+                    <div class="tools-grid">
+                        <span class="tool-badge">JMeter</span>
+                        <span class="tool-badge">k6</span>
+                        <span class="tool-badge">Gatling</span>
+                        <span class="tool-badge">Locust</span>
+                        <span class="tool-badge">HAR Files</span>
+                        <span class="tool-badge">Prometheus</span>
+                        <span class="tool-badge">Loki</span>
+                        <span class="tool-badge">Tempo</span>
+                    </div>
+                </div>
+
+                <!-- Key Features Grid -->
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Explainable Analysis</h3>
+                        <p>No black boxes. See exactly why something was flagged with statistical anomaly detection
+                            using Z-scores and IQR.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Multi-Signal Intelligence</h3>
+                        <p>Correlates load tests, system metrics, application logs, and distributed traces for
+                            comprehensive root cause analysis.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>LLM-Powered Insights</h3>
+                        <p>Get root cause analysis in plain English. Works with OpenAI, Anthropic Claude, or run locally
+                            with Llama/Qwen.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔐</div>
+                        <h3>Privacy-First</h3>
+                        <p>Run 100% locally with Ollama. Your performance data never leaves your infrastructure.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Performance Comparison</h3>
+                        <p>Compare runs, detect regressions, and track improvements with baseline analysis and fail
+                            conditions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <h3>CI/CD Ready</h3>
+                        <p>GitHub Actions, GitLab CI integration. JUnit XML output. Automated regression detection in
+                            your pipeline.</p>
+                    </div>
                 </div>
             </div>
         </section>
