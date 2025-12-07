@@ -34,5 +34,8 @@ Welcome to the comprehensive documentation for Heimr.ai.
 ### 10. [Troubleshooting](wiki/10-troubleshooting.md)
    Common issues and fixes (Parser errors, LLM connection failures, OOM, CI/CD issues).
 
+### 11. [Development Guide](wiki/11-development.md)
+   Technical details for contributors: code structure, anomaly detection algorithms, LLM integration, and research decisions.
+
 ---
 *For contributing to this wiki, please submit a PR to the `docs/` folder.*

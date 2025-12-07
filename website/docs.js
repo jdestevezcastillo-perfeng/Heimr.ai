@@ -12,7 +12,8 @@ const DOC_TITLES = {
     '07-reporting': 'Reporting',
     '08-ci-cd-integration': 'CI/CD Integration',
     '09-failure-scenarios': 'Failure Scenarios',
-    '10-troubleshooting': 'Troubleshooting'
+    '10-troubleshooting': 'Troubleshooting',
+    '11-development': 'Development Guide'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
