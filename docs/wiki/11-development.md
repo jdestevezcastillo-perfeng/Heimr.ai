@@ -221,4 +221,4 @@ python scripts/analyze_reports.py
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/blob/main/CONTRIBUTING.md) for development setup and contribution guidelines.
+See [Contributing Guide](contributing.md) for development setup and contribution guidelines.

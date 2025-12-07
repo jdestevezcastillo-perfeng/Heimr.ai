@@ -1,6 +1,7 @@
 // ===== Heimr Documentation Page =====
 
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/jdestevezcastillo-perfeng/Heimr.ai/main/docs/wiki/';
+const GITHUB_ROOT_BASE = 'https://raw.githubusercontent.com/jdestevezcastillo-perfeng/Heimr.ai/main/';
 
 const DOC_TITLES = {
     '01-quickstart': 'Quick Start',
@@ -13,7 +14,13 @@ const DOC_TITLES = {
     '08-ci-cd-integration': 'CI/CD Integration',
     '09-failure-scenarios': 'Failure Scenarios',
     '10-troubleshooting': 'Troubleshooting',
-    '11-development': 'Development Guide'
+    '11-development': 'Development Guide',
+    'contributing': 'Contributing'
+};
+
+// Docs that live in repo root instead of docs/wiki/
+const ROOT_DOCS = {
+    'contributing': 'CONTRIBUTING.md'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -95,7 +102,10 @@ async function initDocs() {
 }
 
 async function fetchDoc(docName) {
-    const url = `${GITHUB_RAW_BASE}${docName}.md`;
+    // Check if this is a root-level doc
+    const url = ROOT_DOCS[docName]
+        ? `${GITHUB_ROOT_BASE}${ROOT_DOCS[docName]}`
+        : `${GITHUB_RAW_BASE}${docName}.md`;
 
     const response = await fetch(url);
 
