@@ -20,7 +20,14 @@ setup(
         "Documentation": "https://github.com/jdestevezcastillo-perfeng/Heimr.ai/blob/main/docs/WIKI.md",
         "Source Code": "https://github.com/jdestevezcastillo-perfeng/Heimr.ai",
     },
-    packages=find_packages(exclude=["tests", "tests.*", "scripts", "scripts.*"]),
+    packages=find_packages(exclude=[
+        "tests", "tests.*",
+        "scripts", "scripts.*",
+        "website", "website.*",
+        "demos", "demos.*",
+        "load-tests", "load-tests.*",
+        "LOCAL", "LOCAL.*"
+    ]),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

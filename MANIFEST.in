@@ -1,0 +1,31 @@
+# Include documentation and license files
+include README.md
+include LICENSE
+include ARCHITECTURE.md
+include CONTRIBUTING.md
+recursive-include docs *.md
+
+# Include package data files
+include heimr.yaml.example
+include pytest.ini
+include requirements.txt
+
+# Exclude development and website files
+exclude vercel.json
+exclude mock_server.py
+exclude project_state.yaml
+recursive-exclude website *
+recursive-exclude demos *
+recursive-exclude load-tests *
+recursive-exclude scripts *
+recursive-exclude LOCAL *
+recursive-exclude tests *
+recursive-exclude .github *
+recursive-exclude .gemini *
+recursive-exclude .claude *
+
+# Exclude Python artifacts
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude *.egg-info
