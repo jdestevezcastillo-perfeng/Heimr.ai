@@ -320,6 +320,7 @@
 
 .mermaid-fullscreen-content {
     position: relative;
+    min-width: 60vw;
     max-width: 95vw;
     max-height: 95vh;
     overflow: auto;
@@ -327,13 +328,16 @@
     padding: var(--space-xl);
     border-radius: var(--radius-lg);
     border: 1px solid rgba(100, 255, 218, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .mermaid-fullscreen-content svg {
-    max-width: 100%;
-    max-height: 85vh;
-    width: auto;
+    width: 100%;
     height: auto;
+    min-height: 50vh;
+    max-height: 85vh;
 }
 
 .mermaid-fullscreen-close {
