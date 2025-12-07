@@ -154,8 +154,9 @@ async function renderMermaidDiagrams(container) {
                 fullscreenBtn.title = 'View fullscreen';
                 fullscreenBtn.onclick = () => openDiagramFullscreen(svg);
 
+                // Insert SVG first, then append button (preserves event handler)
+                wrapper.innerHTML = svg;
                 wrapper.appendChild(fullscreenBtn);
-                wrapper.innerHTML += svg;
                 code.parentElement.replaceWith(wrapper);
             } catch (error) {
                 console.warn('Mermaid render error:', error);
