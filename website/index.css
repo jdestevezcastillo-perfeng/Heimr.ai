@@ -293,6 +293,14 @@ body {
     transform: translateY(-2px);
 }
 
+.coming-soon {
+    margin-top: var(--space-md);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    opacity: 0.8;
+}
+
 /* ===== Feature Cards Grid ===== */
 .features-grid {
     display: grid;
