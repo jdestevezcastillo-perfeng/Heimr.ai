@@ -29,6 +29,7 @@ logs/
 
 # Build artifacts
 build/
+dist/
 heimr_ai.egg-info/
 demos/output/
 load-tests/results/
