@@ -11,38 +11,45 @@ Heimr operates on a **Stateless Pipeline Architecture**. It ingests static load 
 ### System Context Diagram
 
 ```mermaid
-graph TD
-    User((User))
-    
-    subgraph Heimr["Heimr.ai Ecosystem"]
-        CLI[Heimr CLI]
-    end
-    
-    subgraph LoadTest["Load Testing Tools"]
-        JMeter[Apache JMeter]
-        k6[k6.io]
-        Gatling[Gatling]
-    end
-    
-    subgraph Observability["Observability Stack"]
-        Prometheus[Prometheus]
-        Loki[Loki]
-        Tempo[Tempo]
-    end
-    
-    subgraph AI["AI Inference"]
-        Ollama[Ollama]
-        OpenAI[OpenAI API]
+flowchart LR
+    subgraph Input["📥 Input Sources"]
+        direction TB
+        JMeter["JMeter\n.jtl/.csv"]
+        k6["k6\n.json"]
+        Gatling["Gatling\n.log"]
+        HAR["Browser\n.har"]
     end
 
-    User --> LoadTest
-    LoadTest --> CLI
-    User --> CLI
-    CLI --> Prometheus
-    CLI --> Loki
-    CLI --> Tempo
-    CLI --> Ollama
-    CLI --> OpenAI
+    subgraph Observability["📊 Observability"]
+        direction TB
+        Prom["Prometheus\nCPU/Memory"]
+        Loki["Loki\nLogs"]
+        Tempo["Tempo\nTraces"]
+    end
+
+    subgraph Heimr["🔍 Heimr Analysis Engine"]
+        direction TB
+        Parser["Parser\nNormalize Data"]
+        Detector["Detector\nFind Anomalies"]
+        Enricher["Enricher\nCorrelate Signals"]
+    end
+
+    subgraph AI["🤖 AI Layer"]
+        direction TB
+        Ollama["Local LLM\nLlama/Qwen"]
+        Cloud["Cloud API\nOpenAI/Anthropic"]
+    end
+
+    subgraph Output["📄 Output"]
+        Report["Analysis Report\n+ Root Cause"]
+    end
+
+    Input --> Parser
+    Parser --> Detector
+    Detector --> Enricher
+    Observability --> Enricher
+    Enricher --> AI
+    AI --> Report
 ```
 
 ---
