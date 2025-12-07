@@ -20,22 +20,29 @@ Technical details for developers and contributors.
 
 ```text
 heimr/
-├── parsers/          # Load test result parsers
-│   ├── jtl.py       # JMeter
-│   ├── k6.py        # k6
-│   ├── gatling.py   # Gatling
-│   ├── locust.py    # Locust
-│   └── har.py       # HAR files
-├── analyzer.py      # Core Analysis Pipeline + Python API
-├── detector.py      # Anomaly detection (Z-Score, IQR)
-├── kpi.py           # KPI calculations
-├── llm.py           # LLM integration (Ollama, OpenAI, Anthropic)
-├── prometheus.py    # Prometheus client
-├── loki.py          # Loki client
-├── tempo.py         # Tempo client
-├── comparator.py    # Baseline comparison
-├── pdf_generator.py # PDF report generation
-└── cli.py           # CLI interface
+├── parsers/              # Load test result parsers
+│   ├── __init__.py
+│   ├── base.py          # Base parser class
+│   ├── jtl.py           # JMeter
+│   ├── k6.py            # k6
+│   ├── gatling.py       # Gatling
+│   ├── locust.py        # Locust
+│   └── har.py           # HAR files
+├── reporters/            # Output formatters
+│   ├── github.py        # GitHub Actions integration
+│   └── junit.py         # JUnit XML output
+├── __init__.py          # Package exports (Analyzer, AnalysisResult)
+├── analyzer.py          # Core Analysis Pipeline + Python API
+├── cli.py               # CLI interface
+├── comparator.py        # Baseline comparison
+├── detector.py          # Anomaly detection (Z-Score, IQR)
+├── kpi.py               # KPI calculations
+├── llm.py               # LLM integration (Ollama, OpenAI, Anthropic)
+├── loki.py              # Loki client
+├── pdf_generator.py     # PDF report generation
+├── prometheus.py        # Prometheus client
+├── setup_llm.py         # LLM setup wizard
+└── tempo.py             # Tempo client
 ```
 
 ---
