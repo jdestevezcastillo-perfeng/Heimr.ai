@@ -14,35 +14,35 @@ Heimr operates on a **Stateless Pipeline Architecture**. It ingests static load 
 graph TD
     User((User))
     
-    subgraph Heimr.ai Ecosystem
+    subgraph Heimr["Heimr.ai Ecosystem"]
         CLI[Heimr CLI]
     end
     
-    subgraph Load Testing Tools
+    subgraph LoadTest["Load Testing Tools"]
         JMeter[Apache JMeter]
         k6[k6.io]
         Gatling[Gatling]
     end
     
-    subgraph Observability Stack
-        Prometheus[Prometheus - Metrics]
-        Loki[Loki - Logs]
-        Tempo[Tempo - Traces]
+    subgraph Observability["Observability Stack"]
+        Prometheus[Prometheus]
+        Loki[Loki]
+        Tempo[Tempo]
     end
     
-    subgraph AI Inference
-        Ollama[Ollama - Local Llama 3]
+    subgraph AI["AI Inference"]
+        Ollama[Ollama]
         OpenAI[OpenAI API]
     end
 
-    User -->|Runs Load Test| Load Testing Tools
-    Load Testing Tools -->|Generates Results| CLI
-    User -->|Executes Analysis| CLI
-    CLI -->|Queries| Prometheus
-    CLI -->|Queries| Loki
-    CLI -->|Queries| Tempo
-    CLI -->|Send Prompt| Ollama
-    CLI -->|Send Prompt| OpenAI
+    User --> LoadTest
+    LoadTest --> CLI
+    User --> CLI
+    CLI --> Prometheus
+    CLI --> Loki
+    CLI --> Tempo
+    CLI --> Ollama
+    CLI --> OpenAI
 ```
 
 ---
