@@ -23,34 +23,35 @@ flowchart TD
 
     subgraph Observability["📊 Observability"]
         direction TB
-        Prom["Prometheus\nCPU/Memory"]
-        Loki["Loki\nLogs"]
-        Tempo["Tempo\nTraces"]
+        Prom["Prometheus\nCPU/Memory/Network"]
+        Loki["Loki\nError Logs"]
+        Tempo["Tempo\nSlow Traces"]
     end
 
     subgraph Heimr["🔍 Heimr Analysis Engine"]
         direction TB
-        Parser["Parser\nNormalize Data"]
-        Detector["Detector\nFind Anomalies"]
-        Enricher["Enricher\nCorrelate Signals"]
+        Parser["Parser\nNormalize to DataFrame"]
+        Detector["Statistical Detector\nZ-Score + IQR"]
+        Enricher["Signal Enricher\nMulti-Signal Correlation"]
     end
 
     subgraph AI["🤖 AI Layer"]
         direction TB
-        Ollama["Local LLM\nLlama/Qwen"]
-        Cloud["Cloud API\nOpenAI/Anthropic"]
+        Context["Context Stuffing\nCompress to Prompt"]
+        LLM["LLM Inference\nLocal or Cloud"]
     end
 
     subgraph Output["📄 Output"]
-        Report["Analysis Report\n+ Root Cause"]
+        Report["Report + RCA\nMarkdown/PDF/JUnit"]
     end
 
     Input --> Parser
     Parser --> Detector
     Detector --> Enricher
     Observability --> Enricher
-    Enricher --> AI
-    AI --> Report
+    Enricher --> Context
+    Context --> LLM
+    LLM --> Report
 ```
 
 ---
