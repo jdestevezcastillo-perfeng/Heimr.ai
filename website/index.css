@@ -115,6 +115,13 @@ body {
     color: var(--text-primary);
 }
 
+.nav-logo-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px var(--accent-glow-teal));
+}
+
 .logo-text {
     font-size: 1.5rem;
     font-weight: 700;
