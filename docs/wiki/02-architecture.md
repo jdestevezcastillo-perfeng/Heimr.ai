@@ -17,6 +17,7 @@ flowchart LR
         JMeter["JMeter\n.jtl/.csv"]
         k6["k6\n.json"]
         Gatling["Gatling\n.log"]
+        Locust["Locust\n.csv"]
         HAR["Browser\n.har"]
     end
 
