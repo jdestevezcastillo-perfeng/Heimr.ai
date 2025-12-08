@@ -19,16 +19,16 @@ except ImportError:
     PLOTLY_AVAILABLE = False
 
 
-# Color scheme matching Heimr branding
+# Color scheme matching Heimr.ai website branding
 COLORS = {
-    'primary': '#00D4AA',      # Cyan/Teal
-    'secondary': '#7C3AED',    # Purple
+    'primary': '#00d9ff',      # Cyan from website
+    'secondary': '#00ffa3',    # Teal from website  
     'success': '#22C55E',      # Green
     'warning': '#F59E0B',      # Amber
     'danger': '#EF4444',       # Red
-    'muted': 'rgba(156, 163, 175, 0.5)',  # Gray 50% opacity
-    'background': '#0F172A',   # Dark navy
-    'text': '#E2E8F0',         # Light gray
+    'muted': 'rgba(138, 146, 176, 0.5)',  # text-secondary from website
+    'background': '#0a192f',   # bg-primary from website
+    'text': '#e6f1ff',         # text-primary from website
 }
 
 
@@ -89,7 +89,7 @@ class ReportCharts:
         
         fig = go.Figure()
         
-        # Histogram
+        # Histogram - explicitly vertical orientation
         fig.add_trace(go.Histogram(
             x=elapsed,
             nbinsx=50,
@@ -99,7 +99,7 @@ class ReportCharts:
             hovertemplate='%{x:.0f}ms: %{y} requests<extra></extra>'
         ))
         
-        # Percentile lines
+        # Percentile lines (vertical lines on x-axis)
         for pct, val, color, name in [
             (50, p50, COLORS['success'], 'P50'),
             (95, p95, COLORS['warning'], 'P95'),
@@ -110,7 +110,9 @@ class ReportCharts:
                          annotation_position="top",
                          annotation_font_color=color)
         
-        fig.update_layout(**cls._get_layout('Response Time Distribution'))
+        layout = cls._get_layout('Response Time Distribution', height=400)
+        layout['bargap'] = 0.1
+        fig.update_layout(**layout)
         fig.update_xaxes(title_text='Response Time (ms)')
         fig.update_yaxes(title_text='Request Count')
         
@@ -313,7 +315,8 @@ class ReportCharts:
             'disk': 'Disk I/O (MB/s)',
             'network': 'Network I/O (MB/s)',
             'db': 'Database Metrics',
-            'messaging': 'Messaging/Streaming'
+            'messaging': 'Messaging/Streaming',
+            'http': 'HTTP/Application Metrics'
         }
         fig.update_layout(**cls._get_layout(titles.get(metric_type, 'Resource Utilization')))
         fig.update_xaxes(title_text='Time')

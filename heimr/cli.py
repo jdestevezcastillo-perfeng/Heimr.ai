@@ -474,6 +474,14 @@ def generate_markdown_report_content(result: AnalysisResult, args) -> str:
                     report += msg_chart + "\n\n"
                     charts_added = True
             
+            # HTTP/Application Metrics
+            if categorized.get('http'):
+                http_chart = ReportCharts.resource_utilization(result.prom_metrics, 'http')
+                if http_chart:
+                    report += "### HTTP/Application Metrics\n\n"
+                    report += http_chart + "\n\n"
+                    charts_added = True
+            
             if not charts_added:
                 report += "> ⚠️ *Prometheus metrics received but no recognizable CPU/Memory/GPU patterns found.*\n\n"
                     

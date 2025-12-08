@@ -112,6 +112,20 @@ class PrometheusNormalizer:
         r'queue_.*',
         r'message_.*',
     ]
+    
+    # HTTP/Application metrics patterns
+    HTTP_PATTERNS = [
+        r'http_requests_total',
+        r'http_requests_failed_total',
+        r'http_request_duration_.*',
+        r'http_request_size_bytes.*',
+        r'http_response_size_bytes.*',
+        r'http_active_requests',
+        r'http_server_.*',
+        r'http_client_.*',
+        # Injection/chaos metrics from our demo
+        r'injection_.*',
+    ]
 
     @classmethod
     def categorize_metrics(cls, metrics: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
@@ -128,6 +142,7 @@ class PrometheusNormalizer:
             'disk': {},
             'network': {},
             'messaging': {},
+            'http': {},
             'other': {}
         }
         
@@ -169,6 +184,10 @@ class PrometheusNormalizer:
         for pattern in cls.MESSAGING_PATTERNS:
             if re.match(pattern, name_lower):
                 return 'messaging'
+        
+        for pattern in cls.HTTP_PATTERNS:
+            if re.match(pattern, name_lower):
+                return 'http'
                 
         return 'other'
     

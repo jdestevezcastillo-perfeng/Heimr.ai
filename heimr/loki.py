@@ -56,6 +56,7 @@ class LokiClient:
     def get_error_logs(self, start_time: datetime, end_time: datetime, limit: int = 50) -> List[str]:
         """
         Fetches logs containing 'error' or 'exception'.
+        Tries multiple query patterns to support different environments.
         """
         if self.file_path:
             import json
@@ -75,7 +76,38 @@ class LokiClient:
                 print(f"Error reading Loki file: {e}")
                 return []
 
-        # Generic query to find errors in all jobs (might be slow/heavy in prod)
-        query = '{namespace=~"heimr-(test|demo)"} |= "error"'
-        logs = self.query_logs(query, start_time, end_time, limit)
-        return [log['line'] for log in logs]
+        # Try multiple query patterns for different environments
+        queries = [
+            # Local demo environment (demo-api server)
+            '{job="demo-api"} |= "error"',
+            '{service="demo-api"} |= "error"',
+            # Kubernetes/Heimr namespaces
+            '{namespace=~"heimr-(test|demo)"} |= "error"',
+            # Generic fallback - any error logs
+            '{job=~".+"} |= "error" |= "level"',
+        ]
+        
+        for query in queries:
+            logs = self.query_logs(query, start_time, end_time, limit)
+            if logs:
+                return [log['line'] for log in logs]
+        
+        return []
+    
+    def get_all_logs(self, start_time: datetime, end_time: datetime, limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Fetches all logs within the time range.
+        Tries multiple query patterns to support different environments.
+        """
+        queries = [
+            '{job="demo-api"}',
+            '{service="demo-api"}',
+            '{namespace=~"heimr-(test|demo)"}',
+        ]
+        
+        for query in queries:
+            logs = self.query_logs(query, start_time, end_time, limit)
+            if logs:
+                return logs
+        
+        return []
