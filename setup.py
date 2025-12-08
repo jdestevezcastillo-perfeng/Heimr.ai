@@ -52,6 +52,11 @@ setup(
         "requests>=2.28.0",
         # YAML config file support
         "pyyaml>=6.0",
+        # PDF Generation
+        "weasyprint>=57.0",
+        # Charts/Graphs
+        "plotly>=5.18.0",
+        "kaleido>=0.2.1",
     ],
     extras_require={
         # LLM providers - install only what you need

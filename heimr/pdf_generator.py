@@ -170,6 +170,51 @@ class PDFGenerator:
     h1, h2, h3 {
         page-break-after: avoid;
     }
+
+    /* Semaphore Status Banners */
+    div[style*="border-left: 4px solid #22C55E"] {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)) !important;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    div[style*="border-left: 4px solid #F59E0B"] {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)) !important;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    div[style*="border-left: 4px solid #EF4444"] {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)) !important;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Key Metrics Table */
+    table th:first-child, table td:first-child {
+        text-align: center;
+    }
+
+    /* Chart containers - for PDF we hide interactive elements */
+    .js-plotly-plot, .plotly {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+
+    /* Horizontal rules */
+    hr {
+        border: none;
+        border-top: 2px solid #e5e7eb;
+        margin: 30px 0;
+    }
+
+    /* Emoji support */
+    .emoji {
+        font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    }
     """
 
     def __init__(self):

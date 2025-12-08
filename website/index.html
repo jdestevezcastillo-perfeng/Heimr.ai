@@ -16,6 +16,128 @@
     <link rel="stylesheet" href="index.css">
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Demo Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            margin: 10% auto;
+            padding: var(--space-lg);
+            border: 1px solid var(--accent-cyan);
+            border-radius: var(--radius-lg);
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 0 50px var(--accent-glow-cyan);
+            position: relative;
+        }
+
+        .close-modal {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover,
+        .close-modal:focus {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--text-muted);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            text-align: center;
+            margin: var(--space-md) 0;
+            transition: var(--transition-normal);
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--accent-teal);
+            background: rgba(0, 255, 163, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-sm);
+            color: var(--text-muted);
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid var(--bg-primary);
+            border-top: 4px solid var(--accent-cyan);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: var(--space-md) auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #report-content {
+            margin-top: var(--space-lg);
+            max-height: 500px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: var(--space-md);
+            border-radius: var(--radius-sm);
+        }
+
+        /* Markdown Styles for Report */
+        #report-content h1,
+        #report-content h2,
+        #report-content h3 {
+            color: var(--text-primary);
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        #report-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+
+        #report-content th,
+        #report-content td {
+            border: 1px solid var(--text-muted);
+            padding: 8px;
+            text-align: left;
+        }
+
+        #report-content th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
 
 <body>
@@ -81,7 +203,14 @@
                 </div>
 
                 <div class="hero-actions">
-                    <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai" class="btn btn--primary">
+                    <button id="open-demo-btn" class="btn btn--primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M5 3C3.34315 3 2 4.34315 2 6V18C2 19.6569 3.34315 21 5 21H19C20.6569 21 22 19.6569 22 18V6C22 4.34315 20.6569 3 19 3H5ZM19 5C19.5523 5 20 5.44772 20 6V18C20 18.5523 19.5523 19 19 19H5C4.44772 19 4 18.5523 4 18V6C4.44772 5 5 5 5 5H19ZM11.2929 7.29289C11.6834 6.90237 12.3166 6.90237 12.7071 7.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L12.7071 16.7071C12.3166 17.0976 11.6834 17.0976 11.2929 16.7071C10.9024 16.3166 10.9024 15.6834 11.2929 15.2929L13.5858 13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44772 11 8 11H13.5858L11.2929 8.70711C10.9024 8.31658 10.9024 7.68342 11.2929 7.29289Z" />
+                        </svg>
+                        Try Live Demo
+                    </button>
+                    <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai" class="btn btn--secondary">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
@@ -92,6 +221,31 @@
                         class="btn btn--secondary">
                         Read the Docs
                     </a>
+                </div>
+
+                <!-- Demo Modal -->
+                <div id="demo-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal">&times;</span>
+                        <h2>Heimr Cloud Demo</h2>
+                        <p>Upload a .jtl load test file. Optionally include .json files for Prometheus, Loki, or Tempo
+                            data. (Max 10MB total)</p>
+
+                        <div id="drop-area" class="upload-area">
+                            <div class="upload-icon">📂</div>
+                            <h3>Drag & Drop files here</h3>
+                            <p>or click to browse</p>
+                            <input type="file" id="fileElem" multiple accept=".jtl,.log,.csv,.json"
+                                style="display:none">
+                        </div>
+
+                        <div id="status-area" style="text-align: center; display: none;">
+                            <div class="loader"></div>
+                            <p id="status-text">Analyzing...</p>
+                        </div>
+
+                        <div id="report-content"></div>
+                    </div>
                 </div>
 
                 <!-- Supported Tools -->
@@ -217,6 +371,7 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="demo.js"></script>
 </body>
 
 </html>

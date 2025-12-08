@@ -123,116 +123,516 @@ def print_result_summary(result: AnalysisResult):
         print("No errors or anomalies detected.")
 
 
+def enhance_llm_output(llm_text: str, result) -> str:
+    """
+    Enhance LLM output with inline visualizations based on detected keywords.
+    
+    Detects patterns like:
+    - "correlation between X and Y" -> adds correlation badge
+    - "spike at time T" -> adds timeline marker
+    - "error log shows..." -> adds scrollable log box
+    """
+    import re
+    
+    if not llm_text:
+        return llm_text
+    
+    enhanced = llm_text
+    annotations = []
+    
+    # Detect correlation mentions
+    correlation_patterns = [
+        r'correlation between ([\w\s]+) and ([\w\s]+)',
+        r'correlates with ([\w\s]+)',
+        r'relationship between ([\w\s]+) and ([\w\s]+)',
+        r'([\w\s]+) increased.*when ([\w\s]+)',
+        r'([\w\s]+) spiked.*alongside ([\w\s]+)',
+    ]
+    
+    correlations_found = []
+    for pattern in correlation_patterns:
+        matches = re.findall(pattern, enhanced, re.IGNORECASE)
+        correlations_found.extend(matches)
+    
+    # Add correlation badge if correlations were mentioned
+    if correlations_found:
+        badge = "\n\n> 📊 **Correlations Detected**: "
+        for corr in correlations_found[:3]:  # Max 3
+            if isinstance(corr, tuple):
+                badge += f"`{corr[0].strip()}` ↔ `{corr[1].strip()}`, "
+            else:
+                badge += f"`{corr.strip()}`, "
+        badge = badge.rstrip(", ") + "\n"
+        annotations.append(badge)
+    
+    # Detect spike mentions
+    spike_patterns = [
+        r'spike at (\d{1,2}:\d{2})',
+        r'peaked at (\d{1,2}:\d{2})',
+        r'surge at (\d{1,2}:\d{2})',
+    ]
+    
+    spikes_found = []
+    for pattern in spike_patterns:
+        matches = re.findall(pattern, enhanced, re.IGNORECASE)
+        spikes_found.extend(matches)
+    
+    if spikes_found:
+        badge = "> ⏱️ **Key Timestamps**: "
+        badge += ", ".join([f"`{t}`" for t in spikes_found[:5]])
+        badge += "\n"
+        annotations.append(badge)
+    
+    # Detect log/error references and create scrollable box
+    if result.loki_logs and ('error log' in enhanced.lower() or 'logs show' in enhanced.lower()):
+        # Add a sample of relevant logs in a scrollable box
+        log_samples = result.loki_logs[:3]
+        if log_samples:
+            log_box = "\n\n<details>\n<summary>📜 Referenced Error Logs (click to expand)</summary>\n\n```\n"
+            for log in log_samples:
+                log_str = str(log)[:200]
+                log_box += f"{log_str}\n"
+            log_box += "```\n</details>\n"
+            annotations.append(log_box)
+    
+    # Insert annotations at the end of the LLM output
+    if annotations:
+        enhanced += "\n\n---\n### 🔗 Analysis Insights\n"
+        enhanced += "\n".join(annotations)
+    
+    return enhanced
+
+
+def detect_timeline_mismatch(result) -> dict:
+    """
+    Detect if observability data timeline doesn't match the load test window.
+    
+    Returns dict with:
+        - has_mismatch: bool
+        - test_start/test_end: load test window
+        - prom_start/prom_end: prometheus window (if available)
+        - overlap_pct: percentage of overlap
+        - message: human-readable warning
+    """
+    mismatch = {
+        'has_mismatch': False,
+        'test_start': None,
+        'test_end': None,
+        'prom_start': None,
+        'prom_end': None,
+        'overlap_pct': 100,
+        'message': None
+    }
+    
+    df = result.df
+    if df.empty or 'timestamp_dt' not in df.columns:
+        return mismatch
+    
+    # Get load test time window
+    test_start = df['timestamp_dt'].min()
+    test_end = df['timestamp_dt'].max()
+    mismatch['test_start'] = test_start
+    mismatch['test_end'] = test_end
+    
+    # Check Prometheus metrics timestamps
+    if result.prom_metrics:
+        try:
+            from heimr.prometheus_normalizer import PrometheusNormalizer
+            import pandas as pd
+            
+            prom_timestamps = []
+            for metric_name, metric_data in result.prom_metrics.items():
+                series = PrometheusNormalizer.extract_time_series(metric_data)
+                for point in series:
+                    prom_timestamps.append(point['timestamp'])
+            
+            if prom_timestamps:
+                prom_start = pd.Timestamp(min(prom_timestamps), unit='s')
+                prom_end = pd.Timestamp(max(prom_timestamps), unit='s')
+                mismatch['prom_start'] = prom_start
+                mismatch['prom_end'] = prom_end
+                
+                # Calculate overlap
+                overlap_start = max(test_start, prom_start)
+                overlap_end = min(test_end, prom_end)
+                
+                test_duration = (test_end - test_start).total_seconds()
+                if test_duration > 0:
+                    overlap_duration = max(0, (overlap_end - overlap_start).total_seconds())
+                    overlap_pct = (overlap_duration / test_duration) * 100
+                    mismatch['overlap_pct'] = overlap_pct
+                    
+                    if overlap_pct < 50:
+                        mismatch['has_mismatch'] = True
+                        mismatch['message'] = (
+                            f"⚠️ **Timeline Mismatch**: Prometheus data covers only "
+                            f"{overlap_pct:.0f}% of the load test window. "
+                            f"Metrics may not reflect actual test conditions."
+                        )
+                    elif overlap_pct < 90:
+                        mismatch['has_mismatch'] = True
+                        mismatch['message'] = (
+                            f"⚠️ **Partial Timeline Overlap**: {overlap_pct:.0f}% overlap "
+                            f"between load test and Prometheus data."
+                        )
+        except Exception:
+            pass  # Silently ignore parsing errors
+    
+    return mismatch
+
+
 def generate_markdown_report_content(result: AnalysisResult, args) -> str:
-    """Generates the full markdown report content."""
+    """Generates the full markdown report content with premium formatting."""
     df = result.df
     kpi_data = result.kpi
     
-    status_icon = "❌" if result.status == "FAILED" else "✅"
+    # === SEMAPHORE STATUS LOGIC ===
+    # 🟢 OK: No anomalies, no errors, no warnings
+    # 🟡 WARNING: No anomalies BUT (Loki errors OR Tempo slow traces OR concerning metrics)
+    # 🔴 FAILED: Anomalies detected OR high error rate
     
-    header = ""
+    has_anomalies = result.anomaly_summary.get('count', 0) > 0
+    has_errors = kpi_data['errors']['rate'] > 0
+    has_loki_errors = len(result.loki_logs) > 0
+    has_slow_traces = len(result.tempo_traces) > 5  # More than 5 slow traces
+    
+    if has_anomalies or kpi_data['errors']['rate'] > 1.0:
+        status = "FAILED"
+        status_icon = "🔴"
+        status_color = "#EF4444"
+    elif has_loki_errors or has_slow_traces or has_errors:
+        status = "WARNING"
+        status_icon = "🟡"
+        status_color = "#F59E0B"
+    else:
+        status = "OK"
+        status_icon = "🟢"
+        status_color = "#22C55E"
+    
+    # === EXECUTIVE SUMMARY ===
+    report = ""
+    
+    # Header with status banner
+    report += f"""
+<div style="background: linear-gradient(135deg, {status_color}22, {status_color}11); border-left: 4px solid {status_color}; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
 
+# {status_icon} Performance Analysis: **{status}**
+
+</div>
+
+"""
+    
+    # One-liner verdict
+    total_reqs = kpi_data['throughput']['total_requests']
+    error_rate = kpi_data['errors']['rate']
+    p99 = kpi_data['latency']['p99']
+    duration = kpi_data['duration']
+    
+    verdict_parts = [f"Processed **{total_reqs:,} requests** in {duration:.0f}s"]
+    if error_rate > 0:
+        verdict_parts.append(f"with **{error_rate:.2f}%** errors")
+    if p99 > 500:
+        verdict_parts.append(f"P99 latency **{p99:.0f}ms** exceeds typical API threshold")
+    
+    report += f"> {' '.join(verdict_parts)}.\n\n"
+    
+    # Check for timeline mismatch warning
+    timeline_info = detect_timeline_mismatch(result)
+    if timeline_info['has_mismatch']:
+        report += f"> {timeline_info['message']}\n\n"
+    
+    # Key Metrics Grid
+    report += "## 📊 Key Metrics\n\n"
+    report += "| Throughput | Error Rate | P99 Latency | Anomalies |\n"
+    report += "|:---:|:---:|:---:|:---:|\n"
+    anomaly_count = result.anomaly_summary.get('count', 0)
+    report += f"| **{kpi_data['throughput']['requests_per_second']:.1f}** req/s | **{error_rate:.2f}%** | **{p99:.0f}** ms | **{anomaly_count}** |\n\n"
+    
+    # Top Recommendation (heuristic-based)
+    if has_anomalies:
+        # Find worst endpoint
+        if not df.empty and 'endpoint' in df.columns:
+            endpoint_p99 = df.groupby('endpoint')['elapsed'].quantile(0.99)
+            worst = endpoint_p99.idxmax()
+            report += f"> 💡 **Recommendation**: Investigate `{worst}` — P99 latency is {endpoint_p99[worst]:.0f}ms\n\n"
+    elif has_loki_errors:
+        report += f"> 💡 **Recommendation**: Review {len(result.loki_logs)} error logs in Loki for application issues\n\n"
+    elif has_slow_traces:
+        report += f"> 💡 **Recommendation**: Analyze {len(result.tempo_traces)} slow traces in Tempo for bottlenecks\n\n"
+    
     # Context Tags
     if args.tag:
-        header += "### Build Context\n"
-        header += "| Key | Value |\n|---|---|\n"
+        report += "### Build Context\n"
+        report += "| Key | Value |\n|---|---|\n"
         for tag in args.tag:
             if '=' in tag:
                 k, v = tag.split('=', 1)
-                header += f"| **{k}** | `{v}` |\n"
+                report += f"| **{k}** | `{v}` |\n"
             else:
-                header += f"| **Tag** | `{tag}` |\n"
-        header += "\n"
-
-    if result.status == "FAILED":
-        reasons_str = ", ".join(result.failure_signals)
-        header += f"# {status_icon} {result.status}\n**Reasons**: {reasons_str}\n\n"
-    else:
-        header += f"# {status_icon} {result.status}\nNo errors or anomalies detected.\n\n"
-
-    # KPI Table
-    kpi_table = "## Level 1: Primary KPIs\n"
-    kpi_table += "| Metric | Value | Reference |\n|---|---|---|\n"
-    kpi_table += f"| P95 Latency | {kpi_data['latency']['p95']:.2f} ms | < 500ms (API) |\n"
-    kpi_table += f"| Error Rate | {kpi_data['errors']['rate']:.2f}% | < 1.0% |\n"
-    kpi_table += (
-        f"| Throughput | {kpi_data['throughput']['requests_per_second']:.2f} req/s | "
-        f"{kpi_data['throughput']['bytes_in_per_second'] / 1024:.2f} KB/s |\n\n"
-    )
-
-    # Level 2: Summary
-    kpi_table += "## Level 2: Summary\n"
-    kpi_table += f"- **Concurrency**: Max {kpi_data['concurrency']['max']} VUs, Avg {kpi_data['concurrency']['avg']} VUs\n"
-    kpi_table += f"- **Anomalies**: {result.anomaly_summary['count']} detected"
-    if result.anomaly_summary['count'] > 0:
-        kpi_table += f" (Avg {result.anomaly_summary['avg_latency']:.2f} ms)"
-    kpi_table += "\n"
+                report += f"| **Tag** | `{tag}` |\n"
+        report += "\n"
     
-    if args.prometheus:
-        kpi_table += f"- **Prometheus**: Fetched {len(result.prom_metrics)} metric types\n"
-    if args.loki:
-        kpi_table += f"- **Loki**: Fetched {len(result.loki_logs)} error logs\n"
-    if args.tempo:
-        kpi_table += f"- **Tempo**: Fetched {len(result.tempo_traces)} slow traces\n"
-    kpi_table += "\n"
-
-    # Per Endpoint Breakdown
-    kpi_table += "## Level 3: Per Endpoint Breakdown\n"
-    kpi_table += "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
-    kpi_table += "|---|---|---|---|---|---|---|\n"
-
-    if not df.empty:
-        if 'endpoint' in df.columns:
-            grouped = df.groupby('endpoint')
-            for name, group in grouped:
-                count = len(group)
-                duration_sec = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
-                throughput = count / duration_sec if duration_sec > 0 else 0
-                error_count = len(group[~group['success']])
-                error_rate = (error_count / count) * 100
-                avg = group['elapsed'].mean()
-                p95 = group['elapsed'].quantile(0.95)
-                p99 = group['elapsed'].quantile(0.99)
-                kpi_table += (
-                    f"| {name} | {count} | {throughput:.2f} | {error_rate:.2f}% | "
-                    f"{avg:.2f} | {p95:.2f} | {p99:.2f} |\n"
-                )
-        else:
-            kpi_table += "| Unknown Endpoint | - | - | - | - | - | - |\n"
-
-        # Aggregate Row
-        total_count = kpi_data['throughput']['total_requests']
-        total_throughput = kpi_data['throughput']['requests_per_second']
-        total_error_rate = kpi_data['errors']['rate']
-        total_avg = kpi_data['latency']['avg']
-        total_p95 = kpi_data['latency']['p95']
-        total_p99 = kpi_data['latency']['p99']
-        kpi_table += f"| **TOTAL** | **{total_count}** | **{total_throughput:.2f}** | **{total_error_rate:.2f}%** | **{total_avg:.2f}** | **{total_p95:.2f}** | **{total_p99:.2f}** |\n"
-    else:
-        kpi_table += "| No data | - | - | - | - | - | - |\n"
+    # === PERFORMANCE CHARTS ===
+    report += "---\n\n## 📈 Performance Charts\n\n"
+    
+    try:
+        from heimr.report_charts import ReportCharts
         
-    # Appendix: Logs & Traces
-    if result.loki_logs or result.tempo_traces:
-        kpi_table += "\n## Level 4: Observability Data\n"
-        if result.loki_logs:
-            kpi_table += "### Loki Error Logs (Sample)\n"
-            for log in result.loki_logs[:5]: # Show first 5
-                kpi_table += f"- `{log}`\n"
-            kpi_table += "\n"
-        if result.tempo_traces:
-            kpi_table += "### Tempo Slow Traces (Sample)\n"
-            for trace in result.tempo_traces[:5]:
-                kpi_table += f"- TraceID: `{trace.get('traceID')}` ({trace.get('duration')}ms)\n"
-            kpi_table += "\n"
-
-    full_explanation = result.llm_explanation or ""
-    # Replace placeholder
-    if "[KPI_TABLE]" in full_explanation:
-        final_explanation = full_explanation.replace("[KPI_TABLE]", kpi_table)
+        # Latency Histogram
+        latency_chart = ReportCharts.latency_histogram(df)
+        if latency_chart:
+            report += "### Response Time Distribution\n\n"
+            report += latency_chart + "\n\n"
+        
+        # Response Time Over Time
+        response_chart = ReportCharts.response_time_over_time(df)
+        if response_chart:
+            report += "### Response Time Over Load\n\n"
+            report += response_chart + "\n\n"
+        
+        # Throughput
+        throughput_chart = ReportCharts.throughput_over_time(df)
+        if throughput_chart:
+            report += "### Throughput Over Time\n\n"
+            report += throughput_chart + "\n\n"
+        
+        # Error Rate with Throughput Overlay
+        error_chart = ReportCharts.error_rate_with_throughput(df)
+        if error_chart:
+            report += "### Error Rate (with Throughput Overlay)\n\n"
+            report += error_chart + "\n\n"
+            
+    except ImportError:
+        report += "*Charts unavailable - install plotly: `pip install plotly kaleido`*\n\n"
+    except Exception as e:
+        report += f"*Chart generation error: {e}*\n\n"
+    
+    # === RESOURCE UTILIZATION ===
+    report += "---\n\n## 🖥️ Resource Utilization\n\n"
+    
+    if result.prom_metrics:
+        try:
+            from heimr.report_charts import ReportCharts
+            from heimr.prometheus_normalizer import PrometheusNormalizer
+            
+            categorized = PrometheusNormalizer.categorize_metrics(result.prom_metrics)
+            charts_added = False
+            
+            # CPU
+            if categorized.get('cpu'):
+                cpu_chart = ReportCharts.resource_utilization(result.prom_metrics, 'cpu')
+                if cpu_chart:
+                    report += "### CPU Utilization\n\n"
+                    report += cpu_chart + "\n\n"
+                    charts_added = True
+            
+            # Memory
+            if categorized.get('memory'):
+                mem_chart = ReportCharts.resource_utilization(result.prom_metrics, 'memory')
+                if mem_chart:
+                    report += "### Memory Usage\n\n"
+                    report += mem_chart + "\n\n"
+                    charts_added = True
+            
+            # GPU
+            if categorized.get('gpu'):
+                gpu_chart = ReportCharts.resource_utilization(result.prom_metrics, 'gpu')
+                if gpu_chart:
+                    report += "### GPU Utilization\n\n"
+                    report += gpu_chart + "\n\n"
+                    charts_added = True
+            
+            # Disk I/O
+            if categorized.get('disk'):
+                disk_chart = ReportCharts.resource_utilization(result.prom_metrics, 'disk')
+                if disk_chart:
+                    report += "### Disk I/O\n\n"
+                    report += disk_chart + "\n\n"
+                    charts_added = True
+            
+            # Network I/O
+            if categorized.get('network'):
+                net_chart = ReportCharts.resource_utilization(result.prom_metrics, 'network')
+                if net_chart:
+                    report += "### Network I/O\n\n"
+                    report += net_chart + "\n\n"
+                    charts_added = True
+            
+            # Database
+            if categorized.get('db'):
+                db_chart = ReportCharts.resource_utilization(result.prom_metrics, 'db')
+                if db_chart:
+                    report += "### Database Metrics\n\n"
+                    report += db_chart + "\n\n"
+                    charts_added = True
+            
+            # Messaging/Streaming (Kafka, RabbitMQ, etc.)
+            if categorized.get('messaging'):
+                msg_chart = ReportCharts.resource_utilization(result.prom_metrics, 'messaging')
+                if msg_chart:
+                    report += "### Messaging/Streaming\n\n"
+                    report += msg_chart + "\n\n"
+                    charts_added = True
+            
+            if not charts_added:
+                report += "> ⚠️ *Prometheus metrics received but no recognizable CPU/Memory/GPU patterns found.*\n\n"
+                    
+        except Exception as e:
+            report += f"*Resource charts error: {e}*\n\n"
     else:
-        final_explanation = f"{kpi_table}\n\n" + full_explanation
+        report += """> ⚠️ **No Prometheus metrics provided.**
+>
+> Add `--prometheus <url_or_file>` to include hardware monitoring:
+> - CPU/Memory utilization
+> - GPU metrics (if available)
+> - Disk and Network I/O
 
-    return header + final_explanation
+"""
+    
+    # === DETAILED DATA BREAKDOWN ===
+    report += "---\n\n## 📋 Detailed Data Breakdown\n\n"
+    
+    # Per Endpoint KPIs
+    report += "### Per-Endpoint Performance\n\n"
+    report += "| Endpoint | Requests | RPS | Error % | Avg (ms) | P95 (ms) | P99 (ms) |\n"
+    report += "|---|---:|---:|---:|---:|---:|---:|\n"
+    
+    if not df.empty and 'endpoint' in df.columns:
+        grouped = df.groupby('endpoint')
+        for name, group in grouped:
+            count = len(group)
+            duration_sec = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
+            throughput = count / duration_sec if duration_sec > 0 else 0
+            error_count = len(group[~group['success']])
+            error_rate = (error_count / count) * 100
+            avg = group['elapsed'].mean()
+            p95 = group['elapsed'].quantile(0.95)
+            p99 = group['elapsed'].quantile(0.99)
+            
+            # Color coding for error rate
+            error_display = f"{error_rate:.2f}%"
+            if error_rate > 1:
+                error_display = f"**{error_rate:.2f}%** 🔴"
+            elif error_rate > 0:
+                error_display = f"{error_rate:.2f}% 🟡"
+                
+            report += f"| `{name}` | {count:,} | {throughput:.1f} | {error_display} | {avg:.0f} | {p95:.0f} | {p99:.0f} |\n"
+        
+        # Total row
+        report += f"| **TOTAL** | **{kpi_data['throughput']['total_requests']:,}** | "
+        report += f"**{kpi_data['throughput']['requests_per_second']:.1f}** | "
+        report += f"**{kpi_data['errors']['rate']:.2f}%** | "
+        report += f"**{kpi_data['latency']['avg']:.0f}** | "
+        report += f"**{kpi_data['latency']['p95']:.0f}** | "
+        report += f"**{kpi_data['latency']['p99']:.0f}** |\n"
+    else:
+        report += "| *No endpoint data* | - | - | - | - | - | - |\n"
+    
+    report += "\n"
+    
+    # Loki Logs Summary (Grouped by Error Type)
+    report += "### 📝 Log Analysis (Loki)\n\n"
+    
+    if result.loki_logs:
+        # Group by error type/pattern
+        error_groups = {}
+        for log in result.loki_logs:
+            log_str = str(log).lower()
+            # Simple grouping by first significant words
+            if 'error' in log_str:
+                key = 'ERROR'
+            elif 'warn' in log_str:
+                key = 'WARNING'
+            elif 'timeout' in log_str:
+                key = 'TIMEOUT'
+            elif 'exception' in log_str:
+                key = 'EXCEPTION'
+            else:
+                key = 'OTHER'
+            
+            if key not in error_groups:
+                error_groups[key] = {'count': 0, 'samples': []}
+            error_groups[key]['count'] += 1
+            if len(error_groups[key]['samples']) < 2:
+                error_groups[key]['samples'].append(log[:150] + '...' if len(str(log)) > 150 else log)
+        
+        report += "| Type | Count | Sample |\n|---|---:|---|\n"
+        for error_type, data in sorted(error_groups.items(), key=lambda x: -x[1]['count']):
+            sample = data['samples'][0] if data['samples'] else '-'
+            report += f"| **{error_type}** | {data['count']} | `{sample}` |\n"
+        report += "\n"
+    else:
+        report += """> ℹ️ **No Loki logs provided.**
+>
+> Add `--loki <url_or_file>` to include application log analysis:
+> - Error log grouping by type
+> - Warning detection
+> - Exception stack traces
+
+"""
+    
+    # Tempo Traces Summary
+    report += "### 🔍 Slow Traces (Tempo)\n\n"
+    
+    if result.tempo_traces:
+        report += "| Trace ID | Duration | Operation | Status |\n|---|---:|---|---|\n"
+        
+        for trace in result.tempo_traces[:10]:
+            trace_id = trace.get('traceID', 'N/A')[:16] + '...'
+            duration = trace.get('duration', 0)
+            
+            # Extract root span info
+            spans = trace.get('spans', [])
+            root_op = 'Unknown'
+            status = 'OK'
+            if spans:
+                root_span = spans[0]
+                root_op = root_span.get('operationName', 'Unknown')
+                # Check for error tags
+                for tag in root_span.get('tags', []):
+                    if tag.get('key') == 'error' and tag.get('value'):
+                        status = '🔴 Error'
+                    elif tag.get('key') == 'http.status_code':
+                        code = int(tag.get('value', 200))
+                        if code >= 500:
+                            status = f'🔴 {code}'
+                        elif code >= 400:
+                            status = f'🟡 {code}'
+            
+            report += f"| `{trace_id}` | {duration:.0f}ms | `{root_op}` | {status} |\n"
+        
+        if len(result.tempo_traces) > 10:
+            report += f"\n*... and {len(result.tempo_traces) - 10} more slow traces*\n"
+        report += "\n"
+    else:
+        report += """> ℹ️ **No Tempo traces provided.**
+>
+> Add `--tempo <url_or_file>` to include distributed trace analysis:
+> - Slow request breakdown
+> - Service-to-service latency
+> - Error propagation paths
+
+"""
+    
+    # === AI ROOT CAUSE ANALYSIS ===
+    report += "---\n\n## 🤖 AI Root Cause Analysis\n\n"
+    
+    if result.llm_explanation:
+        # Enhance LLM output with inline visualizations
+        enhanced_analysis = enhance_llm_output(result.llm_explanation, result)
+        report += enhanced_analysis
+        report += "\n"
+    else:
+        report += """> ℹ️ **AI analysis not available.**
+>
+> Run without `--no-llm` to enable AI-powered root cause analysis.
+> Requires Ollama with Llama 3.1 or an OpenAI API key.
+>
+> Quick setup: `heimr setup-llm`
+
+"""
+    
+    return report
 
 
 def main():
@@ -283,7 +683,7 @@ def main():
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file")
     analyze_parser.add_argument("--compare-loki", help="Path to baseline Loki logs file")
     analyze_parser.add_argument("--compare-tempo", help="Path to baseline Tempo traces file")
-    analyze_parser.add_argument("--fail-on-regression", type=float, help="Fail if metric worsens by %")
+    analyze_parser.add_argument("--fail-on-regression", type=float, help="Fail if metric worsens by %%")
     analyze_parser.add_argument("--fail-condition", action="append", help="Fail if condition is met")
     analyze_parser.add_argument("--tag", action="append", help="Add metadata tag to report")
     analyze_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY", help="Generate GH Summary")
@@ -292,15 +692,37 @@ def main():
     args = parser.parse_args()
 
     if args.command == "config-init":
-        # ... logic for config init (keep simple string write for now to save space, or restore full content)
-        # For brevity, I'll restore the essential content
         config_content = '''# Heimr Configuration File
-prometheus: http://localhost:9090
-loki: http://localhost:3100
-tempo: http://localhost:3200
-explain: true
-llm_model: llama3.1:8b
-output: ./reports/analysis.md
+# Documentation: https://github.com/jdestevezcastillo-perfeng/Heimr.ai/wiki
+
+# === Load Test Analysis ===
+# Enable AI-powered root cause analysis
+disable_llm: false
+
+# LLM Configuration
+# Use local Ollama models or remote providers
+llm_model: qwen2.5:14b  # Recommended for best performance/speed balance
+llm_url: http://localhost:11434  # Default Ollama URL
+
+# === Observability Integrations ===
+# Uncomment and set paths/URLs to enable multi-signal analysis.
+# Supports local files (.json) or HTTP URLs.
+
+# Prometheus (Metrics)
+# prometheus: http://prometheus:9090
+# prometheus: ./data/prometheus_metrics.json
+
+# Loki (Logs)
+# loki: http://loki:3100
+# loki: ./data/loki_logs.json
+
+# Tempo (Traces)
+# tempo: http://tempo:3200
+# tempo: ./data/tempo_traces.json
+
+# === Reporting ===
+# output: ./reports/analysis.html  # Default output path
+# open_browser: true               # Open report automatically
 '''
         with open(args.output, 'w') as f:
             f.write(config_content)
@@ -352,21 +774,50 @@ output: ./reports/analysis.md
 
         # --- Report Generation ---
         if args.output:
-            report_content = generate_markdown_report_content(result, args)
-            with open(args.output, "w") as f:
-                f.write(report_content)
-            print(f"✅ Report saved to: {args.output}")
-
-            # PDF Generation
-            print("\n--- Generating PDF Report ---")
+            # Step 1: Generate HTML report with interactive Plotly charts
+            print("\n--- Generating HTML Report (Interactive Charts) ---")
             try:
-                from heimr.pdf_generator import PDFGenerator
-                pdf_gen = PDFGenerator()
-                pdf_path = args.output.rsplit('.', 1)[0] + '.pdf'
-                pdf_gen.generate_pdf(report_content, pdf_path)
-                print(f"✅ PDF report saved to: {pdf_path}")
+                from heimr.report_charts import ReportCharts
+                from heimr.html_generator import HTMLReportGenerator
+                
+                # Use HTML mode for interactive charts
+                ReportCharts.set_output_mode('html')
+                html_content = generate_markdown_report_content(result, args)
+                
+                html_gen = HTMLReportGenerator()
+                html_path = args.output.rsplit('.', 1)[0] + '.html'
+                html_gen.generate_html(html_content, html_path)
+                print(f"✅ HTML report saved to: {html_path}")
+                print("   💡 Open in browser and press Ctrl+P to save as PDF")
             except Exception as e:
-                print(f"Warning: Failed to generate PDF: {e}")
+                print(f"Warning: Failed to generate HTML: {e}")
+                import traceback
+                traceback.print_exc()
+            
+            # Step 2: Generate Markdown report with static PNG charts (for GitHub/GitLab)
+            print("\n--- Generating Markdown Report (Static Charts) ---")
+            try:
+                from heimr.report_charts import ReportCharts
+                
+                # Switch to image mode for static PNG charts
+                ReportCharts.set_output_mode('image')
+                md_content = generate_markdown_report_content(result, args)
+                
+                with open(args.output, "w") as f:
+                    f.write(md_content)
+                print(f"✅ Markdown report saved to: {args.output}")
+                
+                # Reset to HTML mode
+                ReportCharts.set_output_mode('html')
+            except Exception as e:
+                print(f"Warning: Failed to generate Markdown with images: {e}")
+                # Fallback: save with HTML charts (may not render in GitHub)
+                from heimr.report_charts import ReportCharts
+                ReportCharts.set_output_mode('html')
+                fallback_content = generate_markdown_report_content(result, args)
+                with open(args.output, "w") as f:
+                    f.write(fallback_content)
+                print(f"⚠️ Saved Markdown with HTML charts (install kaleido for static images)")
 
         # --- Comparison Logic ---
         if args.compare_baseline and args.output:
