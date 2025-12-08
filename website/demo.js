@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById("open-demo-btn");
     const span = document.getElementsByClassName("close-modal")[0];
 
+    // HOTFIX: Hide Live Demo button on Production (Vercel / custom domain) where backend is not available
+    const hostname = window.location.hostname;
+    const isProd = hostname.includes('heimr.ai') || hostname.includes('vercel.app');
+
+    if (isProd && btn) {
+        btn.style.display = 'none';
+    }
+
     btn.onclick = () => modal.style.display = "block";
     span.onclick = () => modal.style.display = "none";
     window.onclick = (event) => {
