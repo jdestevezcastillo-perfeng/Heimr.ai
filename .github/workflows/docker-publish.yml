@@ -1,59 +1,59 @@
 name: Docker Publish
 
 on:
-    push:
-        tags:
-            - "v*"
-    workflow_dispatch:
-        inputs:
-            tag:
-                description: "Docker tag to publish (e.g., v0.1.0)"
-                required: true
-                default: "latest"
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker tag to publish (e.g., v0.1.0)"
+        required: true
+        default: "latest"
 
 jobs:
-    docker:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Log in to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Extract version from tag
-              id: meta
-              run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    VERSION="${{ github.event.inputs.tag }}"
-                  else
-                    VERSION=${GITHUB_REF#refs/tags/}
-                  fi
-                  echo "version=${VERSION}" >> $GITHUB_OUTPUT
-                  echo "tags=heimr/heimr:${VERSION},heimr/heimr:latest" >> $GITHUB_OUTPUT
+      - name: Extract version from tag
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tags=juanestevezcastillo/heimr:${VERSION},juanestevezcastillo/heimr:latest" >> $GITHUB_OUTPUT
 
-            - name: Build and push Docker image
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  cache-from: type=registry,ref=heimr/heimr:latest
-                  cache-to: type=inline
-                  platforms: linux/amd64,linux/arm64
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=registry,ref=juanestevezcastillo/heimr:latest
+          cache-to: type=inline
+          platforms: linux/amd64,linux/arm64
 
-            - name: Update Docker Hub Description
-              uses: peter-evans/dockerhub-description@v4
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-                  repository: heimr/heimr
-                  short-description: "Heimr.ai - AI-powered performance testing analysis and root cause detection"
-                  readme-filepath: ./README.md
+      - name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: juanestevezcastillo/heimr
+          short-description: "Heimr.ai - AI-powered performance testing analysis and root cause detection"
+          readme-filepath: ./README.md
