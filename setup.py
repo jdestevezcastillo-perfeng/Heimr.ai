@@ -57,6 +57,8 @@ setup(
         # Charts/Graphs
         "plotly>=5.18.0",
         "kaleido>=0.2.1",
+        # HTML report generation
+        "markdown>=3.4.0",
     ],
     extras_require={
         # LLM providers - install only what you need
