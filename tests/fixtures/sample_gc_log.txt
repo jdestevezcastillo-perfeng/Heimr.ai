@@ -1,0 +1,21 @@
+[2024-01-15T10:00:00.123+0000][0.523s][info][gc] Using G1
+[2024-01-15T10:00:01.456+0000][1.856s][info][gc] GC(0) Pause Young (Normal) (G1 Evacuation Pause) 24M->8M(256M) 5.234ms
+[2024-01-15T10:00:05.789+0000][6.189s][info][gc] GC(1) Pause Young (Normal) (G1 Evacuation Pause) 32M->12M(256M) 6.123ms
+[2024-01-15T10:00:12.345+0000][12.745s][info][gc] GC(2) Pause Young (Normal) (G1 Evacuation Pause) 48M->18M(256M) 8.567ms
+[2024-01-15T10:00:20.567+0000][21.067s][info][gc] GC(3) Pause Young (Normal) (G1 Evacuation Pause) 64M->24M(256M) 12.345ms
+[2024-01-15T10:00:35.890+0000][36.290s][info][gc] GC(4) Pause Young (Concurrent Start) (G1 Humongous Allocation) 96M->48M(256M) 45.678ms
+[2024-01-15T10:00:36.100+0000][36.500s][info][gc] GC(5) Concurrent Cycle 25.678ms
+[2024-01-15T10:00:50.234+0000][50.634s][info][gc] GC(6) Pause Young (Normal) (G1 Evacuation Pause) 128M->64M(256M) 18.234ms
+[2024-01-15T10:01:05.567+0000][65.967s][info][gc] GC(7) Pause Young (Normal) (G1 Evacuation Pause) 156M->82M(256M) 22.567ms
+[2024-01-15T10:01:25.890+0000][86.290s][info][gc] GC(8) Pause Young (Concurrent Start) (G1 Humongous Allocation) 192M->120M(256M) 85.123ms
+[2024-01-15T10:01:26.500+0000][86.900s][info][gc] GC(9) Concurrent Cycle 35.234ms
+[2024-01-15T10:01:45.234+0000][105.634s][info][gc] GC(10) Pause Young (Normal) (G1 Evacuation Pause) 200M->145M(256M) 35.678ms
+[2024-01-15T10:02:10.567+0000][130.967s][info][gc] GC(11) Pause Young (Prepare Mixed) (G1 Evacuation Pause) 220M->168M(256M) 42.345ms
+[2024-01-15T10:02:35.890+0000][156.290s][info][gc] GC(12) Pause Young (Mixed) (G1 Evacuation Pause) 230M->180M(256M) 55.678ms
+[2024-01-15T10:03:00.234+0000][180.634s][info][gc] GC(13) Pause Full (G1 Evacuation Pause) 240M->95M(256M) 250.123ms
+[2024-01-15T10:03:30.567+0000][211.067s][info][gc] GC(14) Pause Young (Normal) (G1 Evacuation Pause) 145M->88M(256M) 15.234ms
+[2024-01-15T10:04:00.890+0000][241.290s][info][gc] GC(15) Pause Young (Normal) (G1 Evacuation Pause) 165M->102M(256M) 18.567ms
+[2024-01-15T10:04:35.234+0000][275.634s][info][gc] GC(16) Pause Young (Concurrent Start) (G1 Humongous Allocation) 195M->135M(256M) 78.234ms
+[2024-01-15T10:04:36.000+0000][276.400s][info][gc] GC(17) Concurrent Cycle 42.567ms
+[2024-01-15T10:05:10.567+0000][310.967s][info][gc] GC(18) Pause Young (Normal) (G1 Evacuation Pause) 210M->155M(256M) 32.345ms
+[2024-01-15T10:05:45.890+0000][346.290s][info][gc] GC(19) Pause Full (System.gc()) 225M->85M(256M) 320.567ms

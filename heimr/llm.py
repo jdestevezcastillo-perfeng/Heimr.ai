@@ -17,10 +17,11 @@ class LLMClient:
     Client for interacting with LLMs (OpenAI, Anthropic, Ollama/Local) to generate explanations.
     """
 
-    def __init__(self, base_url: str = None, model: str = None):
+    def __init__(self, base_url: str = None, model: str = None, custom_prompt_template: str = None):
         self.base_url = base_url
         # Resolve model tier alias to actual model name
         self.model = self._resolve_model(model)
+        self.custom_prompt_template = custom_prompt_template
         self.provider = self._detect_provider()
 
     def _resolve_model(self, model: str) -> str:
@@ -64,20 +65,26 @@ class LLMClient:
                              prom_metrics: Dict[str,
                                                 Any] = None,
                              loki_logs: list = None,
-                             tempo_traces: list = None):
+                             tempo_traces: list = None,
+                             jvm_thread_dump: Dict[str, Any] = None,
+                             jvm_heap_dump: Dict[str, Any] = None,
+                             jvm_gc_log: Dict[str, Any] = None):
         """
         Generates a natural language explanation based on test stats, anomalies, and observability data.
         Returns a generator that yields chunks of the explanation.
         """
         if self.provider == "openai":
             yield from self._generate_openai_explanation(
-                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces,
+                jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
         elif self.provider == "anthropic":
             yield from self._generate_anthropic_explanation(
-                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces,
+                jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
         elif self.provider == "local":
             yield from self._generate_local_explanation(
-                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces)
+                summary_stats, anomalies_summary, prom_metrics, loki_logs, tempo_traces,
+                jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
         else:
             raise NotImplementedError(f"Provider {self.provider} not implemented.")
 
@@ -89,12 +96,16 @@ class LLMClient:
                                      prom_metrics: Dict[str,
                                                         Any] = None,
                                      loki_logs: list = None,
-                                     tempo_traces: list = None):
+                                     tempo_traces: list = None,
+                                     jvm_thread_dump: Dict[str, Any] = None,
+                                     jvm_heap_dump: Dict[str, Any] = None,
+                                     jvm_gc_log: Dict[str, Any] = None):
         try:
             from openai import OpenAI
 
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
+                                            jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
             model_to_use = self.model if self.model else "gpt-5.1"
 
             stream = client.chat.completions.create(
@@ -125,12 +136,16 @@ class LLMClient:
                                         prom_metrics: Dict[str,
                                                            Any] = None,
                                         loki_logs: list = None,
-                                        tempo_traces: list = None):
+                                        tempo_traces: list = None,
+                                        jvm_thread_dump: Dict[str, Any] = None,
+                                        jvm_heap_dump: Dict[str, Any] = None,
+                                        jvm_gc_log: Dict[str, Any] = None):
         try:
             import anthropic
 
             client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
+                                            jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
 
             with client.messages.stream(
                 model="claude-sonnet-4-5-20250929",
@@ -152,7 +167,10 @@ class LLMClient:
                                     prom_metrics: Dict[str,
                                                        Any] = None,
                                     loki_logs: list = None,
-                                    tempo_traces: list = None):
+                                    tempo_traces: list = None,
+                                    jvm_thread_dump: Dict[str, Any] = None,
+                                    jvm_heap_dump: Dict[str, Any] = None,
+                                    jvm_gc_log: Dict[str, Any] = None):
         """
         Generates explanation using Ollama or other local LLMs that support OpenAI-compatible API.
         """
@@ -164,8 +182,9 @@ class LLMClient:
             api_key = "not-needed"  # Most local LLMs don't require API keys
 
             client = OpenAI(api_key=api_key, base_url=base_url)
-            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces)
-            model_to_use = self.model if self.model else "llama3"
+            prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
+                                            jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
+            model_to_use = self.model if self.model else "llama3.1:8b"  # Use medium tier default
 
             stream = client.chat.completions.create(
                 model=model_to_use,
@@ -195,7 +214,19 @@ class LLMClient:
                           prom_metrics: Dict[str,
                                              Any] = None,
                           loki_logs: list = None,
-                          tempo_traces: list = None) -> str:
+                          tempo_traces: list = None,
+                          jvm_thread_dump: Dict[str, Any] = None,
+                          jvm_heap_dump: Dict[str, Any] = None,
+                          jvm_gc_log: Dict[str, Any] = None) -> str:
+        # If custom template is provided, use it
+        if self.custom_prompt_template:
+            return self._substitute_template_vars(
+                self._load_prompt_template(),
+                stats, anomalies, prom_metrics, loki_logs, tempo_traces,
+                jvm_thread_dump, jvm_heap_dump, jvm_gc_log
+            )
+        
+        # Otherwise use default template
         # Format Prometheus Metrics with actual values and statistics
         prom_text = self._format_prometheus_metrics(prom_metrics)
 
@@ -204,6 +235,9 @@ class LLMClient:
 
         # Format Tempo Traces with detailed span analysis
         traces_text = self._format_tempo_traces(tempo_traces)
+        
+        # Format JVM Analysis context
+        jvm_text = self._format_jvm_context(jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
 
         return f"""
 You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
@@ -236,6 +270,9 @@ You are a Senior Performance Engineer. Analyze the following load test results a
 ### Distributed Traces (Tempo)
 {traces_text}
 
+### JVM Analysis
+{jvm_text}
+
 ### Report Requirements
 Please structure your response exactly as follows:
 
@@ -253,9 +290,78 @@ Please structure your response exactly as follows:
 - **Resource Utilization**: Analyze CPU and memory patterns. Identify bottlenecks.
 - **Throughput & Errors**: Discuss load handling, error patterns, and HTTP status codes.
 - **Anomalies**: Correlate detected anomalies with system events, resource spikes, or specific operations.
+- **JVM Analysis**: If JVM data is present, correlate thread contention, GC pauses, or heap pressure with latency spikes.
 - **Root Cause Analysis**: Based on ALL the data above, hypothesize the most likely causes.
 - **Recommendations**: Prioritized technical steps to resolve issues.
 """
+
+    def _load_prompt_template(self) -> str:
+        """Load custom prompt template from file."""
+        try:
+            with open(self.custom_prompt_template, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Custom prompt template file not found: {self.custom_prompt_template}"
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Error loading custom prompt template: {e}"
+            )
+
+    def _substitute_template_vars(self, template: str, stats: Dict[str, Any], 
+                                  anomalies: Dict[str, Any], 
+                                  prom_metrics: Dict[str, Any] = None,
+                                  loki_logs: list = None, 
+                                  tempo_traces: list = None,
+                                  jvm_thread_dump: Dict[str, Any] = None,
+                                  jvm_heap_dump: Dict[str, Any] = None,
+                                  jvm_gc_log: Dict[str, Any] = None) -> str:
+        """Substitute placeholder variables in the custom template."""
+        # Format observability data
+        prom_text = self._format_prometheus_metrics(prom_metrics)
+        logs_text = self._format_loki_logs(loki_logs)
+        traces_text = self._format_tempo_traces(tempo_traces)
+        jvm_text = self._format_jvm_context(jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
+        
+        # Create substitution dictionary with all available variables
+        substitutions = {
+            # Test statistics
+            'total_requests': stats.get('total_requests', 0),
+            'avg_latency': f"{stats.get('avg_latency', 0):.2f}",
+            'median_latency': f"{stats.get('median_latency', 0):.2f}",
+            'p50_latency': f"{stats.get('median_latency', 0):.2f}",
+            'p95_latency': f"{stats.get('p95_latency', 0):.2f}",
+            'p99_latency': f"{stats.get('p99_latency', 0):.2f}",
+            'min_latency': f"{stats.get('min_latency', 0):.2f}",
+            'max_latency': f"{stats.get('max_latency', 0):.2f}",
+            'error_rate': f"{stats.get('error_rate', 0):.2f}",
+            'error_count': stats.get('error_count', 0),
+            'throughput': f"{stats.get('throughput', 0):.2f}",
+            'start_time': str(stats.get('start_time', '')),
+            'end_time': str(stats.get('end_time', '')),
+            
+            # Anomaly data
+            'anomaly_count': anomalies.get('count', 0),
+            'anomaly_avg_latency': f"{anomalies.get('avg_latency', 0):.2f}",
+            'anomaly_max_latency': f"{anomalies.get('max_latency', 0):.2f}",
+            'anomaly_timestamps': ', '.join(str(ts) for ts in anomalies.get('timestamps', [])[:10]),
+            
+            # Observability data
+            'prometheus_metrics': prom_text,
+            'loki_logs': logs_text,
+            'tempo_traces': traces_text,
+            'jvm_context': jvm_text,
+        }
+        
+        # Perform substitution
+        result = template
+        for key, value in substitutions.items():
+            placeholder = '{' + key + '}'
+            result = result.replace(placeholder, str(value))
+        
+        return result
+
 
     def _format_prometheus_metrics(self, prom_metrics: Dict[str, Any]) -> str:
         """Extract actual statistics from Prometheus metrics."""
@@ -477,3 +583,97 @@ Please structure your response exactly as follows:
                 )
 
         return "\n".join(sections)
+
+    def _format_jvm_context(self, jvm_thread_dump: Dict[str, Any] = None,
+                            jvm_heap_dump: Dict[str, Any] = None,
+                            jvm_gc_log: Dict[str, Any] = None) -> str:
+        """Format JVM analysis data for LLM context.
+        
+        Uses the parsed JVM data to create a comprehensive summary including:
+        - Thread dump: deadlocks, blocked threads, lock contention
+        - Heap dump: top memory consumers, potential leaks
+        - GC log: pause times, GC frequency, memory pressure indicators
+        """
+        if not any([jvm_thread_dump, jvm_heap_dump, jvm_gc_log]):
+            return "No JVM analysis data available."
+        
+        sections = []
+        
+        # Thread Dump Summary
+        if jvm_thread_dump:
+            summary = jvm_thread_dump.get('summary', {})
+            sections.append("**Thread Dump Analysis:**")
+            sections.append(f"- Total Threads: {summary.get('total_threads', 0)}")
+            sections.append(f"- RUNNABLE: {summary.get('runnable', 0)}")
+            sections.append(f"- BLOCKED: {summary.get('blocked', 0)}")
+            sections.append(f"- WAITING: {summary.get('waiting', 0)}")
+            sections.append(f"- TIMED_WAITING: {summary.get('timed_waiting', 0)}")
+            
+            # Deadlock warning
+            if summary.get('has_deadlocks'):
+                sections.append(f"⚠️ **DEADLOCK DETECTED:** {summary.get('deadlock_count', 0)} deadlock(s) found!")
+                for dl in jvm_thread_dump.get('deadlocks', []):
+                    sections.append(f"  - Threads involved: {', '.join(dl.get('threads', []))}")
+            
+            # Hot locks
+            hot_locks = jvm_thread_dump.get('hot_locks', [])
+            if hot_locks:
+                sections.append("**Lock Contention:**")
+                for lock in hot_locks[:3]:
+                    sections.append(f"  - Lock `{lock.get('lock', 'unknown')}`: {lock.get('waiter_count', 0)} threads waiting")
+                    sections.append(f"    Owner: {lock.get('owner', 'unknown')}")
+            
+            sections.append("")
+        
+        # Heap Dump Summary
+        if jvm_heap_dump:
+            heap_summary = jvm_heap_dump.get('heap_summary', {})
+            sections.append("**Heap Analysis:**")
+            sections.append(f"- Total Heap: {heap_summary.get('total_bytes_mb', 0):.1f} MB")
+            sections.append(f"- Total Instances: {heap_summary.get('total_instances', 0):,}")
+            
+            # Top classes by memory
+            top_classes = jvm_heap_dump.get('top_classes', [])[:5]
+            if top_classes:
+                sections.append("**Top Memory Consumers:**")
+                for cls in top_classes:
+                    sections.append(f"  - {cls.get('class_name', 'unknown')}: {cls.get('bytes_mb', 0):.1f} MB ({cls.get('instances', 0):,} instances)")
+            
+            # Potential leaks
+            potential_leaks = jvm_heap_dump.get('potential_leaks', [])
+            if potential_leaks:
+                sections.append("⚠️ **Potential Memory Leaks:**")
+                for leak in potential_leaks[:3]:
+                    sections.append(f"  - {leak.get('class_name', 'unknown')}: {leak.get('reason', 'high instance count')}")
+            
+            sections.append("")
+        
+        # GC Log Summary
+        if jvm_gc_log:
+            gc_summary = jvm_gc_log.get('summary', {})
+            sections.append("**GC Analysis:**")
+            sections.append(f"- GC Algorithm: {gc_summary.get('gc_type', 'unknown')}")
+            sections.append(f"- Total GC Events: {gc_summary.get('total_events', 0)}")
+            sections.append(f"- Total Pause Time: {gc_summary.get('total_pause_seconds', 0):.2f}s ({gc_summary.get('gc_time_percentage', 0):.1f}% of runtime)")
+            sections.append(f"- Avg Pause: {gc_summary.get('avg_pause_ms', 0):.1f}ms")
+            sections.append(f"- P95 Pause: {gc_summary.get('p95_pause_ms', 0):.1f}ms")
+            sections.append(f"- Max Pause: {gc_summary.get('max_pause_ms', 0):.1f}ms")
+            sections.append(f"- Full GC Count: {gc_summary.get('full_gc_count', 0)}")
+            
+            # Long pauses warning
+            long_pauses = jvm_gc_log.get('long_pauses', [])
+            if long_pauses:
+                sections.append(f"⚠️ **Long GC Pauses (>{200}ms):**")
+                for pause in long_pauses[:3]:
+                    sections.append(
+                        f"  - {pause.get('pause_ms', 0):.0f}ms at {pause.get('uptime_seconds', 0):.0f}s "
+                        f"({'Full GC' if pause.get('is_full_gc') else 'Young GC'})"
+                    )
+            
+            # Full GC warning
+            if gc_summary.get('full_gc_count', 0) > 0:
+                sections.append(f"⚠️ **Warning:** {gc_summary.get('full_gc_count', 0)} Full GC events detected. "
+                               "Full GCs cause longer pauses and may indicate memory pressure.")
+        
+        return "\n".join(sections) if sections else "No JVM analysis data available."
+

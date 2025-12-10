@@ -1,0 +1,28 @@
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:       1500000      120000000  [B
+   2:        850000       68000000  [C
+   3:        500000       24000000  java.lang.String
+   4:        320000       15360000  java.util.HashMap$Node
+   5:        180000       14400000  [Ljava.util.HashMap$Node;
+   6:        250000       12000000  java.util.ArrayList
+   7:        150000       10800000  [Ljava.lang.Object;
+   8:        120000        9600000  java.util.concurrent.ConcurrentHashMap$Node
+   9:         80000        7680000  com.example.model.Order
+  10:         75000        6000000  com.example.model.OrderItem
+  11:         60000        4800000  com.example.model.Product
+  12:         50000        4000000  java.util.LinkedHashMap$Entry
+  13:         45000        3600000  java.util.HashMap
+  14:         40000        3200000  java.lang.Object
+  15:         35000        2800000  java.util.concurrent.ConcurrentHashMap
+  16:         30000        2400000  [I
+  17:         28000        2240000  java.lang.Class
+  18:         25000        2000000  java.util.TreeMap$Entry
+  19:         22000        1760000  java.util.LinkedList$Node
+  20:         20000        1600000  java.lang.ref.SoftReference
+  21:         18000        1440000  java.util.concurrent.locks.ReentrantLock$NonfairSync
+  22:         16000        1280000  java.lang.ref.WeakReference
+  23:         15000        1200000  java.util.Date
+  24:         14000        1120000  java.math.BigDecimal
+  25:         12000         960000  sun.reflect.DelegatingClassLoader
+Total       4500000      350000000

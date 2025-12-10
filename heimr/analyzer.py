@@ -8,6 +8,9 @@ from heimr.parsers.k6 import K6Parser
 from heimr.parsers.gatling import GatlingParser
 from heimr.parsers.locust import LocustParser
 from heimr.parsers.har import HARParser
+from heimr.parsers.threaddump import ThreadDumpParser
+from heimr.parsers.heapdump import HeapDumpParser
+from heimr.parsers.gclog import GCLogParser
 from heimr.detector import AnomalyDetector
 from heimr.kpi import KPIEngine
 from heimr.llm import LLMClient
@@ -29,6 +32,12 @@ class AnalysisResult:
     failure_signals: List[str] = field(default_factory=list)
     status: str = "PASSED"
     llm_explanation: Optional[str] = None
+    llm_error: Optional[str] = None  # Track LLM failure reason
+    llm_client: Optional[Any] = None  # LLM client for TLDR generation
+    # JVM Analysis
+    jvm_thread_dump: Optional[Dict[str, Any]] = None
+    jvm_heap_dump: Optional[Dict[str, Any]] = None
+    jvm_gc_log: Optional[Dict[str, Any]] = None
 
 class Analyzer:
     """
@@ -42,12 +51,22 @@ class Analyzer:
                  config: Dict[str, Any] = None,
                  llm_url: str = None, 
                  llm_model: str = None,
-                 no_llm: bool = False):
+                 prompt_template: str = None,
+                 no_llm: bool = False,
+                 jvm_thread_dump: str = None,
+                 jvm_heap_dump: str = None,
+                 jvm_gc_log: str = None):
         self.file_path = file_path
         self.config = config or {}
         self.llm_url = llm_url
         self.llm_model = llm_model
+        self.prompt_template = prompt_template
         self.no_llm = no_llm
+        
+        # JVM dump paths
+        self.jvm_thread_dump_path = jvm_thread_dump
+        self.jvm_heap_dump_path = jvm_heap_dump
+        self.jvm_gc_log_path = jvm_gc_log
         
         # Merge config values if not provided in init args
         if not self.no_llm:
@@ -60,6 +79,9 @@ class Analyzer:
         
         if not self.llm_model:
             self.llm_model = self.config.get('llm_model', 'medium')
+        
+        if not self.prompt_template:
+            self.prompt_template = self.config.get('prompt_template')
 
     @staticmethod
     def detect_file_format(file_path: str) -> str:
@@ -181,12 +203,42 @@ class Analyzer:
                 except Exception as e:
                     print(f"Warning: Failed to fetch Tempo traces: {e}")
         
-        # 5. Multi-Signal Failure Detection
+        # 5. JVM Analysis (Thread Dumps, Heap Dumps, GC Logs)
+        jvm_thread_dump_data = None
+        jvm_heap_dump_data = None
+        jvm_gc_log_data = None
+        
+        if self.jvm_thread_dump_path:
+            try:
+                parser = ThreadDumpParser(filepath=self.jvm_thread_dump_path)
+                jvm_thread_dump_data = parser.parse()
+                print(f"✓ Parsed JVM thread dump: {jvm_thread_dump_data['summary']['total_threads']} threads")
+            except Exception as e:
+                print(f"Warning: Failed to parse thread dump: {e}")
+        
+        if self.jvm_heap_dump_path:
+            try:
+                parser = HeapDumpParser(filepath=self.jvm_heap_dump_path)
+                jvm_heap_dump_data = parser.parse()
+                print(f"✓ Parsed JVM heap dump: {jvm_heap_dump_data['heap_summary']['total_bytes_mb']:.1f} MB")
+            except Exception as e:
+                print(f"Warning: Failed to parse heap dump: {e}")
+        
+        if self.jvm_gc_log_path:
+            try:
+                parser = GCLogParser(filepath=self.jvm_gc_log_path)
+                jvm_gc_log_data = parser.parse()
+                print(f"✓ Parsed GC log: {jvm_gc_log_data['summary']['total_events']} events, {jvm_gc_log_data['summary']['gc_type']} collector")
+            except Exception as e:
+                print(f"Warning: Failed to parse GC log: {e}")
+        
+        # 6. Multi-Signal Failure Detection
         failure_signals = self._detect_failures(stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
         status = "FAILED" if failure_signals else "PASSED"
         
         # 6. AI Analysis
         llm_explanation = None
+        llm_error = None
         if not self.no_llm:
             try:
                 # Smart default for URL
@@ -198,7 +250,8 @@ class Analyzer:
 
                 llm = LLMClient(base_url=target_url, model=self.llm_model)
                 generator = llm.generate_explanation(
-                    stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces
+                    stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces,
+                    jvm_thread_dump_data, jvm_heap_dump_data, jvm_gc_log_data
                 )
                 
                 chunks = []
@@ -208,7 +261,32 @@ class Analyzer:
                     chunks.append(chunk)
                 llm_explanation = "".join(chunks)
             except Exception as e:
-                print(f"Warning: LLM analysis failed: {e}")
+                llm_error = str(e)
+                # Print prominent error message with troubleshooting steps
+                print("\n" + "=" * 70)
+                print("⚠️  LLM ANALYSIS FAILED")
+                print("=" * 70)
+                print(f"Error: {e}")
+                print("\n💡 Troubleshooting:")
+                
+                # Determine likely cause and suggest fix
+                error_lower = str(e).lower()
+                if "connection" in error_lower or "refused" in error_lower:
+                    print("   → Ollama is not running")
+                    print("   → Fix: Run 'systemctl start ollama' or 'ollama serve'")
+                    print(f"   → Or set OPENAI_API_KEY/ANTHROPIC_API_KEY environment variable")
+                elif "unauthorized" in error_lower or "api key" in error_lower:
+                    print("   → Invalid or missing API key")
+                    print("   → Fix: Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable")
+                elif "model" in error_lower or "not found" in error_lower:
+                    print(f"   → Model '{self.llm_model}' not available")
+                    print(f"   → Fix: Run 'ollama pull {self.llm_model}' or use --llm-model")
+                else:
+                    print("   → Run 'heimr setup-llm' for automated Ollama setup")
+                    print("   → Or use --llm-url and --llm-model to specify custom LLM")
+                
+                print("\n   Run with --no-llm to skip AI analysis")
+                print("=" * 70 + "\n")
         
         return AnalysisResult(
             df=df,
@@ -221,7 +299,12 @@ class Analyzer:
             tempo_traces=tempo_traces,
             failure_signals=failure_signals,
             status=status,
-            llm_explanation=llm_explanation
+            llm_explanation=llm_explanation,
+            llm_error=llm_error,
+            llm_client=llm if llm_explanation else None,
+            jvm_thread_dump=jvm_thread_dump_data,
+            jvm_heap_dump=jvm_heap_dump_data,
+            jvm_gc_log=jvm_gc_log_data
         )
 
     def _detect_failures(self, stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces) -> List[str]:
