@@ -12,6 +12,11 @@ chaos-generator/
 .pytest_cache/
 project_state.yaml
 
+# Local Codex / dev server artifacts
+config/
+demos/*.pid
+demo-petstore/
+
 
 # Chaos Generator (terraform state, generated files)
 chaos-generator/terraform/.terraform/
@@ -40,5 +45,3 @@ LOCAL/
 
 # Internal Docs (now in LOCAL)
 # IDEAS.md, PROJECT_STATE.md, etc are in LOCAL/
-
-
