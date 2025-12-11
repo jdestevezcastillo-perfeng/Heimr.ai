@@ -206,7 +206,6 @@ echo ""
 if [ -f "$RESULTS_DIR/k6_results.json" ]; then
     echo -e "${CYAN}Analyzing k6 results...${NC}"
     $HEIMR_CMD analyze "$RESULTS_DIR/k6_results.json" \
-        --explain \
         --output "$RESULTS_DIR/heimr_k6_report.md" || true
     echo ""
 fi
@@ -215,7 +214,6 @@ fi
 if [ -f "${RESULTS_DIR}/locust_stats_history.csv" ]; then
     echo -e "${CYAN}Analyzing Locust results...${NC}"
     $HEIMR_CMD analyze "${RESULTS_DIR}/locust_stats_history.csv" \
-        --explain \
         --output "$RESULTS_DIR/heimr_locust_report.md" || true
     echo ""
 fi

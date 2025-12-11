@@ -4,6 +4,7 @@
 import requests
 from typing import Dict, Any, List
 from datetime import datetime
+import logging
 
 
 class PrometheusClient:
@@ -15,6 +16,7 @@ class PrometheusClient:
         self.url = url.rstrip('/')
         self.api_url = f"{self.url}/api/v1/query_range"
         self.file_path = file_path
+        self.logger = logging.getLogger("heimr")
 
     def query_metric(self, query: str, start_time: datetime, end_time: datetime,
                      step: str = "15s") -> List[Dict[str, Any]]:
@@ -35,10 +37,10 @@ class PrometheusClient:
             if result['status'] == 'success':
                 return result['data']['result']
             else:
-                print(f"Prometheus query failed: {result.get('error')}")
+                self.logger.warning("Prometheus query failed: %s", result.get('error'))
                 return []
         except Exception as e:
-            print(f"Error querying Prometheus: {e}")
+            self.logger.warning("Error querying Prometheus: %s", e)
             return []
 
     def get_system_metrics(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
@@ -52,7 +54,7 @@ class PrometheusClient:
                 with open(self.file_path, 'r') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"Error reading Prometheus file: {e}")
+                self.logger.warning("Error reading Prometheus file: %s", e)
                 return {}
 
         metrics = {}

@@ -53,12 +53,22 @@ Heimr correlates load test data with server-side metrics. You can provide a live
 - `--llm-model`: Specific model to use.
     - Default: `medium` (`llama3.1:8b`).
     - Options: `small`, `medium`, `large`, or any valid model string (e.g., `gpt-4o`).
+- `--prompt-template`: Path to custom LLM prompt template file.
+    - Use template variables like `{total_requests}`, `{p99_latency}`, `{error_rate}`, etc.
+    - Available variables:
+        - Test stats: `{total_requests}`, `{avg_latency}`, `{p50_latency}`, `{p95_latency}`, `{p99_latency}`, `{error_rate}`, `{throughput}`
+        - Anomalies: `{anomaly_count}`, `{anomaly_timestamps}`
+        - Observability: `{prometheus_metrics}`, `{loki_logs}`, `{tempo_traces}`
+    - See [`examples/prompt_template_example.txt`](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/blob/main/examples/prompt_template_example.txt) for full template.
 
 #### CI/CD & Gating
 - `--fail-condition`: Fail the build if a metric exceeds a threshold.
     - Syntax: `metric > value`.
     - Examples: `--fail-condition "p99_latency > 500"`, `--fail-condition "error_rate > 1.0"`.
     - Supported metrics: `p95_latency`, `p99_latency`, `error_rate`, `throughput`.
+    - Applies to single runs and baseline comparisons.
+- Built-in verdict thresholds are configurable in `heimr.yaml`:
+    - `cpu_threshold`, `mem_growth_threshold`, `anomaly_threshold`, `error_rate_threshold`.
 - `--tag`: Add metadata to the report header. useful for tracking builds.
     - Example: `--tag "branch=main" --tag "commit=${GITHUB_SHA}"`.
 - `--ci-summary`: Generate a GitHub Actions Job Summary.
@@ -70,6 +80,9 @@ Heimr correlates load test data with server-side metrics. You can provide a live
 - `--compare-loki`: Path to previous Loki logs.
 - `--compare-tempo`: Path to previous Tempo traces.
 - `--fail-on-regression`: Fail if performance degrades by X% compared to baseline.
+- `--llm-timeout-sec`: Timeout for LLM calls.
+- `--llm-max-retries`: Retry count for LLM calls.
+- `--log-level`: Control internal logging verbosity (default INFO).
 
 ### Examples
 

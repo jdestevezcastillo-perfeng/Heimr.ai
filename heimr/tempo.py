@@ -4,6 +4,7 @@
 import requests
 from typing import Dict, Any, List
 from datetime import datetime
+import logging
 
 
 class TempoClient:
@@ -17,6 +18,7 @@ class TempoClient:
         # but often exposes a search API at /api/search
         self.api_url = f"{self.url}/api/search"
         self.file_path = file_path
+        self.logger = logging.getLogger("heimr")
 
     def query_traces(self, min_duration: str = None, start_time: datetime = None,
                      end_time: datetime = None, limit: int = 20) -> List[Dict[str, Any]]:
@@ -42,7 +44,7 @@ class TempoClient:
             # Result is usually a list of traces
             return result.get('traces', [])
         except Exception as e:
-            print(f"Error querying Tempo: {e}")
+            self.logger.warning("Error querying Tempo: %s", e)
             return []
 
     def get_slow_traces(self, start_time: datetime, end_time: datetime,
@@ -68,7 +70,7 @@ class TempoClient:
                                 break
                     return slow_traces
             except Exception as e:
-                print(f"Error reading Tempo file: {e}")
+                self.logger.warning("Error reading Tempo file: %s", e)
                 return []
 
         return self.query_traces(

@@ -1,0 +1,49 @@
+You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
+
+### Test Statistics
+- Total Requests: {total_requests}
+- Average Latency: {avg_latency} ms
+- Median Latency: {median_latency} ms
+- P99 Latency: {p99_latency} ms
+- Min Latency: {min_latency} ms
+- Max Latency: {max_latency} ms
+- Error Rate: {error_rate}%
+- Error Count: {error_count}
+- Throughput: {throughput} req/s
+- Start Time: {start_time}
+- End Time: {end_time}
+
+### Anomaly Detection Results
+- Anomalies Detected: {anomaly_count}
+- Average Latency during Anomalies: {anomaly_avg_latency} ms
+- Max Latency during Anomalies: {anomaly_max_latency} ms
+- Anomaly Timestamps: {anomaly_timestamps}
+
+### System Metrics (Prometheus)
+{prometheus_metrics}
+
+### Application Logs (Loki)
+{loki_logs}
+
+### Distributed Traces (Tempo)
+{tempo_traces}
+
+### Report Requirements
+Please structure your response exactly as follows:
+
+# Performance Analysis Report
+
+## 1. Executive Summary
+[Provide a concise, high-level summary for business stakeholders. Focus on whether the system met its goals, the impact of any failures, and the overall user experience. Avoid technical jargon here.]
+
+## 2. Key Performance Indicators
+[KPI_TABLE]
+
+## 3. Technical Analysis
+[Provide a detailed technical breakdown for engineers. Discuss:]
+- **Latency Distribution**: Analyze Avg vs P99 vs Max. Comment on the spread and what it indicates.
+- **Resource Utilization**: Analyze CPU and memory patterns. Identify bottlenecks.
+- **Throughput & Errors**: Discuss load handling, error patterns, and HTTP status codes.
+- **Anomalies**: Correlate detected anomalies with system events, resource spikes, or specific operations.
+- **Root Cause Analysis**: Based on ALL the data above, hypothesize the most likely causes.
+- **Recommendations**: Prioritized technical steps to resolve issues.

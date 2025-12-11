@@ -114,7 +114,6 @@ Heimr.ai/
 ├── demos/                     # Demo scripts and examples
 ├── website/                   # Landing page (heimr.ai)
 ├── setup.py                   # Package configuration
-├── requirements.txt           # Dependencies
 └── heimr.yaml.example         # Example configuration file
 ```
 

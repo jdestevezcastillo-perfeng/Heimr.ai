@@ -55,12 +55,13 @@ analyzer = Analyzer(
     file_path: str,              # Path to load test results
     
     # Optional Configuration Dictionary
-    # Keys: 'prometheus', 'loki', 'tempo'
+    # Keys: 'prometheus', 'loki', 'tempo', 'prompt_template'
     config: Dict[str, Any] = None,
     
     # LLM Overrides
     llm_url: str = "http://localhost:11434/v1",
     llm_model: str = "llama3.1:8b",
+    prompt_template: str = None,  # Path to custom prompt template file
     no_llm: bool = False,        # Skip AI analysis
 )
 ```
@@ -142,6 +143,38 @@ if p99 > 500:
 print("✅ All checks passed")
 sys.exit(0)
 ```
+
+---
+
+## Custom Prompts
+
+Customize the LLM analysis by providing your own prompt template:
+
+```python
+from heimr import Analyzer
+
+# Use config dictionary
+analyzer = Analyzer(
+    file_path="results.jtl",
+    config={'prompt_template': './custom_prompt.txt'}
+)
+
+# Or pass directly
+analyzer = Analyzer(
+    file_path="results.jtl",
+    prompt_template="./examples/prompt_template_sre.txt"
+)
+
+result = analyzer.analyze()
+```
+
+Your prompt template can use these variables:
+- `{total_requests}`, `{avg_latency}`, `{p50_latency}`, `{p95_latency}`, `{p99_latency}`
+- `{error_rate}`, `{error_count}`, `{throughput}`
+- `{anomaly_count}`, `{anomaly_timestamps}`
+- `{prometheus_metrics}`, `{loki_logs}`, `{tempo_traces}`
+
+See [`examples/prompt_template_example.txt`](../../examples/prompt_template_example.txt) for a full template.
 
 ---
 

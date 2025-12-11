@@ -1,0 +1,31 @@
+# Heimr Configuration File
+# Documentation: https://github.com/jdestevezcastillo-perfeng/Heimr.ai/wiki
+
+# === Load Test Analysis ===
+# Enable AI-powered root cause analysis
+disable_llm: false
+
+# LLM Configuration
+# Use local Ollama models or remote providers
+llm_model: qwen2.5:14b  # Recommended for best performance/speed balance
+llm_url: http://localhost:11434/v1  # Default Ollama API URL
+
+# === Observability Integrations ===
+# Uncomment and set paths/URLs to enable multi-signal analysis.
+# Supports local files (.json) or HTTP URLs.
+
+# Prometheus (Metrics)
+# prometheus: http://prometheus:9090
+prometheus: /home/lostborion/Heimr.ai/tests/fixtures/prometheus_metrics.json
+
+# Loki (Logs)
+# loki: http://loki:3100
+loki: /home/lostborion/Heimr.ai/tests/fixtures/loki_logs.json
+
+# Tempo (Traces)
+# tempo: http://tempo:3200
+tempo: /home/lostborion/Heimr.ai/tests/fixtures/tempo_traces.json
+
+# === Reporting ===
+output: ./analysis.html  # Default output path
+# open_browser: true               # Open report automatically

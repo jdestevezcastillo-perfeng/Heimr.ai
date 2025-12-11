@@ -20,7 +20,7 @@ echo "✅ API Key detected."
 
 echo ""
 echo "📊 Analyzing sample JTL file with Claude 3 Opus..."
-echo "   Command: heimr analyze heimr/data/sample.jtl --explain"
+echo "   Command: heimr analyze heimr/data/sample.jtl"
 echo ""
 
 # Determine project root and heimr command
@@ -35,7 +35,7 @@ fi
 
 # Run Heimr
 # By default, if ANTHROPIC_API_KEY is set and no --llm-url is provided, it uses Anthropic.
-$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl" --explain
+$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl"
 
 echo ""
 echo "✅ Demo Complete!"

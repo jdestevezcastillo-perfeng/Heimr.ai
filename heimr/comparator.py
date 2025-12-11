@@ -3,6 +3,7 @@
 # See LICENSE or https://www.gnu.org/licenses/agpl-3.0.html
 from typing import Dict, Any, List
 from datetime import datetime
+from heimr.failures import evaluate_failure_conditions
 
 
 class PerformanceComparator:
@@ -390,43 +391,11 @@ class PerformanceComparator:
                         f"(Threshold: {fail_on_regression}%)"
                     )
 
-        # 2. Check Absolute Thresholds
-        if fail_conditions:
-            current_stats = self.current
-            for condition in fail_conditions:
-                try:
-                    # Basic parsing: "p99_latency > 500"
-                    # Supports >, <, >=, <=
-                    parts = condition.split()
-                    if len(parts) != 3:
-                        print(f"Warning: Invalid condition format '{condition}'. Expected 'metric op value'")
-                        continue
-
-                    metric_name, op, threshold_str = parts[0], parts[1], parts[2]
-                    threshold = float(threshold_str)
-
-                    if metric_name not in current_stats:
-                        print(f"Warning: Unknown metric '{metric_name}' in condition")
-                        continue
-
-                    value = float(current_stats[metric_name])
-
-                    condition_met = False
-                    if op == '>':
-                        condition_met = value > threshold
-                    elif op == '>=':
-                        condition_met = value >= threshold
-                    elif op == '<':
-                        condition_met = value < threshold
-                    elif op == '<=':
-                        condition_met = value <= threshold
-
-                    if condition_met:
-                        failed = True
-                        reasons.append(f"Failure condition met: {metric_name} ({value}) {op} {threshold}")
-
-                except Exception as e:
-                    print(f"Error parsing condition '{condition}': {e}")
+        # 2. Check Absolute Thresholds (shared helper)
+        abs_check = evaluate_failure_conditions(self.current, fail_conditions)
+        if abs_check.failed:
+            failed = True
+            reasons.extend(abs_check.reasons)
 
         return {'failed': failed, 'reasons': reasons}
 

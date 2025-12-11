@@ -61,11 +61,11 @@ Once you have a HAR file:
 # Basic analysis
 heimr analyze demo_session.har
 
-# With AI explanation
-heimr analyze demo_session.har --explain
+# AI explanation runs by default
+heimr analyze demo_session.har
 
 # Save report
-heimr analyze demo_session.har --explain --output har_report.md
+heimr analyze demo_session.har --output har_report.md
 ```
 
 ## Example Output

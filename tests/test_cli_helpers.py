@@ -6,7 +6,7 @@ import unittest
 import os
 import tempfile
 import argparse
-from heimr.cli import load_config, merge_config_with_args
+from heimr.cli import load_config, merge_config_with_args, normalize_config
 from heimr.analyzer import Analyzer
 
 
@@ -59,6 +59,25 @@ class TestMergeConfigWithArgs(unittest.TestCase):
         self.assertEqual(args.loki, 'http://config-loki:3100')
         # CLI should win for output
         self.assertEqual(args.output, 'cli_output.md')
+
+
+class TestNormalizeConfig(unittest.TestCase):
+    def test_explain_false_disables_llm_and_normalizes_url(self):
+        config = {
+            "explain": False,
+            "llm_url": "http://localhost:11434",
+            "llm_model": "medium",
+            "llm_timeout_sec": 30,
+            "llm_max_retries": 1,
+        }
+        normalized = normalize_config(config)
+        self.assertTrue(normalized["disable_llm"])
+        self.assertEqual(normalized["llm_url"], "http://localhost:11434/v1")
+
+    def test_no_llm_alias(self):
+        config = {"no_llm": True}
+        normalized = normalize_config(config)
+        self.assertTrue(normalized["disable_llm"])
 
 
 class TestInspector(unittest.TestCase):

@@ -148,7 +148,7 @@ echo ""
 echo -e "${YELLOW}The following command will be executed:${NC}"
 echo ""
 echo -e "${CYAN}${BOLD}$HEIMR_CMD analyze \"$LOAD_TEST_FILE\" \\${NC}"
-echo -e "${CYAN}${BOLD}    --explain \\${NC}"
+echo -e "${CYAN}${BOLD}    (AI analysis enabled by default) \\${NC}"
 echo -e "${CYAN}${BOLD}    --prometheus-file \"$PROMETHEUS_FILE\" \\${NC}"
 echo -e "${CYAN}${BOLD}    --loki-file \"$LOKI_FILE\" \\${NC}"
 echo -e "${CYAN}${BOLD}    --tempo-file \"$TEMPO_FILE\" \\${NC}"
@@ -175,7 +175,6 @@ echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 $HEIMR_CMD analyze "$LOAD_TEST_FILE" \
-    --explain \
     --prometheus-file "$PROMETHEUS_FILE" \
     --loki-file "$LOKI_FILE" \
     --tempo-file "$TEMPO_FILE" \

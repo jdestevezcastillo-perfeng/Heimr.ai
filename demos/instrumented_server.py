@@ -19,6 +19,7 @@ import json
 import gc
 import logging
 import threading
+import sqlite3
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
@@ -254,7 +255,7 @@ def generate_trace_id():
 def generate_span_id():
     return uuid.uuid4().hex[:16]
 
-def send_trace(trace_id, span_id, operation, duration_ms, status, endpoint):
+def send_trace(trace_id, span_id, operation, duration_ms, status, endpoint, parent_span_id=None, db_statement=None):
     """Send trace to Tempo via OTLP HTTP"""
     try:
         import urllib.request
@@ -262,34 +263,55 @@ def send_trace(trace_id, span_id, operation, duration_ms, status, endpoint):
         now_ns = int(time.time() * 1e9)
         start_ns = now_ns - int(duration_ms * 1e6)
         
+        # Ensure trace_id is exactly 32 hex chars and span_id is 16 hex chars
+        # Pad with zeros if needed
+        trace_id_hex = trace_id.zfill(32)[:32]
+        span_id_hex = span_id.zfill(16)[:16]
+        
+        attributes = [
+            {"key": "service.name", "value": {"stringValue": "demo-api"}},
+            {"key": "service.version", "value": {"stringValue": "1.0.0"}}
+        ]
+
+        span_attributes = [
+             {"key": "http.method", "value": {"stringValue": "GET" if not db_statement else "DB"}},
+             {"key": "http.url", "value": {"stringValue": endpoint if endpoint else ""}},
+             {"key": "http.status_code", "value": {"intValue": status}},
+             {"key": "http.duration_ms", "value": {"intValue": duration_ms}}
+        ]
+
+        if db_statement:
+            span_attributes.append({"key": "db.system", "value": {"stringValue": "sqlite"}})
+            span_attributes.append({"key": "db.statement", "value": {"stringValue": db_statement}})
+            kind = 1 # CLIENT
+        else:
+            kind = 2 # SERVER
+
+        span = {
+            "traceId": trace_id_hex,
+            "spanId": span_id_hex,
+            "name": operation,
+            "kind": kind,
+            "startTimeUnixNano": str(start_ns),
+            "endTimeUnixNano": str(now_ns),
+            "attributes": span_attributes,
+            "status": {
+                "code": 2 if status >= 400 else 1,
+                "message": "Error" if status >= 400 else "OK"
+            }
+        }
+
+        if parent_span_id:
+            span["parentSpanId"] = parent_span_id.zfill(16)[:16]
+
         trace_data = {
             "resourceSpans": [{
                 "resource": {
-                    "attributes": [
-                        {"key": "service.name", "value": {"stringValue": "demo-api"}},
-                        {"key": "service.version", "value": {"stringValue": "1.0.0"}}
-                    ]
+                    "attributes": attributes
                 },
                 "scopeSpans": [{
                     "scope": {"name": "demo-api"},
-                    "spans": [{
-                        "traceId": trace_id,
-                        "spanId": span_id,
-                        "name": operation,
-                        "kind": 2,  # SERVER
-                        "startTimeUnixNano": str(start_ns),
-                        "endTimeUnixNano": str(now_ns),
-                        "attributes": [
-                            {"key": "http.method", "value": {"stringValue": "GET"}},
-                            {"key": "http.url", "value": {"stringValue": endpoint}},
-                            {"key": "http.status_code", "value": {"intValue": status}},
-                            {"key": "http.duration_ms", "value": {"intValue": duration_ms}}
-                        ],
-                        "status": {
-                            "code": 2 if status >= 400 else 1,  # ERROR or OK
-                            "message": "Error" if status >= 400 else "OK"
-                        }
-                    }]
+                    "spans": [span]
                 }]
             }]
         }
@@ -301,28 +323,85 @@ def send_trace(trace_id, span_id, operation, duration_ms, status, endpoint):
             method="POST"
         )
         
-        urllib.request.urlopen(req, timeout=1)
+        response = urllib.request.urlopen(req, timeout=1)
+        # Uncomment for debugging:
+        # print(f"Trace sent: {trace_id_hex[:8]}... status={response.status}")
     except Exception as e:
-        pass  # Silently fail if Tempo is unavailable
+        # Enable for debugging trace issues:
+        print(f"Trace error: {e}")
+
+# ============================================================================
+# DATABASE
+# ============================================================================
+DB_FILE = 'petstore.db'
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    
+    # Create tables
+    c.execute('''CREATE TABLE IF NOT EXISTS users 
+                 (id INTEGER PRIMARY KEY, name TEXT, email TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS products 
+                 (id INTEGER PRIMARY KEY, name TEXT, price REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS orders 
+                 (id INTEGER PRIMARY KEY, user_id INTEGER, product_id INTEGER, 
+                  quantity INTEGER, status TEXT, timestamp REAL)''')
+    
+    # Seed data if empty
+    c.execute("SELECT count(*) FROM users")
+    if c.fetchone()[0] == 0:
+        users = [
+            (1, "Alice", "alice@example.com"),
+            (2, "Bob", "bob@example.com"),
+            (3, "Charlie", "charlie@example.com")
+        ]
+        c.executemany("INSERT INTO users VALUES (?, ?, ?)", users)
+        
+        products = [
+            (1, "Widget Pro", 29.99),
+            (2, "Gadget Plus", 49.99),
+            (3, "Super Tool", 99.99)
+        ]
+        c.executemany("INSERT INTO products VALUES (?, ?, ?)", products)
+        
+    conn.commit()
+    conn.close()
+
+def execute_db(sql, params=(), trace_id=None, parent_span_id=None):
+    """Execute DB query with tracing"""
+    start_time = time.time()
+    span_id = generate_span_id()
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row # Access columns by name
+    status = 200
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        if sql.strip().upper().startswith("SELECT"):
+            result = [dict(row) for row in cursor.fetchall()]
+        else:
+            conn.commit()
+            result = cursor.lastrowid
+        conn.close()
+        return result
+    except Exception as e:
+        status = 500
+        raise e
+    finally:
+        duration_ms = int((time.time() - start_time) * 1000)
+        if trace_id and parent_span_id:
+            threading.Thread(
+                target=send_trace,
+                args=(trace_id, span_id, "DB Query", duration_ms, status, None, parent_span_id, sql),
+                daemon=True
+            ).start()
 
 # ============================================================================
 # HTTP HANDLER
 # ============================================================================
 class InstrumentedHandler(BaseHTTPRequestHandler):
-    users = [
-        {"id": 1, "name": "Alice", "email": "alice@example.com"},
-        {"id": 2, "name": "Bob", "email": "bob@example.com"},
-        {"id": 3, "name": "Charlie", "email": "charlie@example.com"}
-    ]
-    
-    products = [
-        {"id": 1, "name": "Widget Pro", "price": 29.99},
-        {"id": 2, "name": "Gadget Plus", "price": 49.99},
-        {"id": 3, "name": "Super Tool", "price": 99.99}
-    ]
-    
-    orders = []
-    
     def send_json(self, status, data):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
@@ -397,15 +476,19 @@ class InstrumentedHandler(BaseHTTPRequestHandler):
             
             elif path == '/api/users':
                 time.sleep(random.uniform(0.02, 0.1))
-                self.send_json(200, {"users": self.users, "count": len(self.users)})
+                users = execute_db("SELECT * FROM users", (), trace_id, span_id)
+                self.send_json(200, {"users": users, "count": len(users)})
             
             elif path == '/api/products':
                 time.sleep(random.uniform(0.05, 0.15))
-                self.send_json(200, {"products": self.products, "count": len(self.products)})
+                products = execute_db("SELECT * FROM products", (), trace_id, span_id)
+                self.send_json(200, {"products": products, "count": len(products)})
             
             elif path == '/api/slow':
                 delay = random.uniform(2.0, 5.0)
                 time.sleep(delay)
+                # Simulate slow DB call
+                execute_db("SELECT * FROM users", (), trace_id, span_id) 
                 self.send_json(200, {"message": "Slow response", "delay_ms": int(delay * 1000)})
             
             elif path == '/api/error':
@@ -472,15 +555,26 @@ class InstrumentedHandler(BaseHTTPRequestHandler):
                 
                 time.sleep(random.uniform(0.1, 0.3))
                 
+                user_id = data.get("userId", 1)
+                product_id = data.get("productId", 1)
+                quantity = data.get("quantity", 1)
+                order_timestamp = time.time()
+                
+                order_id = execute_db(
+                    "INSERT INTO orders (user_id, product_id, quantity, status, timestamp) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, product_id, quantity, "created", order_timestamp),
+                    trace_id, span_id
+                )
+                
                 order = {
-                    "id": len(self.orders) + 1,
-                    "userId": data.get("userId", 1),
-                    "productId": data.get("productId", 1),
-                    "quantity": data.get("quantity", 1),
+                    "id": order_id,
+                    "userId": user_id,
+                    "productId": product_id,
+                    "quantity": quantity,
                     "status": "created",
-                    "timestamp": time.time()
+                    "timestamp": order_timestamp
                 }
-                self.orders.append(order)
+                
                 status = 201
                 self.send_json(201, {"order": order, "message": "Order created"})
             
@@ -512,6 +606,7 @@ class InstrumentedHandler(BaseHTTPRequestHandler):
 # MAIN
 # ============================================================================
 def run_server(port=8080):
+    init_db()
     server = HTTPServer(('0.0.0.0', port), InstrumentedHandler)
     print(f"🚀 Instrumented Demo API running on http://localhost:{port}")
     print(f"   📊 Prometheus metrics: http://localhost:{port}/metrics")

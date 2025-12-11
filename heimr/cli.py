@@ -19,7 +19,45 @@ def load_config(config_path: str) -> dict:
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f) or {}
 
-    return config
+    return normalize_config(config)
+
+
+def normalize_config(config: dict) -> dict:
+    """
+    Normalize legacy/alias keys to the canonical config schema.
+
+    Canonical keys:
+      - llm_url, llm_model, disable_llm
+      - prometheus, loki, tempo, prompt_template, output, compare_*
+
+    Legacy/aliases supported:
+      - explain: false => disable_llm: true
+      - no_llm: true => disable_llm: true
+      - llm_url without /v1 => append /v1 for Ollama/OpenAI-compatible servers
+    """
+    if not isinstance(config, dict):
+        return {}
+
+    normalized = dict(config)
+
+    # Legacy boolean flags
+    if normalized.get("disable_llm") is None:
+        if normalized.get("no_llm") is True:
+            normalized["disable_llm"] = True
+        elif normalized.get("explain") is False:
+            normalized["disable_llm"] = True
+        else:
+            normalized["disable_llm"] = False
+
+    # Keep explain key for backward compatibility but don't use it later
+
+    llm_url = normalized.get("llm_url")
+    if isinstance(llm_url, str) and llm_url.startswith("http"):
+        # If URL ends at port or base, add /v1 to match OpenAI-compatible paths.
+        if not llm_url.rstrip("/").endswith("/v1"):
+            normalized["llm_url"] = llm_url.rstrip("/") + "/v1"
+
+    return normalized
 
 
 def merge_config_with_args(args, config: dict):
@@ -40,6 +78,8 @@ def merge_config_with_args(args, config: dict):
         'tempo_file': 'tempo',
         'llm_url': 'llm_url',
         'llm_model': 'llm_model',
+        'disable_llm': 'no_llm',
+        'no_llm': 'no_llm',
         'prompt_template': 'prompt_template',
         'output': 'output',
         'compare_baseline': 'compare_baseline',
@@ -1171,12 +1211,17 @@ def main():
     analyze_parser.add_argument("--config", "-c", metavar="FILE", help="Path to YAML config file.")
     analyze_parser.add_argument("--output", help="Path to save the generated analysis report (Markdown format)")
     analyze_parser.add_argument("--no-llm", action="store_true", help="Disable AI-powered analysis")
+    analyze_parser.add_argument("--explain", action="store_true",
+                                help="(Deprecated) AI analysis is on by default. Use --no-llm to disable.")
     analyze_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file")
     analyze_parser.add_argument("--loki", help="Loki server URL or path to JSON file")
     analyze_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file")
     analyze_parser.add_argument("--llm-url", default=None, help="Base URL for LLM API")
     analyze_parser.add_argument("--llm-model", default=None, help="LLM model to use")
     analyze_parser.add_argument("--prompt-template", help="Path to custom LLM prompt template file")
+    analyze_parser.add_argument("--llm-timeout-sec", type=float, default=None, help="LLM call timeout in seconds")
+    analyze_parser.add_argument("--llm-max-retries", type=int, default=None, help="Retry count for LLM calls")
+    analyze_parser.add_argument("--log-level", default=None, help="Log level (DEBUG, INFO, WARNING, ERROR)")
     # Comparison arguments
     analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file")
@@ -1199,13 +1244,14 @@ def main():
 # Documentation: https://github.com/jdestevezcastillo-perfeng/Heimr.ai/wiki
 
 # === Load Test Analysis ===
-# Enable AI-powered root cause analysis
+# AI-powered root cause analysis is enabled by default.
+# Set disable_llm to true for statistical-only analysis.
 disable_llm: false
 
 # LLM Configuration
-# Use local Ollama models or remote providers
-llm_model: qwen2.5:14b  # Recommended for best performance/speed balance
-llm_url: http://localhost:11434  # Default Ollama URL
+# Use local Ollama models or remote providers (OpenAI-compatible API)
+llm_model: medium  # Options: small, medium, large or explicit model name
+llm_url: http://localhost:11434/v1  # Default Ollama API URL
 
 # === Observability Integrations ===
 # Uncomment and set paths/URLs to enable multi-signal analysis.
@@ -1242,7 +1288,13 @@ llm_url: http://localhost:11434  # Default Ollama URL
         config = {}
         if args.config:
             config = load_config(args.config)
+        else:
+            config = normalize_config(config)
         args = merge_config_with_args(args, config)
+
+        # Warn if deprecated --explain was used
+        if getattr(args, "explain", False):
+            print("Warning: --explain is deprecated; AI analysis runs by default.")
 
         # Build config dict for Analyzer
         analyzer_config = {
@@ -1252,7 +1304,16 @@ llm_url: http://localhost:11434  # Default Ollama URL
             'llm_url': args.llm_url,
             'llm_model': args.llm_model,
             'prompt_template': getattr(args, 'prompt_template', None),
+            'disable_llm': args.no_llm,
+            'fail_conditions': getattr(args, 'fail_condition', None),
+            'llm_timeout_sec': args.llm_timeout_sec,
+            'llm_max_retries': args.llm_max_retries,
         }
+
+        # Configure logging if requested
+        if args.log_level:
+            import logging
+            logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
         
         print_banner()
         print(f"Analyzing {args.file}...")
@@ -1386,6 +1447,20 @@ llm_url: http://localhost:11434  # Default Ollama URL
                     logs_comparison,
                     traces_comparison
                 )
+
+                # Apply gating for baseline comparison
+                gating = comparator.check_failure_conditions(
+                    metrics_comparison,
+                    fail_on_regression=args.fail_on_regression,
+                    fail_conditions=args.fail_condition
+                )
+                if gating.get("failed"):
+                    print("❌ Comparison gating failed:")
+                    for reason in gating.get("reasons", []):
+                        print(f"  - {reason}")
+                    # Ensure exit code is failure
+                    result.status = "FAILED"
+                    result.failure_signals.extend(gating.get("reasons", []))
                 
                 comparison_path = args.output.rsplit('.', 1)[0] + '_comparison.md'
                 with open(comparison_path, 'w') as f:

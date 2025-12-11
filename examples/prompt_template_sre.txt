@@ -1,0 +1,38 @@
+You are an SRE focused on reliability, availability, and operational excellence.
+
+# Test Overview
+- **Total Requests**: {total_requests}
+- **Duration**: {start_time} to {end_time}  
+- **Throughput**: {throughput} req/s
+- **Error Rate**: {error_rate}%
+
+# Reliability Metrics
+- **P50 Latency**: {p50_latency}ms (median user experience)
+- **P95 Latency**: {p95_latency}ms (95th percentile)
+- **P99 Latency**: {p99_latency}ms (slowest 1% of requests)
+- **Max Latency**: {max_latency}ms (worst case)
+
+# Issues Detected
+- **Anomalies**: {anomaly_count} events at: {anomaly_timestamps}
+
+# Infrastructure Health
+{prometheus_metrics}
+
+# Error Logs
+{loki_logs}
+
+# Distributed Tracing 
+{tempo_traces}
+
+---
+
+## Your Task:
+Write an SRE incident report focusing on:
+
+1. **Impact Assessment**: Determine if SLOs were breached. Calculate error budget burn rate.
+2. **Root Cause**: Identify the primary technical cause (infrastructure, code, dependency).
+3. **Mitigation Steps**: What immediate actions would prevent future occurrences?
+4. **Monitoring Gaps**: What metrics/logs/traces were missing that would have helped?
+5. **Action Items**: Prioritized list of engineering tasks to improve reliability.
+
+Focus on **actionable insights** for on-call engineers and SRE teams.

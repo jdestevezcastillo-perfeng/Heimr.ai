@@ -23,7 +23,7 @@ from heimr import Analyzer
 config = {
     'prometheus': 'http://localhost:9090',
     'loki': 'http://localhost:3100',
-    'explain': True 
+    'tempo': 'http://localhost:3200'
 }
 
 # Initialize with a load test file
@@ -55,13 +55,13 @@ analyzer = Analyzer(
     file_path: str,              # Path to load test results
     
     # Optional Configuration Dictionary
-    # Keys: 'prometheus', 'loki', 'tempo', 'explain'
+    # Keys: 'prometheus', 'loki', 'tempo', 'prompt_template', 'disable_llm'
     config: Dict[str, Any] = None,
     
     # LLM Overrides
     llm_url: str = "http://localhost:11434/v1",
     llm_model: str = "llama3.1:8b",
-    no_llm: bool = False,        # Skip AI analysis
+    no_llm: bool = False,        # Skip AI analysis (overrides config)
 )
 ```
 

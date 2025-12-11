@@ -15,11 +15,15 @@ class KPIEngine:
         self.df = df
 
         # Pre-computational check
+        # Pre-computational check
         if self.df.empty:
             self.empty = True
         else:
             self.empty = False
             self.duration_seconds = (self.df['timestamp_dt'].max() - self.df['timestamp_dt'].min()).total_seconds()
+        
+        if not hasattr(self, 'duration_seconds'):
+            self.duration_seconds = 0.0
             if self.duration_seconds <= 0:
                 self.duration_seconds = 1.0  # Prevent division by zero
 

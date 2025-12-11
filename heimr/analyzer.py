@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from typing import Dict, Any, Optional, List, Union, Generator
 from dataclasses import dataclass, field
+import logging
 
 from heimr.parsers.jtl import JTLParser
 from heimr.parsers.k6 import K6Parser
@@ -17,6 +18,7 @@ from heimr.llm import LLMClient
 from heimr.prometheus import PrometheusClient
 from heimr.loki import LokiClient
 from heimr.tempo import TempoClient
+from heimr.failures import evaluate_failure_conditions
 
 @dataclass
 class AnalysisResult:
@@ -67,21 +69,27 @@ class Analyzer:
         self.jvm_thread_dump_path = jvm_thread_dump
         self.jvm_heap_dump_path = jvm_heap_dump
         self.jvm_gc_log_path = jvm_gc_log
+
+        self.logger = logging.getLogger("heimr")
         
         # Merge config values if not provided in init args
-        if not self.no_llm:
-            # Check config if not explicitly disabled
-            if self.config.get('explain') is False:
-                self.no_llm = True
+        # Canonical disable flag: disable_llm (aliases handled in CLI)
+        if not self.no_llm and self.config.get('disable_llm') is True:
+            self.no_llm = True
                 
         if not self.llm_url:
             self.llm_url = self.config.get('llm_url')
-        
+
         if not self.llm_model:
             self.llm_model = self.config.get('llm_model', 'medium')
         
         if not self.prompt_template:
             self.prompt_template = self.config.get('prompt_template')
+
+        # Normalize llm_url to OpenAI-compatible /v1 if needed
+        if isinstance(self.llm_url, str) and self.llm_url.startswith("http"):
+            if not self.llm_url.rstrip("/").endswith("/v1"):
+                self.llm_url = self.llm_url.rstrip("/") + "/v1"
 
     @staticmethod
     def detect_file_format(file_path: str) -> str:
@@ -154,6 +162,7 @@ class Analyzer:
             'p99_latency': kpi_data['latency']['p99'],
             'p50_latency': kpi_data['latency']['p50'],
             'error_rate': kpi_data['errors']['rate'],
+            'error_count': kpi_data['errors']['count'],
             'median_latency': kpi_data['latency']['p50'],
             'min_latency': kpi_data['latency']['min'],
             'max_latency': kpi_data['latency']['max'],
@@ -179,7 +188,7 @@ class Analyzer:
                     prom = PrometheusClient(url=url or "http://localhost:9090", file_path=path)
                     prom_metrics = prom.get_system_metrics(stats['start_time'], stats['end_time'])
                 except Exception as e:
-                    print(f"Warning: Failed to fetch Prometheus metrics: {e}")
+                    self.logger.warning("Failed to fetch Prometheus metrics: %s", e)
 
             # Loki
             loki_conf = self.config.get('loki')
@@ -189,7 +198,7 @@ class Analyzer:
                     loki = LokiClient(url=url or "http://localhost:3100", file_path=path)
                     loki_logs = loki.get_error_logs(stats['start_time'], stats['end_time'])
                 except Exception as e:
-                    print(f"Warning: Failed to fetch Loki logs: {e}")
+                    self.logger.warning("Failed to fetch Loki logs: %s", e)
 
             # Tempo
             tempo_conf = self.config.get('tempo')
@@ -201,7 +210,7 @@ class Analyzer:
                     tempo_traces = tempo.get_slow_traces(
                         stats['start_time'], stats['end_time'], min_duration_ms=min_duration)
                 except Exception as e:
-                    print(f"Warning: Failed to fetch Tempo traces: {e}")
+                    self.logger.warning("Failed to fetch Tempo traces: %s", e)
         
         # 5. JVM Analysis (Thread Dumps, Heap Dumps, GC Logs)
         jvm_thread_dump_data = None
@@ -212,28 +221,41 @@ class Analyzer:
             try:
                 parser = ThreadDumpParser(filepath=self.jvm_thread_dump_path)
                 jvm_thread_dump_data = parser.parse()
-                print(f"✓ Parsed JVM thread dump: {jvm_thread_dump_data['summary']['total_threads']} threads")
+                self.logger.info("Parsed JVM thread dump: %s threads", jvm_thread_dump_data['summary']['total_threads'])
             except Exception as e:
-                print(f"Warning: Failed to parse thread dump: {e}")
+                self.logger.warning("Failed to parse thread dump: %s", e)
         
         if self.jvm_heap_dump_path:
             try:
                 parser = HeapDumpParser(filepath=self.jvm_heap_dump_path)
                 jvm_heap_dump_data = parser.parse()
-                print(f"✓ Parsed JVM heap dump: {jvm_heap_dump_data['heap_summary']['total_bytes_mb']:.1f} MB")
+                self.logger.info("Parsed JVM heap dump: %.1f MB", jvm_heap_dump_data['heap_summary']['total_bytes_mb'])
             except Exception as e:
-                print(f"Warning: Failed to parse heap dump: {e}")
+                self.logger.warning("Failed to parse heap dump: %s", e)
         
         if self.jvm_gc_log_path:
             try:
                 parser = GCLogParser(filepath=self.jvm_gc_log_path)
                 jvm_gc_log_data = parser.parse()
-                print(f"✓ Parsed GC log: {jvm_gc_log_data['summary']['total_events']} events, {jvm_gc_log_data['summary']['gc_type']} collector")
+                self.logger.info(
+                    "Parsed GC log: %s events, %s collector",
+                    jvm_gc_log_data['summary']['total_events'],
+                    jvm_gc_log_data['summary']['gc_type'],
+                )
             except Exception as e:
-                print(f"Warning: Failed to parse GC log: {e}")
+                self.logger.warning("Failed to parse GC log: %s", e)
         
         # 6. Multi-Signal Failure Detection
         failure_signals = self._detect_failures(stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces)
+
+        # 6b. Absolute fail conditions (single-run gating)
+        fail_conditions = self.config.get("fail_conditions") or self.config.get("fail_condition")
+        if isinstance(fail_conditions, str):
+            fail_conditions = [fail_conditions]
+        abs_check = evaluate_failure_conditions(stats, fail_conditions)
+        if abs_check.failed:
+            failure_signals.extend(abs_check.reasons)
+
         status = "FAILED" if failure_signals else "PASSED"
         
         # 6. AI Analysis
@@ -248,7 +270,12 @@ class Analyzer:
                     if not has_api_key:
                         target_url = "http://localhost:11434/v1"
 
-                llm = LLMClient(base_url=target_url, model=self.llm_model)
+                llm = LLMClient(
+                    base_url=target_url,
+                    model=self.llm_model,
+                    timeout_sec=self.config.get("llm_timeout_sec"),
+                    max_retries=int(self.config.get("llm_max_retries", 0) or 0),
+                )
                 generator = llm.generate_explanation(
                     stats, anomaly_summary, prom_metrics, loki_logs, tempo_traces,
                     jvm_thread_dump_data, jvm_heap_dump_data, jvm_gc_log_data
@@ -263,6 +290,7 @@ class Analyzer:
             except Exception as e:
                 llm_error = str(e)
                 # Print prominent error message with troubleshooting steps
+                self.logger.error("LLM analysis failed: %s", e)
                 print("\n" + "=" * 70)
                 print("⚠️  LLM ANALYSIS FAILED")
                 print("=" * 70)
@@ -311,25 +339,31 @@ class Analyzer:
         """Detect failure conditions across multiple signals."""
         signals = []
 
-        if anomaly_summary['count'] > 0:
-            signals.append(f"Anomalies: {anomaly_summary['count']}")
+        # Configurable thresholds (canonical keys)
+        anomaly_threshold = float(self.config.get("anomaly_threshold", 0))
+        error_rate_threshold = float(self.config.get("error_rate_threshold", 0))
+        cpu_threshold = float(self.config.get("cpu_threshold", 0.8))
+        mem_growth_threshold = float(self.config.get("mem_growth_threshold", 0.5))
 
-        if stats.get('error_rate', 0) > 0:
-            signals.append(f"Error Rate: {stats['error_rate']:.2f}%")
+        if anomaly_summary['count'] > anomaly_threshold:
+            signals.append(f"Anomalies: {anomaly_summary['count']} (>{anomaly_threshold:g})")
+
+        if stats.get('error_rate', 0) > error_rate_threshold:
+            signals.append(f"Error Rate: {stats['error_rate']:.2f}% (>{error_rate_threshold:g}%)")
 
         if prom_metrics and 'cpu_usage' in prom_metrics and len(prom_metrics['cpu_usage']) > 0:
             cpu_values = [float(v[1]) for v in prom_metrics['cpu_usage'][0]['values']]
             avg_cpu = sum(cpu_values) / len(cpu_values) if cpu_values else 0
-            if avg_cpu > 0.8:  # TODO: Make configurable
-                signals.append(f"High CPU: {avg_cpu * 100:.1f}%")
+            if avg_cpu > cpu_threshold:
+                signals.append(f"High CPU: {avg_cpu * 100:.1f}% (>{cpu_threshold*100:.0f}%)")
                # Signal 6: Memory growth (from Prometheus)
         if prom_metrics and 'memory_usage' in prom_metrics and prom_metrics['memory_usage']:
             try:
                 mem_values = [float(v[1]) for v in prom_metrics['memory_usage'][0]['values']]
                 if len(mem_values) >= 2 and mem_values[0] > 0:
                     mem_growth = (mem_values[-1] - mem_values[0]) / mem_values[0]
-                    if mem_growth > 0.5:
-                        signals.append(f"Memory Growth: {mem_growth*100:.1f}%")
+                    if mem_growth > mem_growth_threshold:
+                        signals.append(f"Memory Growth: {mem_growth*100:.1f}% (>{mem_growth_threshold*100:.0f}%)")
             except (IndexError, ValueError):
                 pass
 

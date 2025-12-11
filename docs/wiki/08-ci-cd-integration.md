@@ -116,6 +116,15 @@ Fail if a specific metric exceeds a defined limit:
 heimr analyze results.jtl \
   --fail-condition "p95_latency > 800" \
   --fail-condition "error_rate > 1.0"
+
+You can also tune built-in multi-signal thresholds in `heimr.yaml`:
+
+```yaml
+cpu_threshold: 0.8
+mem_growth_threshold: 0.5
+anomaly_threshold: 0
+error_rate_threshold: 0
+```
 ```
 
 **Supported Metrics:**

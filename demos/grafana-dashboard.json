@@ -1,0 +1,298 @@
+{
+    "dashboard": {
+        "id": null,
+        "uid": "heimr-demo",
+        "title": "Heimr Demo - Load Test Metrics",
+        "description": "Real-time metrics for Heimr load test demo",
+        "tags": [
+            "heimr",
+            "demo",
+            "load-test"
+        ],
+        "timezone": "browser",
+        "refresh": "5s",
+        "time": {
+            "from": "now-30m",
+            "to": "now"
+        },
+        "panels": [
+            {
+                "id": 1,
+                "title": "HTTP Request Rate (req/s)",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 0
+                },
+                "targets": [
+                    {
+                        "expr": "sum(rate(http_requests_total[1m]))",
+                        "legendFormat": "Total RPS",
+                        "refId": "A"
+                    },
+                    {
+                        "expr": "sum(rate(http_requests_total{endpoint=\"/api/users\"}[1m]))",
+                        "legendFormat": "/api/users",
+                        "refId": "B"
+                    },
+                    {
+                        "expr": "sum(rate(http_requests_total{endpoint=\"/api/audit-logs\"}[1m]))",
+                        "legendFormat": "/api/audit-logs (SLOW)",
+                        "refId": "C"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "reqps"
+                    }
+                }
+            },
+            {
+                "id": 2,
+                "title": "Response Time (ms)",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 0
+                },
+                "targets": [
+                    {
+                        "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[1m])) by (le)) * 1000",
+                        "legendFormat": "P50",
+                        "refId": "A"
+                    },
+                    {
+                        "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le)) * 1000",
+                        "legendFormat": "P95",
+                        "refId": "B"
+                    },
+                    {
+                        "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le)) * 1000",
+                        "legendFormat": "P99",
+                        "refId": "C"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "ms"
+                    }
+                }
+            },
+            {
+                "id": 3,
+                "title": "Error Rate (%)",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 8,
+                    "x": 0,
+                    "y": 8
+                },
+                "targets": [
+                    {
+                        "expr": "sum(rate(http_requests_total{status=~\"5..\"}[1m])) / sum(rate(http_requests_total[1m])) * 100",
+                        "legendFormat": "Error Rate",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "fixedColor": "red",
+                            "mode": "fixed"
+                        },
+                        "unit": "percent",
+                        "thresholds": {
+                            "mode": "absolute",
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": null
+                                },
+                                {
+                                    "color": "yellow",
+                                    "value": 1
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 5
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": 4,
+                "title": "CPU Usage (%)",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 8,
+                    "x": 8,
+                    "y": 8
+                },
+                "targets": [
+                    {
+                        "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+                        "legendFormat": "CPU %",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "percent",
+                        "max": 100
+                    }
+                }
+            },
+            {
+                "id": 5,
+                "title": "Memory Usage (%)",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 8,
+                    "x": 16,
+                    "y": 8
+                },
+                "targets": [
+                    {
+                        "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+                        "legendFormat": "Memory %",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "percent",
+                        "max": 100
+                    }
+                }
+            },
+            {
+                "id": 6,
+                "title": "Response Time by Endpoint",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 16
+                },
+                "targets": [
+                    {
+                        "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/api/users\"}[1m])) by (le)) * 1000",
+                        "legendFormat": "/api/users P95",
+                        "refId": "A"
+                    },
+                    {
+                        "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/api/audit-logs\"}[1m])) by (le)) * 1000",
+                        "legendFormat": "/api/audit-logs P95 (SLOW)",
+                        "refId": "B"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "ms"
+                    }
+                }
+            },
+            {
+                "id": 7,
+                "title": "Active VUs (from k6)",
+                "type": "stat",
+                "gridPos": {
+                    "h": 4,
+                    "w": 4,
+                    "x": 12,
+                    "y": 16
+                },
+                "targets": [
+                    {
+                        "expr": "sum(http_requests_total) / 100",
+                        "legendFormat": "Active",
+                        "refId": "A"
+                    }
+                ],
+                "options": {
+                    "colorMode": "value",
+                    "graphMode": "area"
+                }
+            },
+            {
+                "id": 8,
+                "title": "Total Requests",
+                "type": "stat",
+                "gridPos": {
+                    "h": 4,
+                    "w": 4,
+                    "x": 16,
+                    "y": 16
+                },
+                "targets": [
+                    {
+                        "expr": "sum(http_requests_total)",
+                        "legendFormat": "Total",
+                        "refId": "A"
+                    }
+                ],
+                "options": {
+                    "colorMode": "value"
+                }
+            },
+            {
+                "id": 9,
+                "title": "Network I/O",
+                "type": "timeseries",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 20
+                },
+                "targets": [
+                    {
+                        "expr": "rate(node_network_receive_bytes_total{device!=\"lo\"}[1m]) / 1024 / 1024",
+                        "legendFormat": "RX MB/s",
+                        "refId": "A"
+                    },
+                    {
+                        "expr": "rate(node_network_transmit_bytes_total{device!=\"lo\"}[1m]) / 1024 / 1024",
+                        "legendFormat": "TX MB/s",
+                        "refId": "B"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "palette-classic"
+                        },
+                        "unit": "MBs"
+                    }
+                }
+            }
+        ],
+        "schemaVersion": 38
+    },
+    "overwrite": true
+}

@@ -20,6 +20,7 @@ class HTMLReportGenerator:
     <title>Heimr Performance Analysis Report</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
     <style>
         :root {{
             /* Colors from Heimr.ai website */
@@ -88,10 +89,10 @@ class HTMLReportGenerator:
             border-bottom: 1px solid rgba(0, 255, 163, 0.15);
             padding: 1.5rem 2rem;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 1.5rem;
             position: sticky;
             top: 0;
             z-index: 100;

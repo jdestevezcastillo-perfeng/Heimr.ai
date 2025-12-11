@@ -4,6 +4,7 @@
 import requests
 from typing import Dict, Any, List
 from datetime import datetime
+import logging
 
 
 class LokiClient:
@@ -15,6 +16,7 @@ class LokiClient:
         self.url = url.rstrip('/')
         self.api_url = f"{self.url}/loki/api/v1/query_range"
         self.file_path = file_path
+        self.logger = logging.getLogger("heimr")
 
     def query_logs(self, query: str, start_time: datetime, end_time: datetime,
                    limit: int = 100) -> List[Dict[str, Any]]:
@@ -47,10 +49,10 @@ class LokiClient:
                         })
                 return logs
             else:
-                print(f"Loki query failed: {result.get('error')}")
+                self.logger.warning("Loki query failed: %s", result.get('error'))
                 return []
         except Exception as e:
-            print(f"Error querying Loki: {e}")
+            self.logger.warning("Error querying Loki: %s", e)
             return []
 
     def get_error_logs(self, start_time: datetime, end_time: datetime, limit: int = 50) -> List[str]:
@@ -73,7 +75,7 @@ class LokiClient:
                         return logs
                     return []
             except Exception as e:
-                print(f"Error reading Loki file: {e}")
+                self.logger.warning("Error reading Loki file: %s", e)
                 return []
 
         # Try multiple query patterns for different environments

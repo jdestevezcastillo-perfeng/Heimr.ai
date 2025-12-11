@@ -1,0 +1,54 @@
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+
+# Set Environment Variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/root/.local/bin:$PATH"
+
+# Install System Dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+    git \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# Bake the model into the image (Reduces Cloud Run cold start time)
+# Note: This increases build time and image size significantly (~9GB)
+# We do this BEFORE copying code to utilize Docker layer caching for the model
+# in future builds.
+ARG LLM_MODEL=qwen2.5:14b
+RUN ollama serve & \
+    sleep 10 && \
+    ollama pull ${LLM_MODEL} && \
+    pkill ollama
+
+# Set up Application Directory
+WORKDIR /app
+
+# Copy Project Files
+COPY . /app
+
+# Install Python Dependencies
+RUN pip3 install --no-cache-dir . fastapi uvicorn python-multipart openai google-cloud-storage
+
+# Copy Entrypoint
+COPY deploy/entrypoint-demo.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Expose Port (Cloud Run sets $PORT, default 8000)
+ENV PORT=8000
+EXPOSE ${PORT}
+
+# Entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

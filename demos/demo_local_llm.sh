@@ -21,7 +21,7 @@ fi
 
 echo ""
 echo "📊 Analyzing sample JTL file with Llama 3.1..."
-echo "   Command: heimr analyze heimr/data/sample.jtl --explain --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b"
+echo "   Command: heimr analyze heimr/data/sample.jtl --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b"
 echo ""
 
 # Determine project root and heimr command
@@ -35,7 +35,7 @@ if [ -f "$PROJECT_ROOT/.venv/bin/heimr" ]; then
 fi
 
 # Run Heimr
-$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl" --explain --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
+$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl" --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
 
 echo ""
 echo "✅ Demo Complete!"

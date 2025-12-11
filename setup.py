@@ -52,6 +52,11 @@ setup(
         "requests>=2.28.0",
         # YAML config file support
         "pyyaml>=6.0",
+        # LLM client (used for local and OpenAI-compatible APIs)
+        "openai>=1.0.0",
+        # Optional web API support (FastAPI app in heimr.web)
+        "fastapi>=0.110.0",
+        "pydantic>=2.0.0",
         # PDF Generation
         "weasyprint>=57.0",
         # Charts/Graphs

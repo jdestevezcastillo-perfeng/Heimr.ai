@@ -17,12 +17,16 @@ class LLMClient:
     Client for interacting with LLMs (OpenAI, Anthropic, Ollama/Local) to generate explanations.
     """
 
-    def __init__(self, base_url: str = None, model: str = None, custom_prompt_template: str = None):
+    def __init__(self, base_url: str = None, model: str = None, custom_prompt_template: str = None,
+                 timeout_sec: float = None, max_retries: int = 0):
         self.base_url = base_url
         # Resolve model tier alias to actual model name
         self.model = self._resolve_model(model)
         self.custom_prompt_template = custom_prompt_template
         self.provider = self._detect_provider()
+        self.timeout_sec = timeout_sec
+        self.max_retries = max_retries
+        self.api_key = None
 
     def _resolve_model(self, model: str) -> str:
         """Resolve model tier alias (small/medium/large) to actual model name."""
@@ -103,22 +107,17 @@ class LLMClient:
         try:
             from openai import OpenAI
 
-            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            self.api_key = os.environ.get("OPENAI_API_KEY")
+            client = OpenAI(api_key=self.api_key)
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
                                             jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
             model_to_use = self.model if self.model else "gpt-5.1"
 
-            stream = client.chat.completions.create(
-                model=model_to_use,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a performance engineering expert. "
-                                   "Analyze the following load test results."
-                    },
-                    {"role": "user", "content": prompt}
-                ],
-                stream=True
+            stream = self._openai_stream_with_retries(
+                client,
+                model_to_use,
+                prompt,
+                system_text="You are a performance engineering expert. Analyze the following load test results."
             )
             for chunk in stream:
                 if chunk.choices[0].delta.content is not None:
@@ -143,17 +142,14 @@ class LLMClient:
         try:
             import anthropic
 
-            client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            self.api_key = os.environ.get("ANTHROPIC_API_KEY")
+            client = anthropic.Anthropic(api_key=self.api_key)
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
                                             jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
 
-            with client.messages.stream(
-                model="claude-sonnet-4-5-20250929",
-                max_tokens=2000,
-                messages=[{"role": "user", "content": prompt}]
-            ) as stream:
-                for text in stream.text_stream:
-                    yield text
+            model_to_use = self.model if self.model else "claude-opus-4.5"
+            for text in self._anthropic_stream_with_retries(client, model_to_use, prompt):
+                yield text
         except ImportError:
             yield "Error: `anthropic` package not installed. Run `pip install anthropic`."
         except Exception as e:
@@ -181,22 +177,17 @@ class LLMClient:
             base_url = self.base_url if self.base_url else "http://localhost:11434/v1"
             api_key = "not-needed"  # Most local LLMs don't require API keys
 
+            self.api_key = api_key
             client = OpenAI(api_key=api_key, base_url=base_url)
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
                                             jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
             model_to_use = self.model if self.model else "llama3.1:8b"  # Use medium tier default
 
-            stream = client.chat.completions.create(
-                model=model_to_use,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a performance engineering expert. "
-                                   "Analyze the following load test results."
-                    },
-                    {"role": "user", "content": prompt}
-                ],
-                stream=True
+            stream = self._openai_stream_with_retries(
+                client,
+                model_to_use,
+                prompt,
+                system_text="You are a performance engineering expert. Analyze the following load test results."
             )
             for chunk in stream:
                 if chunk.choices[0].delta.content is not None:
@@ -294,6 +285,52 @@ Please structure your response exactly as follows:
 - **Root Cause Analysis**: Based on ALL the data above, hypothesize the most likely causes.
 - **Recommendations**: Prioritized technical steps to resolve issues.
 """
+
+    def _openai_stream_with_retries(self, client, model: str, prompt: str, system_text: str):
+        import time
+        attempt = 0
+        last_exc = None
+        while attempt <= (self.max_retries or 0):
+            try:
+                return client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_text},
+                        {"role": "user", "content": prompt},
+                    ],
+                    stream=True,
+                    timeout=self.timeout_sec,
+                )
+            except Exception as e:
+                last_exc = e
+                attempt += 1
+                if attempt > (self.max_retries or 0):
+                    raise
+                time.sleep(min(2 ** attempt, 8))
+        raise last_exc
+
+    def _anthropic_stream_with_retries(self, client, model: str, prompt: str):
+        import time
+        attempt = 0
+        last_exc = None
+        while attempt <= (self.max_retries or 0):
+            try:
+                with client.messages.stream(
+                    model=model,
+                    max_tokens=2000,
+                    messages=[{"role": "user", "content": prompt}],
+                    timeout=self.timeout_sec,
+                ) as stream:
+                    for text in stream.text_stream:
+                        yield text
+                return
+            except Exception as e:
+                last_exc = e
+                attempt += 1
+                if attempt > (self.max_retries or 0):
+                    raise
+                time.sleep(min(2 ** attempt, 8))
+        raise last_exc
 
     def _load_prompt_template(self) -> str:
         """Load custom prompt template from file."""
@@ -676,4 +713,3 @@ Please structure your response exactly as follows:
                                "Full GCs cause longer pauses and may indicate memory pressure.")
         
         return "\n".join(sections) if sections else "No JVM analysis data available."
-

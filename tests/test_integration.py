@@ -38,6 +38,7 @@ class TestAnalyzerIntegration(unittest.TestCase):
         # Check KPI
         self.assertIn('throughput', result.kpi)
         self.assertEqual(result.stats['total_requests'], 12)
+        self.assertEqual(result.stats['error_count'], 1)
         
         # Check Failure Signals (should fail due to error rate and anomalies)
         self.assertEqual(result.status, "FAILED")
@@ -91,6 +92,12 @@ class TestAnalyzerIntegration(unittest.TestCase):
         # Should detect high CPU
         self.assertIn('cpu_usage', result.prom_metrics)
         self.assertTrue(any("High CPU" in s for s in result.failure_signals))
+
+    def test_fail_condition_single_run(self):
+        analyzer = Analyzer(self.jtl_path, config={"fail_conditions": ["p99_latency > 1500"]}, no_llm=True)
+        result = analyzer.analyze()
+        self.assertEqual(result.status, "FAILED")
+        self.assertTrue(any("Failure condition met" in s for s in result.failure_signals))
 
 if __name__ == '__main__':
     unittest.main()

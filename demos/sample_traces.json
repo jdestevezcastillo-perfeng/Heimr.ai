@@ -1,0 +1,176 @@
+{
+    "data": [
+        {
+            "traceID": "abc123def456789012345678",
+            "rootServiceName": "test-app",
+            "rootTraceName": "HTTP GET /api/users",
+            "startTimeUnixNano": "1733750400000000000",
+            "durationMs": 45,
+            "spans": [
+                {
+                    "spanID": "span001",
+                    "operationName": "HTTP GET /api/users",
+                    "serviceName": "test-app",
+                    "duration": 45000,
+                    "startTime": 1733750400000000,
+                    "tags": [
+                        {
+                            "key": "http.method",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "value": "/api/users?limit=5"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "value": "200"
+                        }
+                    ]
+                },
+                {
+                    "spanID": "span002",
+                    "parentSpanID": "span001",
+                    "operationName": "db.query.users",
+                    "serviceName": "test-app",
+                    "duration": 12000,
+                    "startTime": 1733750400010000,
+                    "tags": [
+                        {
+                            "key": "db.system",
+                            "value": "postgresql"
+                        },
+                        {
+                            "key": "db.statement",
+                            "value": "SELECT id, username, email FROM users LIMIT 5"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "traceID": "def789abc123456789012345",
+            "rootServiceName": "test-app",
+            "rootTraceName": "HTTP GET /api/audit-logs",
+            "startTimeUnixNano": "1733750401000000000",
+            "durationMs": 2345,
+            "spans": [
+                {
+                    "spanID": "span003",
+                    "operationName": "HTTP GET /api/audit-logs",
+                    "serviceName": "test-app",
+                    "duration": 2345000,
+                    "startTime": 1733750401000000,
+                    "tags": [
+                        {
+                            "key": "http.method",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "value": "/api/audit-logs?limit=100"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "value": "200"
+                        }
+                    ]
+                },
+                {
+                    "spanID": "span004",
+                    "parentSpanID": "span003",
+                    "operationName": "db.query.audit_logs (SLOW - no index)",
+                    "serviceName": "test-app",
+                    "duration": 2300000,
+                    "startTime": 1733750401005000,
+                    "tags": [
+                        {
+                            "key": "db.system",
+                            "value": "postgresql"
+                        },
+                        {
+                            "key": "db.statement",
+                            "value": "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100"
+                        },
+                        {
+                            "key": "slow_query",
+                            "value": "true"
+                        },
+                        {
+                            "key": "query_duration_ms",
+                            "value": "2300"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "traceID": "ghi456jkl789012345678901",
+            "rootServiceName": "test-app",
+            "rootTraceName": "HTTP GET /api/slow",
+            "startTimeUnixNano": "1733750404000000000",
+            "durationMs": 3500,
+            "spans": [
+                {
+                    "spanID": "span005",
+                    "operationName": "HTTP GET /api/slow (chaos injection)",
+                    "serviceName": "test-app",
+                    "duration": 3500000,
+                    "startTime": 1733750404000000,
+                    "tags": [
+                        {
+                            "key": "http.method",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "value": "/api/slow?delay_ms=3500"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "value": "200"
+                        },
+                        {
+                            "key": "chaos.injected",
+                            "value": "true"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "traceID": "jkl012mno345678901234567",
+            "rootServiceName": "test-app",
+            "rootTraceName": "HTTP GET /api/error",
+            "startTimeUnixNano": "1733750408000000000",
+            "durationMs": 5,
+            "spans": [
+                {
+                    "spanID": "span006",
+                    "operationName": "HTTP GET /api/error",
+                    "serviceName": "test-app",
+                    "duration": 5000,
+                    "startTime": 1733750408000000,
+                    "tags": [
+                        {
+                            "key": "http.method",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "value": "/api/error"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "value": "500"
+                        },
+                        {
+                            "key": "error",
+                            "value": "true"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

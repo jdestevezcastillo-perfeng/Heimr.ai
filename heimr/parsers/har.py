@@ -104,7 +104,8 @@ class HARParser(BaseParser):
 
             except Exception as e:
                 # Log warning but continue processing other entries
-                print(f"Warning: Skipping malformed HAR entry: {e}")
+                import logging
+                logging.getLogger("heimr").warning("Skipping malformed HAR entry: %s", e)
                 continue
 
         if not records:

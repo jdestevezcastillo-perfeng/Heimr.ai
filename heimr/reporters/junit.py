@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime
+import logging
 
 
 class JUnitReporter:
@@ -9,6 +10,7 @@ class JUnitReporter:
 
     def __init__(self, output_path: str = "heimr-junit.xml"):
         self.output_path = output_path
+        self.logger = logging.getLogger("heimr")
 
     def generate_report(self, stats: dict, anomalies: dict, failure_reasons: list = None, tags: dict = None):
         """
@@ -80,4 +82,4 @@ class JUnitReporter:
             tree.write(self.output_path, encoding='utf-8', xml_declaration=True)
             print(f"✅ JUnit XML report saved to: {self.output_path}")
         except Exception as e:
-            print(f"Warning: Failed to generate JUnit report: {e}")
+            self.logger.warning("Failed to generate JUnit report: %s", e)

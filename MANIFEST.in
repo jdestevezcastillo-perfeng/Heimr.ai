@@ -8,7 +8,6 @@ recursive-include docs *.md
 # Include package data files
 include heimr.yaml.example
 include pytest.ini
-include requirements.txt
 
 # Exclude development and website files
 exclude vercel.json
