@@ -1,0 +1,122 @@
+# Heimr Docker Quickstart
+# ======================
+# Spins up a complete performance engineering demo:
+#   1. Demo API server (target application)
+#   2. k6 load test runner
+#   3. Ollama LLM (local, no API keys needed)
+#   4. Heimr agent (analyzes results, makes deployment decision)
+#
+# Usage:
+#   docker compose -f docker-compose.quickstart.yml up --build
+#
+# To use sample data only (no live k6 test, no Ollama required):
+#   docker compose -f docker-compose.quickstart.yml up --build heimr-analyze
+#
+# Requirements:
+#   - Docker with compose v2+
+#   - ~8GB RAM (for Ollama with qwen3.5:9b)
+#   - ~3GB disk (for model download on first run)
+
+volumes:
+  k6-results:
+  ollama-data:
+
+services:
+  # ---------------------------------------------------------------
+  # 1. Demo API server — target application for load testing
+  # ---------------------------------------------------------------
+  demo-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python3", "/app/demos/demo_server.py"]
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ---------------------------------------------------------------
+  # 2. Ollama — local LLM server (no API keys needed)
+  # ---------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # Pull the model on first run (runs once, then exits)
+  ollama-pull:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen3.5:9b}"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    restart: "no"
+
+  # ---------------------------------------------------------------
+  # 3. k6 — load test runner
+  # ---------------------------------------------------------------
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./load-tests/k6:/scripts:ro
+      - k6-results:/results
+    depends_on:
+      demo-server:
+        condition: service_healthy
+    environment:
+      - BASE_URL=http://demo-server:8080
+    command: >
+      run
+      --out json=/results/results.json
+      --duration ${K6_DURATION:-1m}
+      --tag testid=quickstart
+      /scripts/quickstart.js
+
+  # ---------------------------------------------------------------
+  # 4. Heimr Agent — AI-powered performance analysis
+  # ---------------------------------------------------------------
+  heimr-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - k6-results:/data
+    depends_on:
+      k6:
+        condition: service_completed_successfully
+      ollama-pull:
+        condition: service_completed_successfully
+    environment:
+      - RESULTS_FILE=/data/results.json
+      - LLM_URL=http://ollama:11434/v1
+      - LLM_MODEL=${OLLAMA_MODEL:-qwen3.5:9b}
+      - GATE_POLICY=${GATE_POLICY:-advisory}
+      - HEIMR_CMD=${HEIMR_CMD:-agent}
+    entrypoint: ["/app/deploy/entrypoint-quickstart.sh"]
+
+  # ---------------------------------------------------------------
+  # Alternative: Analyze sample data without LLM (no Ollama needed)
+  # ---------------------------------------------------------------
+  heimr-analyze:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["analyze", "load-tests/results/demo_k6.json", "--no-llm"]
+    profiles:
+      - analyze-only

@@ -51,7 +51,7 @@ Heimr correlates load test data with server-side metrics. You can provide a live
     - Default: `http://localhost:11434/v1` (Ollama).
     - *Tip*: Leave empty if using Cloud API keys.
 - `--llm-model`: Specific model to use.
-    - Default: `medium` (`llama3.1:8b`).
+    - Default: `medium` (`qwen3.5:9b`).
     - Options: `small`, `medium`, `large`, or any valid model string (e.g., `gpt-4o`).
 
 #### CI/CD & Gating
@@ -126,7 +126,7 @@ heimr config-init
 
 ## 3. `setup-llm`
 
-Helper command to install and configure local LLMs (Ollama + Llama 3) for the AI analysis engine.
+Helper command to install and configure local LLMs (Ollama + Qwen 3.5) for the AI analysis engine.
 
 ```bash
 heimr setup-llm [OPTIONS]

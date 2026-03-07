@@ -8,6 +8,15 @@ import yaml
 from heimr.analyzer import Analyzer, AnalysisResult
 from heimr.setup_llm import setup_llm
 
+# Extracted helpers (P2.3 refactor). Kept re-exported here for compatibility.
+from heimr.commands.config import load_config as _load_config_mod, normalize_config as _normalize_config_mod, merge_config_with_args as _merge_config_mod
+from heimr.reporting.markdown import (
+    enhance_llm_output as _enhance_llm_output_mod,
+    create_correlation_chart as _create_correlation_chart_mod,
+    detect_timeline_mismatch as _detect_timeline_mismatch_mod,
+    extract_llm_tldr as _extract_llm_tldr_mod,
+)
+
 
 def load_config(config_path: str) -> dict:
     """
@@ -464,7 +473,7 @@ FIX: [your sentence]"""
                 )
                 result = response.content[0].text
             else:  # local/ollama
-                model = llm_client.model or "llama3.1:8b"
+                model = llm_client.model or "qwen3.5:9b"
                 import openai
                 client = openai.OpenAI(base_url=llm_client.base_url, api_key="ollama")
                 response = client.chat.completions.create(
@@ -556,6 +565,17 @@ def generate_markdown_report_content(result: AnalysisResult, args) -> str:
     if test_start and test_end:
         test_duration = (test_end - test_start).total_seconds()
         report += f"**Test Period:** {test_start.strftime('%Y-%m-%d %H:%M:%S')} → {test_end.strftime('%H:%M:%S')} ({test_duration/60:.1f} minutes)\n\n"
+
+    # Optional Grafana dashboard link scoped to test window
+    grafana_url = getattr(args, "grafana_url", None)
+    grafana_uid = getattr(args, "grafana_dashboard_uid", None)
+    if grafana_url and grafana_uid and test_start and test_end:
+        from urllib.parse import quote
+        base = grafana_url.rstrip("/")
+        frm = int(test_start.timestamp() * 1000)
+        to = int(test_end.timestamp() * 1000)
+        dash_url = f"{base}/d/{quote(grafana_uid)}?from={frm}&to={to}"
+        report += f"**Grafana Dashboard:** {dash_url}\n\n"
     
     # Show observability data periods if available
     if result.prom_metrics:
@@ -636,6 +656,26 @@ def generate_markdown_report_content(result: AnalysisResult, args) -> str:
     max_lat = l.get('max', 0)
     
     report += f"| **{total_reqs:,}** | **{rps:.1f}** req/s | **{avg:.0f}** ms | **{p50:.0f}** ms | **{p95:.0f}** ms | **{p99:.0f}** ms | **{max_lat:.0f}** ms | **{error_rate:.2f}%** | **{anomaly_count}** |\n\n"
+
+    # Per-endpoint KPI table (top 10 by p99)
+    per_endpoint = kpi_data.get("per_endpoint", {})
+    if per_endpoint:
+        report += "## 🔎 Per-Endpoint KPIs (Top 10 by P99)\n\n"
+        report += "| Endpoint | Requests | RPS | Error % | P50 | P95 | P99 |\n"
+        report += "|---|---:|---:|---:|---:|---:|---:|\n"
+        ranked = sorted(
+            per_endpoint.items(),
+            key=lambda kv: kv[1].get("latency", {}).get("p99", 0),
+            reverse=True
+        )[:10]
+        for name, data in ranked:
+            lat = data.get("latency", {})
+            report += (
+                f"| `{name}` | {data.get('total_requests', 0)} | {data.get('throughput_rps', 0):.2f} | "
+                f"{data.get('error_rate', 0):.2f}% | {lat.get('p50', 0):.0f} | "
+                f"{lat.get('p95', 0):.0f} | {lat.get('p99', 0):.0f} |\n"
+            )
+        report += "\n"
     
     # Top Recommendation (heuristic-based)
     if has_anomalies:
@@ -1150,7 +1190,7 @@ a.click();
 """
         elif "model" in error_lower or "not found" in error_lower:
             report += f"""> - Model not available on LLM server
-> - **Fix:** Run `ollama pull qwen2.5:14b` or specify a different model with `--llm-model`
+> - **Fix:** Run `ollama pull qwen3.5:9b` or specify a different model with `--llm-model`
 > - **Check available models:** `ollama list`
 
 """
@@ -1201,6 +1241,48 @@ def main():
         action="store_true",
         help="Run in non-interactive mode (auto-install)")
 
+    # Agent command
+    agent_parser = subparsers.add_parser(
+        "agent",
+        help="Run Heimr as an autonomous performance engineering agent.",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=35, width=120)
+    )
+    agent_parser.add_argument("file", help="Path to the load test result file")
+    agent_parser.add_argument("--config", "-c", metavar="FILE", help="Path to YAML config file.")
+    agent_parser.add_argument("--mode", default="autonomous",
+                              choices=["autonomous", "supervised"],
+                              help="Agent mode (default: autonomous)")
+    agent_parser.add_argument("--gate-policy", default="strict",
+                              choices=["strict", "advisory"],
+                              help="Gate policy: strict fails pipeline, advisory only warns (default: strict)")
+    agent_parser.add_argument("--max-iterations", type=int, default=10,
+                              help="Max ReAct loop iterations (default: 10)")
+    agent_parser.add_argument("--prometheus", help="Prometheus server URL or path to JSON file")
+    agent_parser.add_argument("--loki", help="Loki server URL or path to JSON file")
+    agent_parser.add_argument("--tempo", help="Tempo server URL or path to JSON file")
+    agent_parser.add_argument("--llm-url", default=None, help="Base URL for LLM API")
+    agent_parser.add_argument("--llm-model", default=None, help="LLM model to use")
+    agent_parser.add_argument("--fail-condition", action="append", help="Fail if condition is met")
+    agent_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY",
+                              help="Generate GitHub Actions Step Summary")
+    agent_parser.add_argument("--junit-output", help="Path to save JUnit XML report")
+    agent_parser.add_argument("--verbose", "-v", action="store_true", help="Print agent reasoning steps")
+    agent_parser.add_argument("--log-level", default=None, help="Log level (DEBUG, INFO, WARNING, ERROR)")
+    agent_parser.add_argument("--task", default=None,
+                              help="Custom task description (default: auto-generated from config)")
+
+    # MCP command
+    mcp_parser = subparsers.add_parser(
+        "mcp",
+        help="Start the Heimr MCP (Model Context Protocol) server.",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=35, width=120)
+    )
+    mcp_parser.add_argument("--transport", choices=["stdio", "streamable-http"],
+                            default="stdio",
+                            help="MCP transport (default: stdio)")
+    mcp_parser.add_argument("--port", type=int, default=8000,
+                            help="Port for HTTP transport (default: 8000)")
+
     # Analyze command
     analyze_parser = subparsers.add_parser(
         "analyze",
@@ -1222,6 +1304,8 @@ def main():
     analyze_parser.add_argument("--llm-timeout-sec", type=float, default=None, help="LLM call timeout in seconds")
     analyze_parser.add_argument("--llm-max-retries", type=int, default=None, help="Retry count for LLM calls")
     analyze_parser.add_argument("--log-level", default=None, help="Log level (DEBUG, INFO, WARNING, ERROR)")
+    analyze_parser.add_argument("--grafana-url", default=None, help="Grafana base URL for dashboard links")
+    analyze_parser.add_argument("--grafana-dashboard-uid", default=None, help="Grafana dashboard UID to link")
     # Comparison arguments
     analyze_parser.add_argument("--compare-baseline", help="Path to baseline load test file for comparison")
     analyze_parser.add_argument("--compare-prometheus", help="Path to baseline Prometheus metrics file")
@@ -1232,6 +1316,10 @@ def main():
     analyze_parser.add_argument("--tag", action="append", help="Add metadata tag to report")
     analyze_parser.add_argument("--ci-summary", nargs="?", const="GITHUB_STEP_SUMMARY", help="Generate GH Summary")
     analyze_parser.add_argument("--junit-output", help="Path to save JUnit XML report")
+    analyze_parser.add_argument("--detector-mode", default=None,
+                                help="Anomaly detector mode: simple (default), mad, trend")
+    analyze_parser.add_argument("--trend-threshold", type=float, default=None,
+                                help="Trend detector threshold (e.g., 0.5 = 50% slower tail)")
     # JVM Analysis arguments
     analyze_parser.add_argument("--jvm-thread-dump", help="Path to JVM thread dump file (jstack output)")
     analyze_parser.add_argument("--jvm-heap-dump", help="Path to JVM heap histogram file (jmap -histo output)")
@@ -1283,6 +1371,110 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
         success = setup_llm(interactive=not args.non_interactive)
         sys.exit(0 if success else 1)
 
+    elif args.command == "agent":
+        from heimr.agent.config import AgentConfig
+        from heimr.agent.react_loop import AgentRunner
+
+        # Load config
+        config = {}
+        if args.config:
+            config = load_config(args.config)
+        else:
+            config = normalize_config(config)
+
+        # Configure logging
+        if args.log_level:
+            import logging
+            logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
+
+        # Build AgentConfig
+        agent_config = AgentConfig.from_heimr_config(
+            config,
+            results_file=args.file,
+            mode=args.mode,
+            gate_policy=args.gate_policy,
+            max_iterations=args.max_iterations,
+            verbose=args.verbose,
+            llm_url=args.llm_url,
+            llm_model=args.llm_model,
+            prometheus=args.prometheus,
+            loki=args.loki,
+            tempo=args.tempo,
+            fail_conditions=getattr(args, "fail_condition", None),
+        )
+
+        print_banner()
+        print(f"🤖 Heimr Agent — {agent_config.mode} mode")
+        print(f"📁 Results: {args.file}")
+        print(f"🚦 Gate policy: {agent_config.gate_policy}")
+        print(f"🔄 Max iterations: {agent_config.max_iterations}")
+        print()
+
+        # Run agent
+        runner = AgentRunner(agent_config)
+        result = runner.run(task=args.task)
+
+        # Print verdict
+        print("\n" + "=" * 60)
+        if result.error:
+            print(f"❌ Agent Error: {result.error}")
+        else:
+            print(f"📋 Verdict:\n{result.verdict}")
+        print(f"\n⏱️  Completed in {result.elapsed_seconds:.1f}s ({result.total_iterations} iterations)")
+        print("=" * 60)
+
+        # CI/CD artifacts
+        if getattr(args, "ci_summary", None):
+            try:
+                from heimr.reporters.github import GitHubReporter
+                output_path = None if args.ci_summary == "GITHUB_STEP_SUMMARY" else args.ci_summary
+                gh = GitHubReporter(output_path=output_path)
+                # Extract stats-like data from verdict for GH summary
+                gh_stats = {
+                    "exit_code": result.exit_code,
+                    "total_iterations": result.total_iterations,
+                    "elapsed_seconds": result.elapsed_seconds,
+                }
+                summary_lines = [f"# 🤖 Heimr Agent Analysis\n"]
+                summary_lines.append(f"**Verdict:** {'✅ APPROVED' if result.exit_code == 0 else '❌ REJECTED'}\n")
+                summary_lines.append(f"**Iterations:** {result.total_iterations} | **Time:** {result.elapsed_seconds:.1f}s\n")
+                summary_lines.append(f"\n{result.verdict}\n")
+                with open(output_path or os.getenv("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as f:
+                    f.write("\n".join(summary_lines))
+            except Exception as e:
+                print(f"Warning: Failed to write GitHub Summary: {e}", file=sys.stderr)
+
+        # Save audit trail
+        audit_path = args.file.rsplit(".", 1)[0] + "_agent_audit.json"
+        try:
+            import json
+            with open(audit_path, "w") as f:
+                json.dump(result.to_dict(), f, indent=2, default=str)
+            print(f"📝 Audit trail saved to: {audit_path}")
+        except Exception as e:
+            print(f"Warning: Failed to save audit trail: {e}", file=sys.stderr)
+
+        sys.exit(result.exit_code)
+
+    elif args.command == "mcp":
+        try:
+            from heimr.agent.mcp_server import mcp as mcp_app
+        except ImportError:
+            print("Error: MCP SDK not installed. Install with:", file=sys.stderr)
+            print("  pip install mcp", file=sys.stderr)
+            print("  # or", file=sys.stderr)
+            print("  pip install heimr[mcp]", file=sys.stderr)
+            sys.exit(1)
+
+        print_banner()
+        print(f"🔌 Starting Heimr MCP Server (transport: {args.transport})")
+        if args.transport == "streamable-http":
+            print(f"   Listening on http://localhost:{args.port}/mcp")
+            mcp_app.run(transport="streamable-http", port=args.port)
+        else:
+            print("   Communicating via stdio")
+            mcp_app.run(transport="stdio")
+
     elif args.command == "analyze":
         # Load and merge config
         config = {}
@@ -1308,6 +1500,10 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
             'fail_conditions': getattr(args, 'fail_condition', None),
             'llm_timeout_sec': args.llm_timeout_sec,
             'llm_max_retries': args.llm_max_retries,
+            'detector_mode': args.detector_mode,
+            'trend_threshold': args.trend_threshold,
+            'grafana_url': args.grafana_url,
+            'grafana_dashboard_uid': args.grafana_dashboard_uid,
         }
 
         # Configure logging if requested
@@ -1341,6 +1537,8 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
         # Print Summary
         print_result_summary(result)
 
+        report_paths = {}
+
         # --- Report Generation ---
         if args.output:
             # Step 1: Generate HTML report with interactive Plotly charts
@@ -1358,6 +1556,7 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                 html_gen.generate_html(html_content, html_path)
                 print(f"✅ HTML report saved to: {html_path}")
                 print("   💡 Open in browser and press Ctrl+P to save as PDF")
+                report_paths["HTML"] = html_path
             except Exception as e:
                 print(f"Warning: Failed to generate HTML: {e}")
                 import traceback
@@ -1377,6 +1576,7 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                 with open(md_path, "w") as f:
                     f.write(md_content)
                 print(f"✅ Markdown report saved to: {md_path}")
+                report_paths["Markdown"] = md_path
                 
                 # Reset to HTML mode
                 ReportCharts.set_output_mode('html')
@@ -1389,8 +1589,10 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                 with open(args.output, "w") as f:
                     f.write(fallback_content)
                 print(f"⚠️ Saved Markdown with HTML charts (install kaleido for static images)")
+                report_paths["Markdown"] = args.output
 
         # --- Comparison Logic ---
+        comparison_reasons = None
         if args.compare_baseline and args.output:
             print("\n--- Generating Comparison Report ---")
             try:
@@ -1461,11 +1663,13 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                     # Ensure exit code is failure
                     result.status = "FAILED"
                     result.failure_signals.extend(gating.get("reasons", []))
+                    comparison_reasons = gating.get("reasons", [])
                 
                 comparison_path = args.output.rsplit('.', 1)[0] + '_comparison.md'
                 with open(comparison_path, 'w') as f:
                     f.write(comparison_report)
                 print(f"✅ Comparison report saved to: {comparison_path}")
+                report_paths["Comparison Markdown"] = comparison_path
                 
                  # Comparison PDF
                 try:
@@ -1474,6 +1678,7 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                     pdf_path = comparison_path.rsplit('.', 1)[0] + '.pdf'
                     pdf_gen.generate_pdf(comparison_report, pdf_path)
                     print(f"✅ Comparison PDF saved to: {pdf_path}")
+                    report_paths["Comparison PDF"] = pdf_path
                 except Exception as e:
                     print(f"Warning: Failed to generate comparison PDF: {e}")
 
@@ -1482,6 +1687,40 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
                 import traceback
                 traceback.print_exc()
 
+        # --- CI/CD Artifacts ---
+        tags_dict = None
+        if getattr(args, "tag", None):
+            tags_dict = {}
+            for tag in args.tag:
+                if '=' in tag:
+                    k, v = tag.split('=', 1)
+                    tags_dict[k] = v
+                else:
+                    tags_dict[tag] = True
+
+        if args.ci_summary:
+            from heimr.reporters.github import GitHubReporter
+            output_path = None if args.ci_summary == "GITHUB_STEP_SUMMARY" else args.ci_summary
+            gh = GitHubReporter(output_path=output_path)
+            gh.generate_summary(
+                stats=result.stats,
+                anomalies=result.anomaly_summary,
+                failure_reasons=result.failure_signals,
+                tags=tags_dict,
+                report_paths=report_paths or None,
+                comparison_reasons=comparison_reasons,
+            )
+
+        if args.junit_output:
+            from heimr.reporters.junit import JUnitReporter
+            junit = JUnitReporter(output_path=args.junit_output)
+            junit.generate_report(
+                stats=result.stats,
+                anomalies=result.anomaly_summary,
+                failure_reasons=result.failure_signals,
+                tags=tags_dict,
+            )
+
         # Exit code
         if result.status == "FAILED":
             sys.exit(1)
@@ -1489,3 +1728,12 @@ llm_url: http://localhost:11434/v1  # Default Ollama API URL
 
 if __name__ == "__main__":
     main()
+
+# Re-export extracted helpers for external callers/tests.
+load_config = _load_config_mod
+normalize_config = _normalize_config_mod
+merge_config_with_args = _merge_config_mod
+enhance_llm_output = _enhance_llm_output_mod
+create_correlation_chart = _create_correlation_chart_mod
+detect_timeline_mismatch = _detect_timeline_mismatch_mod
+extract_llm_tldr = _extract_llm_tldr_mod

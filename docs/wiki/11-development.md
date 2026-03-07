@@ -83,8 +83,18 @@ def detect_anomalies(df):
     iqr = q3 - q1
     iqr_threshold = q3 + (1.5 * iqr)
     
-    return outliers
+return outliers
 ```
+
+### Detector Modes
+
+Heimr supports explainable detector modes via `--detector-mode` or `detector_mode` in `heimr.yaml`:
+
+- `simple` (default): current multi-signal approach (absolute shift, z-score, bimodal tail, degradation tail).
+- `mad`: robust MAD outliers for spike detection.
+- `trend`: detects slow tail degradation (last 25% slower by `trend_threshold`) plus MAD spikes.
+
+`trend_threshold` is a fraction (default `0.5` = 50% slower tail).
 
 ### Why This Works Better
 
@@ -108,9 +118,9 @@ Heimr supports tiered local LLMs:
 
 | Tier | Model | RAM | Use Case |
 |------|-------|-----|----------|
-| Small | `llama3.2:3b` | ~2GB | CI/CD, laptops |
-| Medium | `llama3.1:8b` | ~5GB | Default, 16GB machines |
-| Large | `qwen2.5:14b` | ~9GB | Best reasoning, workstations |
+| Small | `qwen3.5:4b` | ~3.4GB | CI/CD, laptops |
+| Medium | `qwen3.5:9b` | ~6.6GB | Default, 16GB machines |
+| Large | `qwen3.5:27b` | ~17GB | Best reasoning, workstations |
 
 **Cloud Options**: OpenAI (GPT-4o) and Anthropic (Claude 3.5 Sonnet) supported.
 
@@ -208,7 +218,7 @@ python scripts/generate_mock_data.py
 ```bash
 python scripts/validate_scenarios.py \
   --llm-url http://localhost:11434/v1 \
-  --llm-model llama3.1:8b
+  --llm-model qwen3.5:9b
 ```
 
 ### Analyze Reports

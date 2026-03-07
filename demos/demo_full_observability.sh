@@ -7,7 +7,7 @@
 # Demo: Full Observability Analysis with Local LLM
 # =============================================================================
 # This demo showcases Heimr's complete feature set:
-# - Local LLM analysis (Ollama with Llama 3.1)
+# - Local LLM analysis (Ollama with Qwen 3.5)
 # - Prometheus metrics correlation
 # - Loki logs analysis
 # - Tempo traces investigation
@@ -15,7 +15,7 @@
 #
 # Prerequisites:
 # 1. Ollama installed and running (https://ollama.com/)
-# 2. Llama 3.1 model pulled (`ollama pull llama3.1:8b`)
+# 2. Qwen 3.5 model pulled (`ollama pull qwen3.5:9b`)
 # 3. Heimr installed (`pip install .[openai]`)
 # =============================================================================
 
@@ -61,11 +61,11 @@ echo ""
 if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Ollama is running${NC}"
     
-    # Check if llama3.1 is available
-    if curl -s http://localhost:11434/api/tags | grep -q "llama3"; then
-        echo -e "${GREEN}✅ Llama 3.1 model detected${NC}"
+    # Check if qwen3.5.1 is available
+    if curl -s http://localhost:11434/api/tags | grep -q "qwen3.5"; then
+        echo -e "${GREEN}✅ Qwen 3.5 model detected${NC}"
     else
-        echo -e "${YELLOW}⚠️  Llama 3.1 not found. Run: ollama pull llama3.1:8b${NC}"
+        echo -e "${YELLOW}⚠️  Qwen 3.5 not found. Run: ollama pull qwen3.5:9b${NC}"
     fi
 else
     echo -e "${RED}❌ Ollama is not running at http://localhost:11434${NC}"
@@ -153,7 +153,7 @@ echo -e "${CYAN}${BOLD}    --prometheus-file \"$PROMETHEUS_FILE\" \\${NC}"
 echo -e "${CYAN}${BOLD}    --loki-file \"$LOKI_FILE\" \\${NC}"
 echo -e "${CYAN}${BOLD}    --tempo-file \"$TEMPO_FILE\" \\${NC}"
 echo -e "${CYAN}${BOLD}    --llm-url http://localhost:11434/v1 \\${NC}"
-echo -e "${CYAN}${BOLD}    --llm-model llama3.1:8b \\${NC}"
+echo -e "${CYAN}${BOLD}    --llm-model qwen3.5:9b \\${NC}"
 echo -e "${CYAN}${BOLD}    --output \"$OUTPUT_FILE\"${NC}"
 echo ""
 
@@ -179,7 +179,7 @@ $HEIMR_CMD analyze "$LOAD_TEST_FILE" \
     --loki-file "$LOKI_FILE" \
     --tempo-file "$TEMPO_FILE" \
     --llm-url http://localhost:11434/v1 \
-    --llm-model llama3.1:8b \
+    --llm-model qwen3.5:9b \
     --output "$OUTPUT_FILE"
 
 # =============================================================================

@@ -25,7 +25,7 @@ class TestLoadConfig(unittest.TestCase):
         self.assertIsNotNone(config)
         self.assertEqual(config['prometheus_url'], 'http://localhost:9090')
         self.assertEqual(config['loki_url'], 'http://localhost:3100')
-        self.assertEqual(config['llm_model'], 'qwen2.5:7b')
+        self.assertEqual(config['llm_model'], 'qwen3.5:9b')
 
     def test_load_nonexistent_config_raises(self):
         """Test loading a non-existent config file raises FileNotFoundError."""

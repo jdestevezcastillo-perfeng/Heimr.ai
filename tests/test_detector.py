@@ -30,6 +30,27 @@ class TestDetector(unittest.TestCase):
         caught_outliers = anomalies[anomalies['elapsed'] >= 1000]
         self.assertGreaterEqual(len(caught_outliers), 5)
 
+    def test_mad_mode_outliers(self):
+        normal_data = np.full(95, 100)
+        outlier_data = np.full(5, 1000)
+        elapsed = np.concatenate([normal_data, outlier_data])
+        df = pd.DataFrame({'timestamp_dt': self.timestamps, 'elapsed': elapsed})
+        detector = AnomalyDetector(df, mode="mad")
+        anomalies = detector.detect_latency_anomalies()
+        self.assertGreaterEqual(len(anomalies), 5)
+        self.assertTrue(all(anomalies['anomaly_reason'].isin(["mad_outlier", "zscore_fallback"])))
+
+    def test_trend_mode_degradation(self):
+        part1 = np.full(25, 100)
+        part2 = np.full(50, 110)
+        part3 = np.full(25, 200)
+        elapsed = np.concatenate([part1, part2, part3])
+        df = pd.DataFrame({'timestamp_dt': self.timestamps, 'elapsed': elapsed})
+        detector = AnomalyDetector(df, mode="trend", trend_threshold=0.5)
+        anomalies = detector.detect_latency_anomalies()
+        # Tail quarter should be marked
+        self.assertGreaterEqual(len(anomalies[anomalies['elapsed'] == 200]), 20)
+
     def test_absolute_threshold(self):
         # All points are high latency (e.g. 600ms), mean > 500
         data = np.random.normal(600, 10, 100) 

@@ -90,8 +90,20 @@ class TestKPIEngine(unittest.TestCase):
         self.assertIn('errors', kpi)
         self.assertIn('concurrency', kpi)
         self.assertIn('duration', kpi)
+        self.assertIn('per_endpoint', kpi)
         
         self.assertGreater(kpi['duration'], 0)
+
+    def test_per_endpoint_kpi(self):
+        """Per-endpoint KPIs should be produced when endpoint/method present."""
+        df = self.df.copy()
+        df['endpoint'] = ['/a'] * 5 + ['/b'] * 5
+        df['method'] = ['GET'] * 10
+        engine = KPIEngine(df)
+        per_endpoint = engine.calculate_per_endpoint()
+        self.assertIn('GET /a', per_endpoint)
+        self.assertIn('GET /b', per_endpoint)
+        self.assertIn('latency', per_endpoint['GET /a'])
 
     def test_empty_dataframe(self):
         """Test handling of empty DataFrame."""

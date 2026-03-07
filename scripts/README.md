@@ -29,7 +29,7 @@ Runs Heimr analysis on all mock scenarios with LLM. Used for full validation.
 # With local Ollama
 python scripts/validate_scenarios.py \
   --llm-url http://localhost:11434/v1 \
-  --llm-model llama3.1:8b
+  --llm-model qwen3.5:9b
 
 # With OpenAI
 python scripts/validate_scenarios.py \
@@ -87,7 +87,7 @@ python scripts/validate_mock_reports.py
 2. Have Ollama running (for LLM validation):
    ```bash
    ollama serve
-   ollama pull llama3.1:8b
+   ollama pull qwen3.5:9b
    ```
 
 ## Typical Workflow
@@ -100,7 +100,7 @@ python scripts/generate_mock_data.py
 python scripts/quick_validate.py
 
 # 3. Full validation (with LLM)
-python scripts/validate_scenarios.py --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
+python scripts/validate_scenarios.py --llm-url http://localhost:11434/v1 --llm-model qwen3.5:9b
 
 # 4. Analyze results
 python scripts/analyze_reports.py

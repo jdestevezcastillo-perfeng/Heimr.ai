@@ -71,6 +71,7 @@ The "brain" of the pre-processing phase before LLM involvement.
 - **Statistical Detector (`detector.py`)**:
     - **Algorithmic Detection**: Uses Z-Score (Mean + 2.5 STD) and Modified Z-Score to identify outliers.
     - **Pattern Recognition**: Detects bimodal distributions (e.g., cache hits vs. misses) by comparing P99 vs P50 ratios.
+    - **Detector Modes**: `simple` (multi-signal), `mad` (robust spikes), `trend` (tail degradation).
 - **KPI Processor (`kpi.py`)**:
     - Aggregates Time-Series data.
     - Calculates high-level metrics: Throughput, Error Rate, Apdex Score.

@@ -1,8 +1,60 @@
-# Heimr Demo - Multi-Format Analysis
+# Heimr Demo
 
 This demo showcases Heimr's ability to analyze performance test results from multiple load testing tools.
 
-## Quick Demo
+## Docker Quickstart (Recommended)
+
+The fastest way to see Heimr in action. Runs a complete end-to-end demo:
+demo API server, k6 load test, Ollama LLM, and Heimr agent analysis.
+
+**Requirements**: Docker with compose v2+, ~8GB RAM, ~3GB disk (model download on first run).
+
+```bash
+# Full demo: load test + AI agent analysis (uses local Ollama — no API keys)
+docker compose -f docker-compose.quickstart.yml up --build
+
+# Quick analyze only (no LLM, no Ollama — just parses sample data)
+docker compose -f docker-compose.quickstart.yml --profile analyze-only up heimr-analyze --build
+```
+
+### What happens
+
+1. **demo-server** starts — a Python HTTP API with simulated latency/errors
+2. **ollama** starts and pulls `qwen3.5:9b` (~2GB, first run only)
+3. **k6** runs a 1-minute load test against the demo server
+4. **heimr-agent** analyzes the results with AI and makes a deployment gate decision
+
+### Configuration
+
+Copy `.env.example` to `.env` to customize:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_MODEL` | `qwen3.5:9b` | Ollama model (`qwen3.5:9b`, `qwen3.5:27b` for better analysis) |
+| `GATE_POLICY` | `advisory` | `strict` (REJECT on issues) or `advisory` (WARN only) |
+| `HEIMR_CMD` | `agent` | `agent` (AI-powered) or `analyze` (no LLM) |
+| `K6_DURATION` | `1m` | Load test duration |
+| `K6_VUS` | `10` | Peak virtual users |
+
+### Using cloud LLM instead of Ollama
+
+Set API keys in `.env` and the agent will auto-detect the provider:
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+---
+
+## Quick Demo (Local Install)
 
 ```bash
 # Analyze k6 results
@@ -120,3 +172,22 @@ Latency P99               | 5356.08 ms
 - Real tests would show actual system behavior
 - HAR files represent single browser sessions (not load tests)
 - k6 is the easiest to run live (no Java/Scala dependencies)
+
+## Grafana Dashboard
+
+A pre-built Grafana dashboard for the demo is available at `demos/grafana-dashboard.json`.
+
+Import steps:
+1. Open Grafana → Dashboards → Import.
+2. Upload `grafana-dashboard.json`.
+3. Select your Prometheus/Loki/Tempo data sources.
+4. Save.
+
+When running Heimr, you can embed a Grafana link scoped to the test window:
+
+```bash
+heimr analyze results.json \
+  --grafana-url http://localhost:3000 \
+  --grafana-dashboard-uid heimr-demo \
+  --output report.md
+```

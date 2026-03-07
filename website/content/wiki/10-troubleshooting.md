@@ -21,11 +21,11 @@ Common issues and their solutions.
 2. Check if the model is pulled:
    ```bash
    ollama list
-   # Should show llama3.1:8b or your configured model
+   # Should show qwen3.5:9b or your configured model
    ```
 3. Pull the model if missing:
    ```bash
-   ollama pull llama3.1:8b
+   ollama pull qwen3.5:9b
    ```
 
 ### "Model not found" or slow response
@@ -36,10 +36,10 @@ Common issues and their solutions.
 1. Ensure the model name matches exactly (including tag):
    ```bash
    # Correct
-   --llm-model llama3.1:8b
+   --llm-model qwen3.5:9b
    
    # Wrong (missing tag)
-   --llm-model llama3.1
+   --llm-model qwen3.5
    ```
 2. For slow responses, check system resources:
    ```bash
@@ -109,7 +109,7 @@ Common issues and their solutions.
 **Solutions**:
 1. Use a smaller model:
    ```bash
-   --llm-model llama3.2:3b  # Only needs 4GB VRAM
+   --llm-model qwen3.5:4b  # Only needs 4GB VRAM
    ```
 2. Close other GPU-intensive applications.
 3. Run on CPU (slower but works):
@@ -134,7 +134,7 @@ Common issues and their solutions.
    heimr analyze results.jtl --no-llm
    ```
 2. Reduce observability data by filtering time range.
-3. Use a smaller model (`llama3.2:3b`).
+3. Use a smaller model (`qwen3.5:4b`).
 
 ---
 

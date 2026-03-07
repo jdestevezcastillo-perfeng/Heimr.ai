@@ -1,0 +1,120 @@
+name: 'Heimr Performance Agent'
+description: 'AI-powered autonomous performance engineering agent. Analyzes load test results, correlates multi-signal observability data, and makes deployment gate decisions.'
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+inputs:
+  results-file:
+    description: 'Path to load test results (k6 JSON, JMeter JTL, Gatling log, Locust CSV)'
+    required: true
+  config:
+    description: 'Path to heimr.yaml config file'
+    required: false
+    default: ''
+  gate-policy:
+    description: 'Gate policy: strict (fail pipeline) or advisory (warn only)'
+    required: false
+    default: 'strict'
+  mode:
+    description: 'Agent mode: autonomous or supervised'
+    required: false
+    default: 'autonomous'
+  max-iterations:
+    description: 'Max ReAct loop iterations'
+    required: false
+    default: '10'
+  llm-model:
+    description: 'LLM model tier (small/medium/large) or explicit model name'
+    required: false
+    default: 'small'
+  llm-url:
+    description: 'LLM API URL (for self-hosted models)'
+    required: false
+    default: ''
+  prometheus:
+    description: 'Prometheus URL or metrics JSON file path'
+    required: false
+    default: ''
+  loki:
+    description: 'Loki URL or logs JSON file path'
+    required: false
+    default: ''
+  tempo:
+    description: 'Tempo URL or traces JSON file path'
+    required: false
+    default: ''
+  fail-conditions:
+    description: 'Comma-separated fail conditions (e.g. "p99_latency > 500,error_rate > 1")'
+    required: false
+    default: ''
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.11'
+
+outputs:
+  verdict:
+    description: 'Agent verdict (APPROVE/REJECT/WARN)'
+    value: ${{ steps.run-agent.outputs.verdict }}
+  exit-code:
+    description: 'Process exit code (0=pass, 1=fail)'
+    value: ${{ steps.run-agent.outputs.exit-code }}
+  audit-trail:
+    description: 'Path to the audit trail JSON file'
+    value: ${{ steps.run-agent.outputs.audit-trail }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Heimr
+      shell: bash
+      run: |
+        pip install -e ${{ github.action_path }}
+
+    - name: Run Heimr Agent
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
+      run: |
+        ARGS="${{ inputs.results-file }}"
+        ARGS="$ARGS --gate-policy ${{ inputs.gate-policy }}"
+        ARGS="$ARGS --mode ${{ inputs.mode }}"
+        ARGS="$ARGS --max-iterations ${{ inputs.max-iterations }}"
+        ARGS="$ARGS --ci-summary"
+        ARGS="$ARGS --verbose"
+
+        if [ -n "${{ inputs.config }}" ]; then
+          ARGS="$ARGS --config ${{ inputs.config }}"
+        fi
+        if [ -n "${{ inputs.llm-model }}" ]; then
+          ARGS="$ARGS --llm-model ${{ inputs.llm-model }}"
+        fi
+        if [ -n "${{ inputs.llm-url }}" ]; then
+          ARGS="$ARGS --llm-url ${{ inputs.llm-url }}"
+        fi
+        if [ -n "${{ inputs.prometheus }}" ]; then
+          ARGS="$ARGS --prometheus ${{ inputs.prometheus }}"
+        fi
+        if [ -n "${{ inputs.loki }}" ]; then
+          ARGS="$ARGS --loki ${{ inputs.loki }}"
+        fi
+        if [ -n "${{ inputs.tempo }}" ]; then
+          ARGS="$ARGS --tempo ${{ inputs.tempo }}"
+        fi
+
+        # Parse comma-separated fail conditions
+        if [ -n "${{ inputs.fail-conditions }}" ]; then
+          IFS=',' read -ra CONDITIONS <<< "${{ inputs.fail-conditions }}"
+          for cond in "${CONDITIONS[@]}"; do
+            ARGS="$ARGS --fail-condition \"$(echo $cond | xargs)\""
+          done
+        fi
+
+        heimr agent $ARGS

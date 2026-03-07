@@ -6,9 +6,9 @@ from typing import Dict, Any
 
 # Model tier aliases for convenience
 MODEL_TIERS = {
-    'small': 'llama3.2:3b',           # ~2GB, laptops/CI/CD
-    'medium': 'llama3.1:8b',          # ~5GB, default
-    'large': 'qwen2.5:14b'  # ~9GB VRAM, High reasoning
+    'small': 'qwen3.5:4b',            # ~3.4GB, laptops/CI/CD
+    'medium': 'qwen3.5:9b',           # ~6.6GB, default
+    'large': 'qwen3.5:27b',           # ~17GB VRAM, deep reasoning
 }
 
 
@@ -181,7 +181,7 @@ class LLMClient:
             client = OpenAI(api_key=api_key, base_url=base_url)
             prompt = self._construct_prompt(stats, anomalies, prom_metrics, loki_logs, tempo_traces,
                                             jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
-            model_to_use = self.model if self.model else "llama3.1:8b"  # Use medium tier default
+            model_to_use = self.model if self.model else "qwen3.5:9b"  # Use medium tier default
 
             stream = self._openai_stream_with_retries(
                 client,
@@ -230,6 +230,24 @@ class LLMClient:
         # Format JVM Analysis context
         jvm_text = self._format_jvm_context(jvm_thread_dump, jvm_heap_dump, jvm_gc_log)
 
+        per_endpoint = stats.get("per_endpoint_kpi") or {}
+        top_endpoints_text = ""
+        if per_endpoint:
+            # Sort by p99 latency desc, take top 5
+            ranked = sorted(
+                per_endpoint.items(),
+                key=lambda kv: kv[1].get("latency", {}).get("p99", 0),
+                reverse=True
+            )[:5]
+            lines = []
+            for name, data in ranked:
+                lat = data.get("latency", {})
+                lines.append(
+                    f"- {name}: p99={lat.get('p99', 0):.2f}ms, p95={lat.get('p95', 0):.2f}ms, "
+                    f"err={data.get('error_rate', 0):.2f}%, rps={data.get('throughput_rps', 0):.2f}"
+                )
+            top_endpoints_text = "\n".join(lines)
+
         return f"""
 You are a Senior Performance Engineer. Analyze the following load test results and generate a comprehensive Root Cause Analysis (RCA) report in Markdown format.
 
@@ -251,6 +269,9 @@ You are a Senior Performance Engineer. Analyze the following load test results a
 - Average Latency during Anomalies: {anomalies.get('avg_latency', 0):.2f} ms
 - Max Latency during Anomalies: {anomalies.get('max_latency', 0):.2f} ms
 - Anomaly Timestamps: {', '.join(str(ts) for ts in anomalies.get('timestamps', [])[:5])} ...
+
+### Top Slow/Erroneous Endpoints
+{top_endpoints_text or "No per-endpoint breakdown available."}
 
 ### System Metrics (Prometheus)
 {prom_text}

@@ -75,8 +75,8 @@ For testing LLM integration locally:
 # Install Ollama
 curl https://ollama.ai/install.sh | sh
 
-# Pull Llama 3.1
-ollama pull llama3.1:8b
+# Pull Qwen 3.5
+ollama pull qwen3.5:9b
 ```
 
 ---
@@ -154,7 +154,7 @@ We welcome:
    black heimr/ --check
    
    # Test with mock data
-   python scripts/validate_scenarios.py --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
+   python scripts/validate_scenarios.py --llm-url http://localhost:11434/v1 --llm-model qwen3.5:9b
    ```
 
 4. **Commit your changes**:
@@ -247,7 +247,7 @@ Runs complete analysis including AI-generated reports:
 # Local Ollama
 python scripts/validate_scenarios.py \
   --llm-url http://localhost:11434/v1 \
-  --llm-model llama3.1:8b
+  --llm-model qwen3.5:9b
 
 # OpenAI
 python scripts/validate_scenarios.py \

@@ -30,7 +30,7 @@ config = {
 analyzer = Analyzer(
     file_path="results.jtl",
     config=config,
-    llm_model="llama3.1:8b"
+    llm_model="qwen3.5:9b"
 )
 
 # Run analysis
@@ -60,7 +60,7 @@ analyzer = Analyzer(
     
     # LLM Overrides
     llm_url: str = "http://localhost:11434/v1",
-    llm_model: str = "llama3.1:8b",
+    llm_model: str = "qwen3.5:9b",
     prompt_template: str = None,  # Path to custom prompt template file
     no_llm: bool = False,        # Skip AI analysis
 )

@@ -33,23 +33,23 @@ tempo: http://localhost:3200          # Default Tempo URL
 # 1. Local LLM (Ollama) - Recommended for Privacy
 # ----------------------------------------------------------------------------
 llm_url: http://localhost:11434/v1  # Default Ollama API URL
-llm_model: llama3.1:8b              # Default model (Medium)
+llm_model: qwen3.5:9b              # Default model (Medium)
 
 # Optional LLM reliability settings
 # llm_timeout_sec: 60
 # llm_max_retries: 2
 
 # Model Options (Pull these via 'ollama pull <model>'):
-# - Small:  llama3.2:3b   (~2GB VRAM)  - Good for laptops, CI/CD
-# - Medium: llama3.1:8b   (~5GB VRAM)  - Best balance of speed/quality [DEFAULT]
-# - Large:  qwen2.5:14b   (~9GB VRAM)  - High quality reasoning (fits on 12GB GPU)
+# - Small:  qwen3.5:4b    (~3.4GB VRAM) - Good for laptops, CI/CD
+# - Medium: qwen3.5:9b    (~6.6GB VRAM) - Best balance of speed/quality [DEFAULT]
+# - Large:  qwen3.5:27b   (~17GB VRAM)  - High quality reasoning (fits on 20GB GPU)
 
 # 2. Cloud LLMs (OpenAI / Anthropic)
 # ----------------------------------------------------------------------------
 # To use cloud models, DO NOT set llm_url (leave it commented or empty).
 # Instead, set the following environment variables:
 #   export OPENAI_API_KEY="sk-..."      -> uses gpt-5.1 by default
-#   export ANTHROPIC_API_KEY="sk-..."   -> uses claude-opus-4.5 by default
+#   export ANTHROPIC_API_KEY="sk-..."   -> uses claude-opus-4-6 by default
 #
 # You can override the specific cloud model name using llm_model:
 # llm_model: gpt-4-turbo
@@ -69,5 +69,8 @@ llm_model: llama3.1:8b              # Default model (Medium)
 # ============================================================================
 # Reporting
 # ============================================================================
+# Optional Grafana dashboard linking
+# grafana_url: http://localhost:3000
+# grafana_dashboard_uid: heimr-demo
 output: ./reports/analysis.md
 ```

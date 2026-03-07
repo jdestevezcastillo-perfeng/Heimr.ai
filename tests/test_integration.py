@@ -39,6 +39,7 @@ class TestAnalyzerIntegration(unittest.TestCase):
         self.assertIn('throughput', result.kpi)
         self.assertEqual(result.stats['total_requests'], 12)
         self.assertEqual(result.stats['error_count'], 1)
+        self.assertIn('per_endpoint', result.kpi)
         
         # Check Failure Signals (should fail due to error rate and anomalies)
         self.assertEqual(result.status, "FAILED")

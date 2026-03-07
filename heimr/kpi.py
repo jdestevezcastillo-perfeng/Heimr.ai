@@ -120,6 +120,35 @@ class KPIEngine:
             'avg': float(round(avg_vus, 1))
         }
 
+    def calculate_per_endpoint(self) -> Dict[str, Any]:
+        """Calculate KPIs per endpoint/method."""
+        if self.empty or 'endpoint' not in self.df.columns:
+            return {}
+
+        grouped = self.df.groupby(['endpoint', 'method'], dropna=False)
+        per_endpoint = {}
+        for (endpoint, method), group in grouped:
+            if group.empty:
+                continue
+            duration = (group['timestamp_dt'].max() - group['timestamp_dt'].min()).total_seconds()
+            if duration <= 0:
+                duration = 1.0
+            failed = group[~group['success']]
+            per_endpoint[f"{method} {endpoint}"] = {
+                'total_requests': int(len(group)),
+                'throughput_rps': float(len(group) / duration),
+                'error_rate': float((len(failed) / len(group)) * 100.0),
+                'latency': {
+                    'min': float(group['elapsed'].min()),
+                    'max': float(group['elapsed'].max()),
+                    'avg': float(group['elapsed'].mean()),
+                    'p50': float(group['elapsed'].quantile(0.50)),
+                    'p95': float(group['elapsed'].quantile(0.95)),
+                    'p99': float(group['elapsed'].quantile(0.99)),
+                }
+            }
+        return per_endpoint
+
     def get_kpi_dict(self) -> Dict[str, Any]:
         """Returns the fully structured KPI dictionary for reporting."""
         return {
@@ -127,5 +156,6 @@ class KPIEngine:
             'throughput': self.calculate_throughput(),
             'errors': self.calculate_error_rate(),
             'concurrency': self.calculate_concurrency(),
-            'duration': self.duration_seconds
+            'duration': self.duration_seconds,
+            'per_endpoint': self.calculate_per_endpoint(),
         }

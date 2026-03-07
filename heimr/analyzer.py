@@ -28,6 +28,7 @@ class AnalysisResult:
     stats: Dict[str, Any]
     anomalies: pd.DataFrame
     anomaly_summary: Dict[str, Any]
+    per_endpoint_anomalies: Dict[str, Any] = field(default_factory=dict)
     prom_metrics: Dict[str, Any] = field(default_factory=dict)
     loki_logs: List[Any] = field(default_factory=list)
     tempo_traces: List[Any] = field(default_factory=list)
@@ -166,13 +167,18 @@ class Analyzer:
             'median_latency': kpi_data['latency']['p50'],
             'min_latency': kpi_data['latency']['min'],
             'max_latency': kpi_data['latency']['max'],
-            'throughput': kpi_data['throughput']['requests_per_second']
+            'throughput': kpi_data['throughput']['requests_per_second'],
+            # Per-endpoint KPI passthrough for prompting/reporting
+            'per_endpoint_kpi': kpi_data.get('per_endpoint', {}),
         }
         
         # 3. Anomaly Detection
-        detector = AnomalyDetector(df)
+        detector_mode = self.config.get("detector_mode", "simple")
+        trend_threshold = float(self.config.get("trend_threshold") or 0.5)
+        detector = AnomalyDetector(df, mode=detector_mode, trend_threshold=trend_threshold)
         anomalies = detector.detect_latency_anomalies()
         anomaly_summary = detector.get_anomaly_summary(anomalies)
+        per_endpoint_anomalies = detector.detect_per_endpoint_anomalies()
         
         # 4. Observability Data (Prometheus, Loki, Tempo)
         prom_metrics = {}
@@ -322,6 +328,7 @@ class Analyzer:
             stats=stats,
             anomalies=anomalies,
             anomaly_summary=anomaly_summary,
+            per_endpoint_anomalies=per_endpoint_anomalies,
             prom_metrics=prom_metrics,
             loki_logs=loki_logs,
             tempo_traces=tempo_traces,

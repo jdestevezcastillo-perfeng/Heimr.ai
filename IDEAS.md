@@ -1,5 +1,15 @@
 # Project Ideas & Backlog
 
+## From ChatGPT 5.2
+
+    Biggest gaps to fill for higher accuracy:
+
+    Include load profile details (ramp, concurrency/RPS over time, request mix) in context.
+    Add more targeted log/tracing slices around anomaly windows (not just 5 samples / top‑5 spans).
+    Provide explicit SLOs/error budgets/thresholds if using examples/prompt_template_sre.txt, otherwise the model has to guess.
+    Add architecture/deploy metadata (recent changes, service dependencies, limits/quotas).
+    So: with a medium/large local model and full observability inputs, you’ll get good, actionable reports; treat them as ranked hypotheses + next checks rather than guaranteed ground truth.
+
 ## Visualization / Dashboarding
 - **Grafana for Test Results**: 
   - Instead of generating static HTML dashboards with `heimr/dashboard.py`, we should leverage Grafana.

@@ -51,7 +51,7 @@ Heimr correlates load test data with server-side metrics. You can provide a live
     - Default: `http://localhost:11434/v1` (Ollama).
     - *Tip*: Leave empty if using Cloud API keys.
 - `--llm-model`: Specific model to use.
-    - Default: `medium` (`llama3.1:8b`).
+    - Default: `medium` (`qwen3.5:9b`).
     - Options: `small`, `medium`, `large`, or any valid model string (e.g., `gpt-4o`).
 - `--prompt-template`: Path to custom LLM prompt template file.
     - Use template variables like `{total_requests}`, `{p99_latency}`, `{error_rate}`, etc.
@@ -83,6 +83,10 @@ Heimr correlates load test data with server-side metrics. You can provide a live
 - `--llm-timeout-sec`: Timeout for LLM calls.
 - `--llm-max-retries`: Retry count for LLM calls.
 - `--log-level`: Control internal logging verbosity (default INFO).
+- `--detector-mode`: Anomaly detector mode (`simple`, `mad`, `trend`).
+- `--trend-threshold`: Threshold for `trend` mode (fraction, default 0.5).
+- `--grafana-url`: Grafana base URL to generate dashboard links.
+- `--grafana-dashboard-uid`: Grafana dashboard UID to link in reports.
 
 ### Examples
 
@@ -139,7 +143,7 @@ heimr config-init
 
 ## 3. `setup-llm`
 
-Helper command to install and configure local LLMs (Ollama + Llama 3) for the AI analysis engine.
+Helper command to install and configure local LLMs (Ollama + Qwen 3.5) for the AI analysis engine.
 
 ```bash
 heimr setup-llm [OPTIONS]

@@ -61,7 +61,7 @@ After detecting issues, Heimr uses Large Language Models to:
 
 - Generate executive summaries for stakeholders
 
-**Privacy-first**: Run completely local with Llama 3.1 (no data leaves your infrastructure).
+**Privacy-first**: Run completely local with Qwen 3.5 (no data leaves your infrastructure).
 
 ### ⚡ Works with Your Stack
 
@@ -94,7 +94,7 @@ pip install heimr-ai
 
 # Install Ollama for local AI analysis (recommended)
 curl -fsSL https://ollama.com/install.sh | sh
-ollama pull llama3.1:8b
+ollama pull qwen3.5:9b
 ```
 
 ### Basic Analysis
@@ -148,7 +148,7 @@ tempo: http://localhost:3200
 
 # LLM configuration (defaults shown)
 llm_url: http://localhost:11434/v1  # Ollama
-llm_model: llama3.1:8b
+llm_model: qwen3.5:9b
 
 # Output
 output: ./reports/analysis.md
@@ -225,7 +225,7 @@ duration, with 7 anomalous spikes detected.
 
 No data ever leaves your infrastructure:
 
-- **Local LLM**: Use Llama 3.1 via Ollama (no API calls)
+- **Local LLM**: Use Qwen 3.5 via Ollama (no API calls)
 
 - **On-premise**: All analysis runs on your hardware
 
@@ -327,7 +327,7 @@ config = {'prometheus': 'http://localhost:9090'}
 analyzer = Analyzer(
     file_path="results.jtl",
     config=config,
-    llm_model="llama3.1:8b"
+    llm_model="qwen3.5:9b"
 )
 
 result = analyzer.analyze()

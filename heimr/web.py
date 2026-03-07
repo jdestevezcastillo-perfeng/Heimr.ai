@@ -15,7 +15,7 @@ UPLOAD_DIR = "data/uploads"
 REPORT_DIR = "demos/output"
 MAX_CONCURRENT_JOBS = 1
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/v1")
-MODEL_NAME = os.getenv("LLM_MODEL", "qwen2.5:14b")
+MODEL_NAME = os.getenv("LLM_MODEL", "qwen3.5:27b")
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)

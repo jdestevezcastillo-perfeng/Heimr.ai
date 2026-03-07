@@ -3,5 +3,5 @@ prometheus: http://localhost:9090
 loki: http://localhost:3100
 tempo: http://localhost:3200
 disable_llm: false
-llm_model: llama3.1:8b
+llm_model: qwen3.5:9b
 output: ./reports/analysis.md

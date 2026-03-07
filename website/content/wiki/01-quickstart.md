@@ -29,7 +29,7 @@ Heimr works best with a local LLM for privacy-first analysis:
 curl -fsSL https://ollama.com/install.sh | sh
 
 # Pull the default model (Medium tier - best balance)
-ollama pull llama3.1:8b
+ollama pull qwen3.5:9b
 
 # Verify Ollama is running
 curl http://localhost:11434
@@ -38,9 +38,9 @@ curl http://localhost:11434
 **Model Options:**
 | Tier | Command | VRAM | Use Case |
 |------|---------|------|----------|
-| Small | `ollama pull llama3.2:3b` | 4 GB | CI/CD, Laptops |
-| Medium | `ollama pull llama3.1:8b` | 6 GB | **Recommended** |
-| Large | `ollama pull qwen2.5:14b` | 12 GB | Deep reasoning |
+| Small | `ollama pull qwen3.5:4b` | 4 GB | CI/CD, Laptops |
+| Medium | `ollama pull qwen3.5:9b` | 8 GB | **Recommended** |
+| Large | `ollama pull qwen3.5:27b` | 20 GB | Deep reasoning |
 
 ---
 

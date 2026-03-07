@@ -43,14 +43,14 @@ llm_url: http://localhost:11434/v1
 llm_model: medium  # Options: small, medium, large
 
 # Model Tiers:
-#   - small:  llama3.2:3b  (~2GB, laptops/CI/CD, fast)
-#   - medium: llama3.1:8b  (~5GB, balanced) [DEFAULT]
-#   - large:  qwen2.5:14b   (~9GB VRAM)  - High quality reasoning
+#   - small:  qwen3.5:4b   (~3.4GB, laptops/CI/CD, fast)
+#   - medium: qwen3.5:9b   (~6.6GB, balanced) [DEFAULT]
+#   - large:  qwen3.5:27b  (~17GB VRAM)  - Deep reasoning
 #
 # Or specify any model directly:
-# llm_model: llama3.1:405b
+# llm_model: qwen3.5:122b
 # llm_model: mistral:7b
-# llm_model: codellama:13b
+# llm_model: deepseek-r1:14b
 
 # Cloud LLM alternatives (set API keys as environment variables):
 #   export OPENAI_API_KEY='sk-...'        # For OpenAI models

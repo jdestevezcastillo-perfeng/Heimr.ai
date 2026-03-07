@@ -6,7 +6,7 @@
 # Demo: Local LLM Analysis with Heimr
 # Prerequisites:
 # 1. Ollama installed and running (https://ollama.com/)
-# 2. Llama 3 model pulled (`ollama pull llama3`)
+# 2. Llama 3 model pulled (`ollama pull qwen3.5:9b`)
 # 3. Heimr installed (`pip install .`)
 
 echo "🚀 Starting Local LLM Demo..."
@@ -20,8 +20,8 @@ else
 fi
 
 echo ""
-echo "📊 Analyzing sample JTL file with Llama 3.1..."
-echo "   Command: heimr analyze heimr/data/sample.jtl --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b"
+echo "📊 Analyzing sample JTL file with Qwen 3.5..."
+echo "   Command: heimr analyze heimr/data/sample.jtl --llm-url http://localhost:11434/v1 --llm-model qwen3.5:9b"
 echo ""
 
 # Determine project root and heimr command
@@ -35,7 +35,7 @@ if [ -f "$PROJECT_ROOT/.venv/bin/heimr" ]; then
 fi
 
 # Run Heimr
-$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl" --llm-url http://localhost:11434/v1 --llm-model llama3.1:8b
+$HEIMR_CMD analyze "$PROJECT_ROOT/heimr/data/sample.jtl" --llm-url http://localhost:11434/v1 --llm-model qwen3.5:9b
 
 echo ""
 echo "✅ Demo Complete!"

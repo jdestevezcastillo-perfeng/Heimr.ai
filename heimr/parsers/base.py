@@ -36,7 +36,7 @@ class BaseParser(ABC):
         """
         pass
 
-    def _normalize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _normalize_dataframe(self, df: pd.DataFrame, keep_extra: bool = True) -> pd.DataFrame:
         """
         Helper to ensure DataFrame conforms to UnifiedSchema.
         Should be called by subclasses at the end of parse().
@@ -63,7 +63,13 @@ class BaseParser(ABC):
                 # Fallback for tough casting
                 pass
 
-        return df[list(self.UNIFIED_COLUMNS.keys())]
+        unified_cols = list(self.UNIFIED_COLUMNS.keys())
+        if not keep_extra:
+            return df[unified_cols]
+
+        # Preserve extra raw columns, but keep unified columns first.
+        extra_cols = [c for c in df.columns if c not in unified_cols]
+        return df[unified_cols + extra_cols]
 
     @abstractmethod
     def get_summary_stats(self) -> Dict[str, Any]:

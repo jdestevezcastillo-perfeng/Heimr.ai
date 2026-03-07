@@ -43,9 +43,9 @@ Run completely offline using Ollama
 
 | Tier | Model | Min. GPU VRAM | Min. System RAM (CPU-only) | Use Case | Analysis Capability |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Small** | `llama3.2:3b` | **4 GB** | **8 GB** | CI/CD pipelines, Laptops | Basic anomaly flagging. Can identify obvious errors but struggles with complex correlation. |
-| **Medium** | `llama3.1:8b` | **6 GB** | **16 GB** | Standard Workstations | **Default Recommended**. Great balance. capable of correlating metrics and logs effectively. |
-| **Large** | `qwen2.5:14b` | **12 GB** | **32 GB** | Dedicated GPU Servers | **Deepest Reasoning**. Best at following complex instructions and correlating subtle multi-service cascading failures. |
+| **Small** | `qwen3.5:4b` | **4 GB** | **8 GB** | CI/CD pipelines, Laptops | Basic anomaly flagging. Can identify obvious errors but struggles with complex correlation. |
+| **Medium** | `qwen3.5:9b` | **8 GB** | **16 GB** | Standard Workstations | **Default Recommended**. Great balance. capable of correlating metrics and logs effectively. |
+| **Large** | `qwen3.5:27b` | **20 GB** | **32 GB** | Dedicated GPU Servers | **Deepest Reasoning**. Best at following complex instructions and correlating subtle multi-service cascading failures. |
 | **Custom** | *User Defined* | *Variable* | *Variable* | Specialized / Research | **Flexible**. Connect any OpenAI-compatible API (vLLM, LM Studio) by setting `llm_url` and `llm_model`. |
 
 ### Cloud Provider Integration
@@ -54,7 +54,7 @@ For teams without GPU infrastructure
 , Heimr integrates with top-tier cloud models:
 
 - **OpenAI**: Defaults to `gpt-5.1`. Set `OPENAI_API_KEY`.
-- **Anthropic**: Defaults to `claude-opus-4.5`. Set `ANTHROPIC_API_KEY`.
+- **Anthropic**: Defaults to `claude-opus-4-6`. Set `ANTHROPIC_API_KEY`.
 
 > [!TIP]
-> **Recommendation**: Start with the **Medium** local model (`llama3.1:8b`). If you find the analysis lacks depth or misses subtle correlations, switch to **Large** (`qwen2.5:14b`) if your hardware permits, or use `claude-opus-4.5` for state-of-the-art reasoning.
+> **Recommendation**: Start with `qwen3.5:9b` and upgrade to `qwen3.5:27b` for deeper analysis if your hardware permits, or use `claude-opus-4-6` for state-of-the-art reasoning.

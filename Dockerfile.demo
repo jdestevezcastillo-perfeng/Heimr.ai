@@ -27,7 +27,7 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 # Note: This increases build time and image size significantly (~9GB)
 # We do this BEFORE copying code to utilize Docker layer caching for the model
 # in future builds.
-ARG LLM_MODEL=qwen2.5:14b
+ARG LLM_MODEL=qwen3.5:27b
 RUN ollama serve & \
     sleep 10 && \
     ollama pull ${LLM_MODEL} && \

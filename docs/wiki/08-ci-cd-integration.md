@@ -98,7 +98,7 @@ docker run --rm \
   juanestevezcastillo/heimr:latest \
   analyze /data/results.jtl \
     --llm-url http://localhost:11434/v1 \
-    --llm-model qwen2.5:7b \
+    --llm-model qwen3.5:9b \
     --output /data/report.md
 ```
 
@@ -419,3 +419,6 @@ When your Prometheus/Loki/Tempo are running in the same cluster:
 | Add metadata | `--tag "commit=${GIT_SHA}"` |
 | JUnit output | `--junit-output results.xml` |
 | GitHub summary | `--ci-summary $GITHUB_STEP_SUMMARY` |
+
+Notes:
+- `--ci-summary` works even without `--output`; if reports are generated, artifact paths are listed.

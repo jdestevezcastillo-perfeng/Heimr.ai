@@ -11,7 +11,7 @@ setup(
     version="0.2.0",
     author="Juan Estevez Castillo",
     author_email="jd.estevezcastillo@gmail.com",
-    description="AI-Powered Load Test Analysis & Root Cause Explanation",
+    description="AI-Powered Performance Engineering Agent & Load Test Analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://heimr.ai",
@@ -74,9 +74,12 @@ setup(
             "openai>=1.0.0",
             "anthropic>=0.18.0",
         ],
+        # MCP (Model Context Protocol) server support
+        "mcp": ["mcp>=1.0.0"],
         "all": [
             "openai>=1.0.0",
             "anthropic>=0.18.0",
+            "mcp>=1.0.0",
         ],
         "dev": [
             "pytest>=7.0.0",
@@ -100,6 +103,10 @@ setup(
     keywords=[
         "load-testing",
         "performance",
+        "ai-agent",
+        "mcp",
+        "github-actions",
+        "deployment-gate",
         "jmeter",
         "k6",
         "gatling",

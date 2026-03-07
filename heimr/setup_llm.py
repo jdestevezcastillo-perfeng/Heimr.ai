@@ -33,7 +33,7 @@ def check_ollama_running():
         return False
 
 
-def check_model_available(model_name="llama3.1:8b"):
+def check_model_available(model_name="qwen3.5:9b"):
     """Check if the specified model is available."""
     try:
         response = requests.get("http://localhost:11434/api/tags", timeout=5)
@@ -126,7 +126,7 @@ def start_ollama_service():
         return False
 
 
-def pull_model(model_name="llama3.1:8b"):
+def pull_model(model_name="qwen3.5:9b"):
     """Pull the specified Llama model."""
     print(f"📥 Pulling {model_name} model (this may take a few minutes)...")
 
@@ -195,7 +195,7 @@ def setup_llm(interactive=True):
             return False
 
     # Step 3: Check if model is available
-    model_name = "llama3.1:8b"
+    model_name = "qwen3.5:9b"
     if check_model_available(model_name):
         print(f"✅ {model_name} model is available")
     else:
