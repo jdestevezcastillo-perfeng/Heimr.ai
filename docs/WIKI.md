@@ -43,8 +43,5 @@ Welcome to the comprehensive documentation for Heimr.ai — the autonomous perfo
 ### 13. [Development Guide](wiki/13-development.md)
    Technical details for contributors: code structure, anomaly detection algorithms, and research decisions.
 
-### 14. [FAQ](wiki/14-faq.md)
-   Frequently asked questions from DevOps engineers: installation, setup, hardware requirements, Kubernetes deployment, and more.
-
 ---
 *For contributing to this wiki, please submit a PR to the `docs/` folder.*
