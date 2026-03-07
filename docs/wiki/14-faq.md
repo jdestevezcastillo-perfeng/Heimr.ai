@@ -17,6 +17,107 @@ Just like you have gates that check "did the tests pass?" and "did the security 
 
 ---
 
+## I don't have tests, docs, NFRs, or technical knowledge. Can Heimr still help me?
+
+**YES — This is the vision for Heimr Autonomous Mode** (requested feature).
+
+### The Problem
+
+You just "vibe-coded" a Pokemon card shop. You have:
+- ❌ No performance tests
+- ❌ No documentation (no SAD, no API specs, no Swagger)
+- ❌ No NFRs (no idea what "good" latency is)
+- ❌ No technical expertise
+
+You just want to know: **"Will my site crash when I launch?"**
+
+### The Solution (Future Feature)
+
+**One command**:
+```bash
+heimr autonomous https://mypokemonshop.com
+```
+
+**What happens** (fully autonomous):
+1. **Discovers your site** (crawls with headless browser, records user flows)
+2. **Understands what it does** (AI figures out "this is an e-commerce site")
+3. **Generates realistic tests** (creates k6 scripts from recorded flows)
+4. **Runs the tests** (simulates 50 concurrent users)
+5. **Assesses performance** (no NFRs needed, uses baseline mode)
+6. **Reports in plain English** (no jargon, actionable recommendations)
+
+**Output (if everything is fine)**:
+```
+✅ Your site is ready to handle traffic!
+
+Performance Summary:
+  ✅ Browse products: Fast (avg 950ms)
+  ✅ Search: Instant (avg 145ms)
+  ✅ Checkout: Good (avg 2.3s)
+
+Your site is faster than 75% of e-commerce sites.
+Predicted cart abandonment: ~4% (excellent)
+
+🎉 You're good to launch!
+```
+
+**Output (if there's a problem)**:
+```
+🔴 Issues detected — Fix before launch
+
+What's Wrong (Plain English):
+  1. 🔴 CRITICAL: Add to cart is broken
+     - 15% of requests fail with error 500
+     - Problem: No inventory check for out-of-stock items
+     - Impact: Users can't buy products, will leave
+     - Fix: Add inventory validation
+     - Estimated effort: 2 hours
+
+  2. 🔴 CRITICAL: Checkout is too slow (4.8s avg)
+     - Problem: Stripe payment API calls are slow
+     - Impact: 12% of users will abandon cart
+     - Fix: Process payments asynchronously
+     - Estimated effort: 4 hours
+
+Want AI to suggest code fixes? (y/n)
+```
+
+### Current Status
+
+This feature is **not yet implemented** but is the long-term vision for Heimr.
+
+**GitHub Issue**: [#19 - Fully Autonomous Performance Testing](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues/19)
+
+This combines:
+- [Issue #17](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues/17) - Test generation from documentation
+- [Issue #18](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues/18) - Assessment without NFRs
+- NEW: Website discovery via crawling
+- NEW: Plain English reporting for non-technical users
+
+👍 the issue if you want this feature!
+
+### Why This Matters
+
+**Heimr's mission**: Make performance testing accessible to everyone.
+
+Right now, performance testing requires:
+- Technical expertise
+- Time to write tests
+- Knowledge to interpret results
+
+**Autonomous mode removes all barriers** — just provide a URL, get plain English recommendations.
+
+**Target users**:
+- Indie hackers who built their own site
+- Non-technical founders
+- Small business owners
+- Anyone who just wants to know "is my site okay?"
+
+**For commercial development** or early access to Autonomous mode:
+- Contact: jd.estevezcastillo@gmail.com
+
+---
+
 ## How do I install it?
 
 **Option 1: Simple (Recommended)**
