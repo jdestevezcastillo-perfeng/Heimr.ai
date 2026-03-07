@@ -5,4 +5,3 @@
 from heimr.commands.config import load_config, normalize_config, merge_config_with_args
 
 __all__ = ["load_config", "normalize_config", "merge_config_with_args"]
-

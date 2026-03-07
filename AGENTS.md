@@ -1,1 +1,0 @@
-- After doing an implementation of changes, updates or new features please always add an entry to CHANGE_TIMELINE.md in strict reverse-chronological order (newest on top, then descending by time)

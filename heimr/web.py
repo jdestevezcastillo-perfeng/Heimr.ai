@@ -131,7 +131,7 @@ async def run_analysis(job_id: str, file_map: Dict[str, str]):
                 
                 # Generate PDF (Server-side)
                 try:
-                    from heimr.pdf_generator import PDFGenerator
+                    from heimr.reporting.pdf import PDFGenerator
                     pdf_gen = PDFGenerator()
                     pdf_path = output_path.replace('.md', '.pdf')
                     # We render from the Markdown content directly

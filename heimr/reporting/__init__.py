@@ -14,4 +14,10 @@ __all__ = [
     "detect_timeline_mismatch",
     "enhance_llm_output",
     "extract_llm_tldr",
+    # Lazy-imported in consumers; listed here for discoverability:
+    # "ReportCharts",        # from heimr.reporting.charts
+    # "HTMLReportGenerator", # from heimr.reporting.html
+    # "PDFGenerator",        # from heimr.reporting.pdf
+    # "GitHubReporter",      # from heimr.reporting.github
+    # "JUnitReporter",       # from heimr.reporting.junit
 ]

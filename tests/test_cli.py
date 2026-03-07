@@ -28,7 +28,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(merged.loki, 'http://config:3100')
         self.assertEqual(merged.output, 'cli_output.md') # CLI takes precedence
 
-    @patch('heimr.cli.Analyzer')
+    @patch('heimr.commands.analyze.Analyzer')
     def test_analyze_command_passed(self, MockAnalyzer):
         # Setup Mock result
         mock_instance = MockAnalyzer.return_value
@@ -55,7 +55,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(call_kwargs['file_path'], 'test.jtl')
         self.assertTrue(call_kwargs['no_llm'])
 
-    @patch('heimr.cli.Analyzer')
+    @patch('heimr.commands.analyze.Analyzer')
     def test_analyze_command_failed(self, MockAnalyzer):
         # Setup Mock result
         mock_instance = MockAnalyzer.return_value

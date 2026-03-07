@@ -6,8 +6,8 @@ import unittest
 import os
 import tempfile
 import xml.etree.ElementTree as ET
-from heimr.reporters.junit import JUnitReporter
-from heimr.reporters.github import GitHubReporter
+from heimr.reporting.junit import JUnitReporter
+from heimr.reporting.github import GitHubReporter
 
 
 class TestJUnitReporter(unittest.TestCase):
