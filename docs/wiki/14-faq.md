@@ -122,6 +122,59 @@ heimr agent results.json --fail-condition "error_rate > 1"
 
 ---
 
+## Can Heimr generate performance tests for me, or does it only analyze existing tests?
+
+**Current Heimr (v0.2)**: Only analyzes existing tests. You need to create the load tests yourself (using k6, JMeter, etc.).
+
+**Future feature (requested)**: A **Performance Test Generator Agent** that autonomously creates tests for you.
+
+### What the Test Generator Agent would do:
+
+1. **Read your documentation** (Software Architecture Document, OpenAPI specs, NFRs)
+2. **Extract requirements** (latency thresholds, throughput targets)
+3. **Generate test plan** (which endpoints to test, load profiles)
+4. **Write test scripts** (k6, JMeter)
+5. **Execute tests** against your environment
+6. **Analyze results** (using existing Heimr agent)
+7. **Iterate and refine** until tests are validated
+
+### What you'd need to provide (minimum):
+
+```yaml
+# Example config
+documentation:
+  - "./docs/architecture.md"       # Your system architecture
+  - "./docs/api-spec.yaml"         # OpenAPI/Swagger spec
+  - "./docs/nfrs.md"               # Non-functional requirements
+
+environment:
+  base_url: "https://staging.myapp.com"
+  auth:
+    type: "bearer"
+    credentials_env: "TEST_API_KEY"
+
+requirements:
+  - metric: "p99_latency"
+    threshold: "< 500ms"
+  - metric: "error_rate"
+    threshold: "< 1%"
+```
+
+That's it! The agent would handle the rest.
+
+### Current status:
+
+This feature is **not yet implemented** but has been requested by the community. Track progress here:
+
+**GitHub Issue**: [#17 - Performance Test Generator Agent](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues/17)
+
+👍 the issue if you want this feature, or comment with your use case.
+
+**For commercial development** (priority implementation for your team):
+- Contact: jd.estevezcastillo@gmail.com
+
+---
+
 ## What hardware does it need to run?
 
 **Heimr itself is lightweight**:
