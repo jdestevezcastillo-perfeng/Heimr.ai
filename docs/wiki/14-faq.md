@@ -175,6 +175,129 @@ This feature is **not yet implemented** but has been requested by the community.
 
 ---
 
+## What if we don't have NFRs? How do we know if our performance is "good"?
+
+**This is very common** — most startups and small teams don't have formal NFRs (Non-Functional Requirements).
+
+**Good news**: You don't need predefined thresholds. Heimr can assess performance in multiple ways:
+
+### Option 1: Use Industry Benchmarks (Easiest)
+
+Use research-backed standards for your application type:
+
+**General Web APIs**:
+- p99 latency < 500ms
+- Error rate < 1%
+
+**E-commerce**:
+- Product page < 2s
+- Checkout flow < 3s
+- Search < 200ms
+
+**Real-time apps** (chat, gaming):
+- p99 latency < 100ms
+
+**Research-backed facts**:
+- Google: 53% of users abandon sites that take >3s to load
+- Amazon: 100ms latency = 1% revenue loss
+- Users perceive <100ms as "instant", >1s as "slow"
+
+**Future Heimr** (requested feature):
+```bash
+heimr agent results.json --preset web-api
+# Automatically uses industry-standard thresholds
+```
+
+### Option 2: Baseline Mode (Recommended)
+
+Establish a baseline from your first test, then prevent regressions:
+
+**First run** (establish baseline):
+```bash
+heimr agent results.json --mode baseline --save-baseline baseline.json
+```
+
+Output: "Your current p99 is 320ms, error rate is 0.3%"
+
+**Subsequent runs** (compare to baseline):
+```bash
+heimr agent new-results.json \
+  --compare-to-baseline baseline.json \
+  --max-regression 20%
+```
+
+Output: "REJECT: p99 increased by 40% (from 320ms to 450ms)"
+
+**This is the best approach** — you're not saying "500ms is good", you're saying "don't get 20% worse than what we have now."
+
+### Option 3: Comparative Mode (CI/CD)
+
+Compare each build against the **previous build**:
+
+```bash
+heimr agent current-build.json \
+  --compare-to previous-build.json \
+  --max-regression 15%
+```
+
+Logic: If latency increases >15% or throughput decreases >10% → REJECT
+
+### Option 4: Auto-Discovery from Production (Advanced)
+
+Query your production Prometheus metrics to learn "normal" performance:
+
+```bash
+heimr agent test-results.json \
+  --discover-thresholds \
+  --prometheus http://prometheus:9090 \
+  --time-range 7d \
+  --tolerance 20%
+```
+
+Heimr will:
+1. Query production metrics for last 7 days
+2. Calculate baseline (e.g., p99=280ms in prod)
+3. Set test thresholds at +20% tolerance (p99<336ms)
+4. Fail if test exceeds production by >20%
+
+### Option 5: User Impact Mode
+
+Translate technical metrics into **business impact**:
+
+```bash
+heimr agent results.json \
+  --user-impact-mode \
+  --acceptable-abandonment-rate 5%
+```
+
+Heimr calculates:
+- Your p99: 4.2s
+- **Predicted abandonment rate**: 9.8% (based on Google research)
+- **Verdict**: REJECT (exceeds 5% threshold)
+
+### Recommendation for Your Startup
+
+**Start simple with baseline mode**:
+
+1. Run your first load test
+2. Establish baseline: `heimr agent results.json --mode baseline --save-baseline baseline.json`
+3. In CI/CD, compare to baseline: `heimr agent new-results.json --compare-to-baseline baseline.json --max-regression 20%`
+
+**No NFRs needed.** Just "don't get 20% worse than the first run."
+
+### Current Status
+
+These modes are **not yet implemented** but have been requested by the community:
+
+**GitHub Issue**: [#18 - Performance Assessment Without Predefined NFRs](https://github.com/jdestevezcastillo-perfeng/Heimr.ai/issues/18)
+
+👍 the issue if you want this feature, or comment with your use case.
+
+**For commercial development** (priority implementation):
+- Contact: jd.estevezcastillo@gmail.com
+
+---
+
 ## What hardware does it need to run?
 
 **Heimr itself is lightweight**:
