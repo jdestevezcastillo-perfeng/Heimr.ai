@@ -14,25 +14,12 @@ Get up and running with Heimr in under 5 minutes.
 
 ## 1. Installation
 
-### Install Heimr
-
 ```bash
 pip install heimr-ai
-```
 
-### Install Local LLM (Recommended)
-
-Heimr works best with a local LLM for privacy-first analysis:
-
-```bash
-# Install Ollama
+# Install local LLM (recommended — your data stays on your machine)
 curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull the default model (Medium tier - best balance)
 ollama pull qwen3.5:9b
-
-# Verify Ollama is running
-curl http://localhost:11434
 ```
 
 **Model Options:**
@@ -44,100 +31,125 @@ curl http://localhost:11434
 
 ---
 
-## 2. First Analysis
+## 2. Agent Mode — Deployment Gating
 
-### Basic Usage
+The primary way to use Heimr. The agent autonomously analyzes your load test and makes a deployment decision:
 
 ```bash
-# Analyze a JMeter result
-heimr analyze results.jtl
-
-# Analyze k6 output
-heimr analyze k6_results.json
-
-# Analyze a HAR file (browser recording)
-heimr analyze network.har
+heimr agent results.json \
+  --gate-policy strict \
+  --fail-condition "p99_latency > 500" \
+  --verbose
 ```
 
-This generates:
-- `report.md` — Detailed Markdown analysis
-- `report.pdf` — PDF version for sharing
+The agent will:
+1. Parse your load test results
+2. Compute KPIs (latency percentiles, throughput, error rate)
+3. Detect anomalies (z-score, MAD, trend analysis)
+4. Query observability sources (if configured)
+5. Output a **verdict** (`APPROVE` or `REJECT`) with full reasoning
 
-### With Observability Data
-
-Connect to your monitoring stack for deeper correlation:
+Add observability for deeper analysis:
 
 ```bash
-heimr analyze results.jtl \
+heimr agent results.json \
+  --gate-policy strict \
   --prometheus http://localhost:9090 \
   --loki http://localhost:3100 \
   --tempo http://localhost:3200 \
-  --output report.md
+  --fail-condition "p99_latency > 500" \
+  --verbose
 ```
 
-### Using Local Files
-
-If you have exported observability data:
-
-```bash
-heimr analyze results.jtl \
-  --prometheus ./metrics.json \
-  --loki ./logs.json \
-  --tempo ./traces.json
-```
+See [Deployment Gating](02-deployment-gating.md) for the full guide.
 
 ---
 
-## 3. Configuration File
+## 3. GitHub Action
+
+Drop Heimr into your CI/CD pipeline in 3 lines:
+
+```yaml
+- name: Performance Gate
+  uses: jdestevezcastillo-perfeng/heimr-ai@main
+  with:
+    results-file: results.json
+    gate-policy: strict
+    fail-conditions: "p99_latency > 500, error_rate > 1"
+```
+
+See [CI/CD Integration](06-ci-cd-integration.md) for GitHub Actions, Jenkins, and GitLab CI examples.
+
+---
+
+## 4. Detailed Reports
+
+Need the full story for stakeholders? Use `analyze` to generate interactive reports:
+
+```bash
+heimr analyze results.json \
+  --output report.html \
+  --prometheus http://localhost:9090 \
+  --loki http://localhost:3100 \
+  --tempo http://localhost:3200
+```
+
+Generates:
+- **HTML report** — Interactive Plotly charts, per-endpoint breakdowns, AI root cause analysis
+- **Markdown report** — GitHub/GitLab-friendly with static charts
+- **PDF report** — Professional formatting for sharing
+
+See [Performance Reports](04-performance-reports.md) for details.
+
+---
+
+## 5. MCP Server — Claude Integration
+
+Use Heimr tools directly from Claude Code or Claude Desktop:
+
+```bash
+# Add to Claude Code
+claude mcp add heimr-perf -- python -m heimr.agent.mcp_server
+```
+
+See [MCP Integration](03-mcp-integration.md) for setup instructions.
+
+---
+
+## 6. Configuration File
 
 For repeated use, create a config file:
 
 ```bash
-# Generate template
-heimr config-init
-
-# Edit with your settings
-vim heimr.yaml
-
-# Use it
-heimr analyze results.jtl --config heimr.yaml
+heimr config-init    # Generate template
+vim heimr.yaml       # Edit with your settings
+heimr agent results.json --config heimr.yaml
 ```
 
-See [Configuration](04-configuration.md) for full reference.
+See [Configuration](08-configuration.md) for full reference.
 
 ---
 
-## 4. Using Cloud LLMs (Optional)
+## 7. Cloud LLMs (Optional)
 
 If you prefer cloud models over local:
 
 ```bash
 # OpenAI
 export OPENAI_API_KEY="sk-..."
-heimr analyze results.jtl --llm-model gpt-4o
+heimr agent results.json --llm-model gpt-4o
 
 # Anthropic
 export ANTHROPIC_API_KEY="sk-..."
-heimr analyze results.jtl --llm-model claude-sonnet-4
+heimr agent results.json --llm-model claude-sonnet-4
 ```
-
----
-
-## 5. Stats-Only Mode
-
-For fast runs without AI analysis:
-
-```bash
-heimr analyze results.jtl --no-llm
-```
-
-This skips the LLM step and generates a pure statistical report.
 
 ---
 
 ## Next Steps
 
-- [CLI Reference](03-cli-reference.md) — Full command documentation
-- [AI Analysis Engine](05-ai-analysis-engine.md) — How the AI works
-- [CI/CD Integration](08-ci-cd-integration.md) — Automate in your pipeline
-- [Troubleshooting](10-troubleshooting.md) — Common issues and fixes
+- [Deployment Gating](02-deployment-gating.md) — Agent mode deep dive
+- [MCP Integration](03-mcp-integration.md) — Claude Code/Desktop setup
+- [Performance Reports](04-performance-reports.md) — Detailed HTML/PDF reports
+- [CLI Reference](07-cli-reference.md) — Full command documentation
+- [Troubleshooting](12-troubleshooting.md) — Common issues and fixes

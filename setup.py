@@ -11,7 +11,7 @@ setup(
     version="0.2.0",
     author="Juan Estevez Castillo",
     author_email="jd.estevezcastillo@gmail.com",
-    description="AI-Powered Performance Engineering Agent & Load Test Analysis",
+    description="Autonomous performance engineering agent for CI/CD pipelines",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://heimr.ai",

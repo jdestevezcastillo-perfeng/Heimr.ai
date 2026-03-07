@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heimr - AI-Powered Root Cause Analysis</title>
+    <title>Heimr - Autonomous Performance Engineering Agent</title>
     <meta name="description"
-        content="AI-powered load test analysis and root cause explanation for SRE and performance engineering. Stop staring at charts. Let AI explain what went wrong.">
+        content="Autonomous AI agent for CI/CD pipelines. Analyzes load tests, correlates observability signals, and makes deployment gate decisions with full audit trail.">
     <link rel="icon" type="image/png" href="images/heimr_logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -153,7 +153,7 @@
             </a>
             <div class="nav-links">
                 <a href="docs.html?doc=01-quickstart" class="nav-link">Quick Start</a>
-                <a href="docs.html?doc=02-architecture" class="nav-link">Architecture</a>
+                <a href="docs.html?doc=02-deployment-gating" class="nav-link">Agent</a>
                 <a href="docs.html" class="nav-link">Docs</a>
                 <a href="https://pypi.org/project/heimr-ai/" class="nav-link">PyPI</a>
                 <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai" class="nav-link nav-link--github">
@@ -177,13 +177,13 @@
         <section class="hero">
             <div class="hero-content">
                 <h1 class="hero-title">
-                    <span class="gradient-text">Find the Root. Fix the Cause.</span>
+                    <span class="gradient-text">Your Autonomous Performance Gate</span>
                 </h1>
                 <p class="hero-subtitle">
-                    AI-Powered Root Cause Analysis for SRE & Performance Engineering
+                    AI agent that analyzes load tests, correlates observability signals, and makes deployment decisions
                 </p>
                 <p class="hero-description">
-                    Stop staring at charts. Let AI explain what went wrong and how to fix it.
+                    Full audit trail for every reasoning step. Privacy-first with local LLMs. Drop into any CI/CD pipeline in 3 lines.
                 </p>
 
                 <!-- Install Command -->
@@ -203,13 +203,9 @@
                 </div>
 
                 <div class="hero-actions">
-                    <button id="open-demo-btn" class="btn btn--primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M5 3C3.34315 3 2 4.34315 2 6V18C2 19.6569 3.34315 21 5 21H19C20.6569 21 22 19.6569 22 18V6C22 4.34315 20.6569 3 19 3H5ZM19 5C19.5523 5 20 5.44772 20 6V18C20 18.5523 19.5523 19 19 19H5C4.44772 19 4 18.5523 4 18V6C4.44772 5 5 5 5 5H19ZM11.2929 7.29289C11.6834 6.90237 12.3166 6.90237 12.7071 7.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L12.7071 16.7071C12.3166 17.0976 11.6834 17.0976 11.2929 16.7071C10.9024 16.3166 10.9024 15.6834 11.2929 15.2929L13.5858 13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44772 11 8 11H13.5858L11.2929 8.70711C10.9024 8.31658 10.9024 7.68342 11.2929 7.29289Z" />
-                        </svg>
-                        Try Live Demo
-                    </button>
+                    <a href="docs.html?doc=01-quickstart" class="btn btn--primary">
+                        Get Started
+                    </a>
                     <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai" class="btn btn--secondary">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path
@@ -217,9 +213,8 @@
                         </svg>
                         View on GitHub
                     </a>
-                    <a href="https://github.com/jdestevezcastillo-perfeng/Heimr.ai/tree/main/docs"
-                        class="btn btn--secondary">
-                        Read the Docs
+                    <a href="#how-it-works" class="btn btn--secondary">
+                        See It Work
                     </a>
                 </div>
 
@@ -260,52 +255,90 @@
                         <span class="tool-badge">Prometheus</span>
                         <span class="tool-badge">Loki</span>
                         <span class="tool-badge">Tempo</span>
+                        <span class="tool-badge">MCP Protocol</span>
                     </div>
-                    <p class="coming-soon">🚀 Coming soon: NeoLoad, Grafana, Kibana, OpenTelemetry, and more...</p>
+                    <p class="coming-soon">Coming soon: NeoLoad, Grafana, Kibana, OpenTelemetry, and more...</p>
                 </div>
 
                 <!-- Key Features Grid -->
                 <div class="features-grid">
                     <div class="feature-card">
-                        <div class="feature-icon">🎯</div>
-                        <h3>Explainable Analysis</h3>
-                        <p>No black boxes. See exactly why something was flagged with statistical anomaly detection
-                            using Z-scores and IQR.</p>
+                        <div class="feature-icon">🤖</div>
+                        <h3>Autonomous Deployment Gate</h3>
+                        <p>ReAct agent reasons through your data and makes go/no-go decisions. Strict or advisory gate policies.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🔍</div>
-                        <h3>Multi-Signal Intelligence</h3>
-                        <p>Correlates load tests, system metrics, application logs, and distributed traces for
-                            comprehensive root cause analysis.</p>
+                        <h3>Multi-Signal Correlation</h3>
+                        <p>Load tests + Prometheus metrics + Loki logs + Tempo traces. The agent correlates across all sources automatically.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">🤖</div>
-                        <h3>LLM-Powered Insights</h3>
-                        <p>Get root cause analysis in plain English. Works with OpenAI, Anthropic Claude, or run locally
-                            with Llama/Qwen.</p>
+                        <div class="feature-icon">📋</div>
+                        <h3>Full Audit Trail</h3>
+                        <p>Every tool call, every reasoning step saved to JSON. Know exactly why a build was approved or rejected.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🔐</div>
                         <h3>Privacy-First</h3>
-                        <p>Run 100% locally with Ollama. Your performance data never leaves your infrastructure.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">📊</div>
-                        <h3>Performance Comparison</h3>
-                        <p>Compare runs, detect regressions, and track improvements with baseline analysis and fail
-                            conditions.</p>
+                        <p>Runs entirely local with Qwen 3.5 via Ollama. Your data never leaves your infrastructure. Optional cloud LLMs.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">⚙️</div>
-                        <h3>CI/CD Ready</h3>
-                        <p>GitHub Actions, GitLab CI integration. JUnit XML output. Automated regression detection in
-                            your pipeline.</p>
+                        <h3>CI/CD Native</h3>
+                        <p>GitHub Action, JUnit XML, Step Summaries. Drop Heimr into any pipeline in 3 lines of YAML.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">🐍</div>
-                        <h3>Python API</h3>
-                        <p>Use Heimr programmatically in your scripts. Import the Analyzer class and integrate analysis
-                            into any workflow.</p>
+                        <div class="feature-icon">📊</div>
+                        <h3>Rich Reports</h3>
+                        <p>Need the full story? Generate interactive HTML reports with Plotly charts, per-endpoint breakdowns, and AI root cause analysis.</p>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div id="how-it-works" class="tools-section" style="margin-top: var(--space-xl);">
+                    <h3 class="tools-label">How It Works:</h3>
+                    <div class="code-block" style="text-align: left; max-width: 700px; margin: 0 auto;">
+                        <pre><code>Parse Results  →  Compute KPIs  →  Detect Anomalies  →  Query Observability  →  Verdict
+ (k6, JMeter,     (P50-P99,        (z-score, MAD,       (Prometheus,           APPROVE
+  Gatling,          throughput,       trend analysis)       Loki, Tempo)          or
+  Locust, HAR)      error rate)                                                 REJECT</code></pre>
+                    </div>
+                    <p style="text-align: center; margin-top: var(--space-md); color: var(--text-secondary);">
+                        The agent dynamically decides which tools to call, correlates signals, and produces a traceable deployment decision.
+                    </p>
+                </div>
+
+                <!-- Three Ways to Use Heimr -->
+                <div class="tools-section" style="margin-top: var(--space-xl);">
+                    <h3 class="tools-label">Three Ways to Use Heimr:</h3>
+                    <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                        <div class="feature-card">
+                            <h3>Agent Mode</h3>
+                            <div class="code-block" style="text-align: left; font-size: 0.85rem;">
+                                <pre><code>heimr agent results.json \
+  --gate-policy strict \
+  --fail-condition "p99 > 500"</code></pre>
+                            </div>
+                            <p style="margin-top: var(--space-sm);">Autonomous deployment gating with verdict + audit trail.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3>MCP Server</h3>
+                            <div class="code-block" style="text-align: left; font-size: 0.85rem;">
+                                <pre><code>claude mcp add heimr-perf \
+  -- python -m \
+  heimr.agent.mcp_server</code></pre>
+                            </div>
+                            <p style="margin-top: var(--space-sm);">Use Heimr tools directly from Claude Code or Claude Desktop.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3>Detailed Reports</h3>
+                            <div class="code-block" style="text-align: left; font-size: 0.85rem;">
+                                <pre><code>heimr analyze results.json \
+  --output report.html \
+  --prometheus prom:9090</code></pre>
+                            </div>
+                            <p style="margin-top: var(--space-sm);">Interactive HTML/PDF reports with charts and AI root cause analysis.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -313,7 +346,7 @@
 
         <!-- Example Output Section -->
         <section class="example-section">
-            <h2 class="section-title">Real Analysis Output</h2>
+            <h2 class="section-title">Sample Report Output</h2>
             <p class="example-subtitle">5-minute load test • 3,000 requests • Memory pressure scenario</p>
             <div class="code-block">
                 <pre><code># ❌ FAILED

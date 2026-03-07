@@ -35,6 +35,10 @@ tempo: http://localhost:3200          # Default Tempo URL
 llm_url: http://localhost:11434/v1  # Default Ollama API URL
 llm_model: qwen3.5:9b              # Default model (Medium)
 
+# Optional LLM reliability settings
+# llm_timeout_sec: 60
+# llm_max_retries: 2
+
 # Model Options (Pull these via 'ollama pull <model>'):
 # - Small:  qwen3.5:4b    (~3.4GB VRAM) - Good for laptops, CI/CD
 # - Medium: qwen3.5:9b    (~6.6GB VRAM) - Best balance of speed/quality [DEFAULT]
@@ -49,6 +53,18 @@ llm_model: qwen3.5:9b              # Default model (Medium)
 #
 # You can override the specific cloud model name using llm_model:
 # llm_model: gpt-4-turbo
+
+# ============================================================================
+# Failure Thresholds (Optional)
+# ============================================================================
+#
+# These thresholds influence Heimr's built-in multi-signal verdict.
+# You can also use CLI `--fail-condition` for explicit gating.
+#
+# anomaly_threshold: 0           # Fail if anomalies > this count
+# error_rate_threshold: 0        # Fail if error_rate (%) > this value
+# cpu_threshold: 0.8             # Fail if avg CPU > 80%
+# mem_growth_threshold: 0.5      # Fail if memory grows > 50% during test
 
 # ============================================================================
 # Reporting

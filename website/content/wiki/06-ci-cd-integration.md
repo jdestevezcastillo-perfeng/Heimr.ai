@@ -2,7 +2,47 @@
 
 [← Back to Index](../WIKI.md)
 
-Heimr is designed to act as an automated **Performance Gate** in your CI/CD pipelines. It provides binary Pass/Fail verdicts, rich context via tags, and standardized reporting formats to block regressions before they reach production.
+Heimr is designed to act as an automated **Performance Gate** in your CI/CD pipelines. The agent provides autonomous deployment decisions with full audit trails, while the analyze command generates rich reports.
+
+---
+
+## GitHub Action (Recommended)
+
+The fastest way to add Heimr to your pipeline:
+
+```yaml
+- name: Performance Gate
+  uses: jdestevezcastillo-perfeng/heimr-ai@main
+  with:
+    results-file: results.json
+    gate-policy: strict
+    fail-conditions: "p99_latency > 500, error_rate > 1"
+    prometheus: http://prometheus:9090
+  env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+```
+
+**Inputs:**
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `results-file` | (required) | Path to load test results |
+| `gate-policy` | `strict` | `strict` or `advisory` |
+| `mode` | `autonomous` | `autonomous` or `supervised` |
+| `max-iterations` | `10` | ReAct loop iterations |
+| `llm-model` | `small` | Model tier or name |
+| `fail-conditions` | — | Comma-separated thresholds |
+| `prometheus` | — | Prometheus URL or file |
+| `loki` | — | Loki URL or file |
+| `tempo` | — | Tempo URL or file |
+
+**Outputs:**
+
+| Output | Description |
+|--------|-------------|
+| `verdict` | `APPROVE`, `REJECT`, or `WARN` |
+| `exit-code` | `0` (pass) or `1` (fail) |
+| `audit-trail` | Path to audit JSON file |
 
 ---
 

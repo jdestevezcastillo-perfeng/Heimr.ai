@@ -1,12 +1,15 @@
 [
   "01-quickstart.md",
-  "02-architecture.md",
-  "03-cli-reference.md",
-  "04-configuration.md",
-  "05-ai-analysis-engine.md",
-  "06-python-api.md",
-  "07-reporting.md",
-  "08-ci-cd-integration.md",
-  "09-failure-scenarios.md",
-  "10-troubleshooting.md"
+  "02-deployment-gating.md",
+  "03-mcp-integration.md",
+  "04-performance-reports.md",
+  "05-architecture.md",
+  "06-ci-cd-integration.md",
+  "07-cli-reference.md",
+  "08-configuration.md",
+  "09-ai-analysis-engine.md",
+  "10-python-api.md",
+  "11-failure-scenarios.md",
+  "12-troubleshooting.md",
+  "13-development.md"
 ]

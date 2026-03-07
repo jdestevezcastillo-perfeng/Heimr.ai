@@ -97,17 +97,36 @@ This layer prepares the "context package" for the LLM.
 - **Prompt Engineering**: Dynamic templates that instruct the model to act as a Senior SRE.
 - **Client Abstraction**: Supports swapping between Local (Ollama) and Cloud (OpenAI, Anthropic) providers seamlessly.
 
-### 2.6 Reporting Layer (`reporters/`)
+### 2.6 Reporting Layer (`reporting/`)
 Generates the final artifacts for the user.
-- **Markdown Reporter**: Creates detailed technical reports.
-- **PDF Generator (`pdf_generator.py`)**: Converts markdown to professional PDFs.
-- **Dashboard**: The HTML dashboard has been discarded. A comprehensive dashboard implementation is planned using Grafana for future versions.
+- **Charts** (`reporting/charts.py`): Plotly-based interactive and static chart generation.
+- **HTML Generator** (`reporting/html.py`): Interactive HTML reports with embedded charts.
+- **PDF Generator** (`reporting/pdf.py`): Professional PDF reports for stakeholders.
+- **GitHub/JUnit** (`reporting/github.py`, `reporting/junit.py`): CI/CD summary formats.
+
+### 2.7 Agent Layer (`agent/`)
+An autonomous performance engineering agent built on a ReAct (Reason-Act-Observe) loop.
+- **ReAct Loop** (`agent/react_loop.py`): Multi-turn LLM reasoning that dynamically selects tools.
+- **Tools** (`agent/tools.py`): 8 analysis tools the agent can call (parse, KPIs, anomalies, observability, gate).
+- **Gate** (`agent/gate.py`): Deployment verdict logic (APPROVE/REJECT/WARN) with configurable policies.
+- **MCP Server** (`agent/mcp_server.py`): Exposes all tools via the Model Context Protocol for Claude integration.
+- **Config** (`agent/config.py`): Agent configuration (mode, iterations, fail conditions).
+
+### 2.8 Command Handlers (`commands/`)
+Extracted command handlers for CLI decomposition.
+- **`commands/analyze.py`**: The `analyze` command handler (report generation pipeline).
+- **`commands/agent.py`**: The `agent` command handler (ReAct loop orchestration).
+- **`commands/config.py`**: Configuration loading, normalization, and merging.
 
 ---
 
-## 3. Data Flow Pipeline
+## 3. Data Flow Pipelines
 
-The following sequence details how a single execution allows raw data to become an insight.
+Heimr has two primary execution paths: the **analyze pipeline** (fixed, report-oriented) and the **agent pipeline** (dynamic, decision-oriented).
+
+### 3.1 Analyze Pipeline
+
+The following sequence details how `heimr analyze` transforms raw data into reports.
 
 ```mermaid
 sequenceDiagram
@@ -159,3 +178,42 @@ sequenceDiagram
     CLI-->>User: Done!
     deactivate CLI
 ```
+
+### 3.2 Agent Pipeline
+
+The agent uses a ReAct loop where the LLM dynamically decides which tools to call:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Agent as AgentRunner
+    participant LLM
+    participant Tools
+
+    User->>CLI: heimr agent results.json
+    activate CLI
+
+    CLI->>Agent: run(task)
+    activate Agent
+
+    loop ReAct Loop (max N iterations)
+        Agent->>LLM: System prompt + conversation history
+        LLM-->>Agent: THOUGHT + ACTION + ACTION_INPUT
+
+        alt ACTION = "FINISH"
+            Agent-->>CLI: Verdict + Audit Trail
+        else ACTION = tool name
+            Agent->>Tools: Execute tool(ACTION_INPUT)
+            Tools-->>Agent: OBSERVATION (tool result)
+            Note over Agent: Append observation to history
+        end
+    end
+
+    deactivate Agent
+
+    CLI-->>User: Verdict (APPROVE/REJECT) + exit code
+    deactivate CLI
+```
+
+The key difference: in `analyze`, the pipeline is fixed. In `agent`, the LLM reasons about what to do next, enabling adaptive analysis that follows the evidence.

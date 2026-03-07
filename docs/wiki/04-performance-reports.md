@@ -1,4 +1,4 @@
-# Reporting
+# Performance Reports
 
 [← Back to Index](../WIKI.md)
 

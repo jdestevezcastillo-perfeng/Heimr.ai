@@ -36,6 +36,15 @@ To prevent "hallucinations"
 Heimr supports a tiered model strategy
  to balance quality, speed, and hardware constraints.
 
+### Reliability Knobs
+
+You can tune LLM call behavior in `heimr.yaml`:
+
+```yaml
+llm_timeout_sec: 60
+llm_max_retries: 2
+```
+
 ### Local Models (Privacy-First)
 
 Run completely offline using Ollama

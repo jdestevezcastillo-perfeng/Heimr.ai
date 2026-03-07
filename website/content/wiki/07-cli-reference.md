@@ -12,9 +12,66 @@ The following flags work with all commands:
 
 ---
 
-## 1. `analyze`
+## 1. `agent`
 
-The core command to process load test results, detect anomalies, and generate AI-powered reports.
+The primary command. Runs Heimr as an autonomous performance engineering agent with ReAct reasoning.
+
+```bash
+heimr agent [FILE] [OPTIONS]
+```
+
+### Arguments
+
+- **`FILE`** (Required): Path to the load test result file (same formats as `analyze`).
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config`, `-c` | — | Path to YAML configuration file |
+| `--mode` | `autonomous` | Agent mode: `autonomous` or `supervised` |
+| `--gate-policy` | `strict` | `strict` (fail on issues) or `advisory` (warn only) |
+| `--max-iterations` | `10` | Max ReAct loop iterations |
+| `--fail-condition` | — | Fail threshold (repeatable). Format: `"metric > value"` |
+| `--prometheus` | — | Prometheus URL or JSON file |
+| `--loki` | — | Loki URL or JSON file |
+| `--tempo` | — | Tempo URL or JSON file |
+| `--llm-url` | — | Override LLM API URL |
+| `--llm-model` | — | Override LLM model |
+| `--task` | auto | Custom task description for the agent |
+| `--verbose`, `-v` | off | Print reasoning steps |
+| `--log-level` | — | Logging verbosity (DEBUG, INFO, WARNING, ERROR) |
+| `--ci-summary` | — | Generate GitHub Actions Step Summary |
+| `--junit-output` | — | Path to save JUnit XML report |
+
+### Examples
+
+**Basic deployment gate:**
+```bash
+heimr agent results.json --gate-policy strict --verbose
+```
+
+**With observability and fail conditions:**
+```bash
+heimr agent results.json \
+  --gate-policy strict \
+  --prometheus http://localhost:9090 \
+  --loki http://localhost:3100 \
+  --fail-condition "p99_latency > 500" \
+  --fail-condition "error_rate > 1" \
+  --verbose
+```
+
+**Advisory mode (warn but don't fail):**
+```bash
+heimr agent results.json --gate-policy advisory --ci-summary
+```
+
+---
+
+## 2. `analyze`
+
+Generates detailed performance reports with charts, per-endpoint breakdowns, and AI root cause analysis.
 
 ```bash
 heimr analyze [FILE] [OPTIONS]
@@ -121,7 +178,32 @@ heimr analyze browser_session.har \
 
 ---
 
-## 2. `config-init`
+## 3. `mcp`
+
+Starts the Heimr MCP (Model Context Protocol) server for Claude integration.
+
+```bash
+heimr mcp [OPTIONS]
+```
+
+### Options
+- `--transport`: MCP transport type. (Default: `stdio`, Options: `stdio`, `streamable-http`)
+- `--port`: Port for HTTP transport. (Default: `8000`)
+
+### Examples
+```bash
+# stdio transport (for Claude Code / Claude Desktop)
+heimr mcp
+
+# HTTP transport (for remote/shared deployments)
+heimr mcp --transport streamable-http --port 8000
+```
+
+See [MCP Integration](03-mcp-integration.md) for setup instructions.
+
+---
+
+## 4. `config-init`
 
 Generates a template `heimr.yaml` configuration file to help you get started quickly.
 
@@ -141,7 +223,7 @@ heimr config-init
 
 ---
 
-## 3. `setup-llm`
+## 5. `setup-llm`
 
 Helper command to install and configure local LLMs (Ollama + Qwen 3.5) for the AI analysis engine.
 
