@@ -7,6 +7,7 @@ from heimr.reporting.markdown import (
     detect_timeline_mismatch,
     enhance_llm_output,
     extract_llm_tldr,
+    generate_markdown_report_content,
 )
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "detect_timeline_mismatch",
     "enhance_llm_output",
     "extract_llm_tldr",
+    "generate_markdown_report_content",
     # Lazy-imported in consumers; listed here for discoverability:
     # "ReportCharts",        # from heimr.reporting.charts
     # "HTMLReportGenerator", # from heimr.reporting.html

@@ -74,6 +74,9 @@ For environments where you prefer Python packages:
 # Core installation
 pip install heimr-ai
 
+# With report generation support
+pip install heimr-ai[reports]
+
 # With OpenAI/Ollama LLM support
 pip install heimr-ai[openai]
 

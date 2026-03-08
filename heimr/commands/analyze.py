@@ -6,10 +6,12 @@ import os
 import sys
 
 from heimr.analyzer import Analyzer
+from heimr.services.analysis import build_analyzer_config_from_args, run_analysis
+from heimr.services.reporting import REPORTS_EXTRA_HINT, write_analysis_reports
 
 
 def handle_analyze(args, load_config, normalize_config, merge_config_with_args,
-                   print_banner, print_result_summary, generate_markdown_report_content):
+                   print_banner, print_result_summary):
     """Handle the 'analyze' CLI command."""
 
     # Load and merge config
@@ -24,24 +26,6 @@ def handle_analyze(args, load_config, normalize_config, merge_config_with_args,
     if getattr(args, "explain", False):
         print("Warning: --explain is deprecated; AI analysis runs by default.")
 
-    # Build config dict for Analyzer
-    analyzer_config = {
-        'prometheus': args.prometheus,
-        'loki': args.loki,
-        'tempo': args.tempo,
-        'llm_url': args.llm_url,
-        'llm_model': args.llm_model,
-        'prompt_template': getattr(args, 'prompt_template', None),
-        'disable_llm': args.no_llm,
-        'fail_conditions': getattr(args, 'fail_condition', None),
-        'llm_timeout_sec': args.llm_timeout_sec,
-        'llm_max_retries': args.llm_max_retries,
-        'detector_mode': args.detector_mode,
-        'trend_threshold': args.trend_threshold,
-        'grafana_url': args.grafana_url,
-        'grafana_dashboard_uid': args.grafana_dashboard_uid,
-    }
-
     # Configure logging if requested
     if args.log_level:
         import logging
@@ -50,24 +34,22 @@ def handle_analyze(args, load_config, normalize_config, merge_config_with_args,
     print_banner()
     print(f"Analyzing {args.file}...")
 
-    # Initialize Analyzer
-    analyzer = Analyzer(
-        file_path=args.file,
-        config=analyzer_config,
-        llm_url=args.llm_url,
-        llm_model=args.llm_model,
-        prompt_template=getattr(args, 'prompt_template', None),
-        no_llm=args.no_llm,
-        jvm_thread_dump=getattr(args, 'jvm_thread_dump', None),
-        jvm_heap_dump=getattr(args, 'jvm_heap_dump', None),
-        jvm_gc_log=getattr(args, 'jvm_gc_log', None)
-    )
-
     # Helper for LLM streaming
     def stream_chunk(chunk):
         print(chunk, end="", flush=True)
 
     # Run Analysis
+    analyzer = Analyzer(
+        file_path=args.file,
+        config=build_analyzer_config_from_args(args),
+        llm_url=getattr(args, 'llm_url', None),
+        llm_model=getattr(args, 'llm_model', None),
+        prompt_template=getattr(args, 'prompt_template', None),
+        no_llm=getattr(args, 'no_llm', False),
+        jvm_thread_dump=getattr(args, 'jvm_thread_dump', None),
+        jvm_heap_dump=getattr(args, 'jvm_heap_dump', None),
+        jvm_gc_log=getattr(args, 'jvm_gc_log', None),
+    )
     result = analyzer.analyze(stream_callback=stream_chunk)
 
     # Print Summary
@@ -77,55 +59,20 @@ def handle_analyze(args, load_config, normalize_config, merge_config_with_args,
 
     # --- Report Generation ---
     if args.output:
-        # Step 1: Generate HTML report with interactive Plotly charts
         print("\n--- Generating HTML Report (Interactive Charts) ---")
-        try:
-            from heimr.reporting.charts import ReportCharts
-            from heimr.reporting.html import HTMLReportGenerator
-
-            # Use HTML mode for interactive charts
-            ReportCharts.set_output_mode('html')
-            html_content = generate_markdown_report_content(result, args)
-
-            html_gen = HTMLReportGenerator()
-            html_path = args.output.rsplit('.', 1)[0] + '.html'
-            html_gen.generate_html(html_content, html_path)
-            print(f"✅ HTML report saved to: {html_path}")
-            print("   💡 Open in browser and press Ctrl+P to save as PDF")
-            report_paths["HTML"] = html_path
-        except Exception as e:
-            print(f"Warning: Failed to generate HTML: {e}")
-            import traceback
-            traceback.print_exc()
-
-        # Step 2: Generate Markdown report with static PNG charts (for GitHub/GitLab)
         print("\n--- Generating Markdown Report (Static Charts) ---")
         try:
-            from heimr.reporting.charts import ReportCharts
-
-            # Switch to image mode for static PNG charts
-            ReportCharts.set_output_mode('image')
-            md_content = generate_markdown_report_content(result, args)
-
-            # Use .md extension for markdown file
-            md_path = args.output.rsplit('.', 1)[0] + '.md'
-            with open(md_path, "w") as f:
-                f.write(md_content)
-            print(f"✅ Markdown report saved to: {md_path}")
-            report_paths["Markdown"] = md_path
-
-            # Reset to HTML mode
-            ReportCharts.set_output_mode('html')
+            generated_paths, markdown_image_mode_ok = write_analysis_reports(result, args)
+            report_paths.update(generated_paths)
+            print(f"✅ HTML report saved to: {report_paths['HTML']}")
+            print("   💡 Open in browser and press Ctrl+P to save as PDF")
+            print(f"✅ Markdown report saved to: {report_paths['Markdown']}")
+            if not markdown_image_mode_ok:
+                print("⚠️ Saved Markdown with HTML charts (install kaleido for static images)")
         except Exception as e:
             print(f"Warning: Failed to generate Markdown with images: {e}")
-            # Fallback: save with HTML charts (may not render in GitHub)
-            from heimr.reporting.charts import ReportCharts
-            ReportCharts.set_output_mode('html')
-            fallback_content = generate_markdown_report_content(result, args)
-            with open(args.output, "w") as f:
-                f.write(fallback_content)
-            print(f"⚠️ Saved Markdown with HTML charts (install kaleido for static images)")
-            report_paths["Markdown"] = args.output
+            if str(e) == REPORTS_EXTRA_HINT:
+                print(REPORTS_EXTRA_HINT)
 
     # --- Comparison Logic ---
     comparison_reasons = None
@@ -136,17 +83,15 @@ def handle_analyze(args, load_config, normalize_config, merge_config_with_args,
 
             # Analyze baseline
             print(f"Loading baseline: {args.compare_baseline}")
-            baseline_config = {
-                'prometheus': args.compare_prometheus,
-                'loki': args.compare_loki,
-                'tempo': args.compare_tempo
-            }
-            baseline_analyzer = Analyzer(
+            baseline_result = run_analysis(
                 file_path=args.compare_baseline,
-                config=baseline_config,
-                no_llm=True
+                config={
+                    'prometheus': args.compare_prometheus,
+                    'loki': args.compare_loki,
+                    'tempo': args.compare_tempo,
+                },
+                no_llm=True,
             )
-            baseline_result = baseline_analyzer.analyze()
 
             comparator = PerformanceComparator(baseline_result.stats, result.stats)
 

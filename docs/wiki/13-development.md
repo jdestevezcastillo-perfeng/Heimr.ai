@@ -9,10 +9,12 @@ Technical details for developers and contributors.
 ## Table of Contents
 
 1. [Code Structure](#code-structure)
-2. [Anomaly Detection](#anomaly-detection)
-3. [LLM Integration](#llm-integration)
-4. [Research & Decisions](#research--decisions)
-5. [Testing](#testing)
+2. [Repository Boundaries](#repository-boundaries)
+3. [Development Setup](#development-setup)
+4. [Anomaly Detection](#anomaly-detection)
+5. [LLM Integration](#llm-integration)
+6. [Research & Decisions](#research--decisions)
+7. [Testing](#testing)
 
 ---
 
@@ -20,29 +22,63 @@ Technical details for developers and contributors.
 
 ```text
 heimr/
-├── parsers/              # Load test result parsers
-│   ├── __init__.py
-│   ├── base.py          # Base parser class
-│   ├── jtl.py           # JMeter
-│   ├── k6.py            # k6
-│   ├── gatling.py       # Gatling
-│   ├── locust.py        # Locust
-│   └── har.py           # HAR files
-├── reporters/            # Output formatters
-│   ├── github.py        # GitHub Actions integration
-│   └── junit.py         # JUnit XML output
-├── __init__.py          # Package exports (Analyzer, AnalysisResult)
-├── analyzer.py          # Core Analysis Pipeline + Python API
-├── cli.py               # CLI interface
+├── agent/               # ReAct loop, gate logic, MCP server
+├── commands/            # CLI command handlers and config helpers
+├── parsers/             # Load test result parsers
+├── reporting/           # Markdown/HTML/PDF/JUnit/GitHub reporting
+├── services/            # Shared analysis and report orchestration
+├── analyzer.py          # Core analysis pipeline + Python API
+├── cli.py               # Thin CLI entrypoint
 ├── comparator.py        # Baseline comparison
-├── detector.py          # Anomaly detection (Z-Score, IQR)
+├── detector.py          # Anomaly detection
 ├── kpi.py               # KPI calculations
-├── llm.py               # LLM integration (Ollama, OpenAI, Anthropic)
+├── llm.py               # LLM integration
 ├── loki.py              # Loki client
-├── pdf_generator.py     # PDF report generation
 ├── prometheus.py        # Prometheus client
 ├── setup_llm.py         # LLM setup wizard
-└── tempo.py             # Tempo client
+├── tempo.py             # Tempo client
+└── web.py               # Optional FastAPI app
+```
+
+---
+
+## Repository Boundaries
+
+Treat the repository as four zones:
+
+- `heimr/`, `tests/`, `docs/`: primary maintained code and documentation.
+- `demos/`, `load-tests/`, `website/`: support surfaces that should consume the package, not define it.
+- `.venv/`, `LOCAL/`, `config/`, `build/`, `demos/output/`, `load-tests/results/`: local/generated state that should stay untracked.
+- Packaging and automation files at the root (`pyproject.toml`, `action.yml`, `Dockerfile`, `pytest.ini`) should stay small and explicit.
+
+When local artifacts accumulate, clean them with:
+
+```bash
+bash scripts/clean_local_artifacts.sh
+```
+
+To also remove local runtime directories:
+
+```bash
+bash scripts/clean_local_artifacts.sh --include-local
+```
+
+---
+
+## Development Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+```
+
+Install optional extras only when needed:
+
+```bash
+pip install -e .[reports]
+pip install -e .[mcp]
+pip install -e .[web]
 ```
 
 ---

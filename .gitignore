@@ -10,6 +10,9 @@ google-cloud-sdk/
 .venv/
 chaos-generator/
 .pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 project_state.yaml
 
 # Local Codex / dev server artifacts

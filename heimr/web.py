@@ -8,7 +8,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from heimr.analyzer import Analyzer
+from heimr.services.analysis import run_analysis
+from heimr.services.reporting import generate_markdown_report
 
 # Configuration
 UPLOAD_DIR = "data/uploads"
@@ -49,7 +50,7 @@ class JobStatus(BaseModel):
 
 from typing import List
 
-async def run_analysis(job_id: str, file_map: Dict[str, str]):
+async def run_analysis_job(job_id: str, file_map: Dict[str, str]):
     """
     Background task to run Heimr analysis.
     """
@@ -91,7 +92,7 @@ async def run_analysis(job_id: str, file_map: Dict[str, str]):
                     logger.error(f"Failed to upload to GCS: {e}")
 
             # Run Analyzer (Synchronously for now, but wrapped in async)
-            def _analyze():
+            def _analyze_job():
                 # Determine main file (JTL/LOG)
                 main_file = file_map.get('main')
                 if not main_file:
@@ -106,26 +107,25 @@ async def run_analysis(job_id: str, file_map: Dict[str, str]):
                 def stream_callback(chunk):
                     loop.call_soon_threadsafe(update_progress, chunk)
 
-                analyzer = Analyzer(
+                result = run_analysis(
                     file_path=main_file,
                     config=config,
                     llm_url=OLLAMA_URL,
-                    llm_model=MODEL_NAME
+                    llm_model=MODEL_NAME,
+                    stream_callback=stream_callback,
                 )
-                
-                # Run with streaming
-                result = analyzer.analyze(stream_callback=stream_callback)
-                
-                from heimr.cli import generate_markdown_report_content
-                
+
                 # Mock args object for the report generator
                 class MockArgs:
+                    file = main_file
                     tag = None
-                    prometheus = 'prometheus' in file_map
-                    loki = 'loki' in file_map
-                    tempo = 'tempo' in file_map
+                    prometheus = file_map.get('prometheus')
+                    loki = file_map.get('loki')
+                    tempo = file_map.get('tempo')
+                    grafana_url = None
+                    grafana_dashboard_uid = None
                 
-                report_content = generate_markdown_report_content(result, MockArgs())
+                report_content = generate_markdown_report(result, MockArgs())
                 with open(output_path, "w") as f:
                     f.write(report_content)
                 
@@ -143,7 +143,7 @@ async def run_analysis(job_id: str, file_map: Dict[str, str]):
                 return result.status
 
             loop = asyncio.get_event_loop()
-            final_status = await loop.run_in_executor(None, _analyze)
+            final_status = await loop.run_in_executor(None, _analyze_job)
 
             job_store[job_id]["status"] = "COMPLETED"
             job_store[job_id]["message"] = f"Analysis finished with status: {final_status}"
@@ -207,7 +207,7 @@ async def upload_file(files: List[UploadFile] = File(...), background_tasks: Bac
         "message": "Waiting for worker..."
     }
 
-    background_tasks.add_task(run_analysis, job_id, file_map)
+    background_tasks.add_task(run_analysis_job, job_id, file_map)
 
     return JobStatus(job_id=job_id, status="QUEUED")
 

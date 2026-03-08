@@ -83,38 +83,39 @@ runs:
         OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
       run: |
-        ARGS="${{ inputs.results-file }}"
-        ARGS="$ARGS --gate-policy ${{ inputs.gate-policy }}"
-        ARGS="$ARGS --mode ${{ inputs.mode }}"
-        ARGS="$ARGS --max-iterations ${{ inputs.max-iterations }}"
-        ARGS="$ARGS --ci-summary"
-        ARGS="$ARGS --verbose"
+        args=("${{ inputs.results-file }}")
+        args+=("--gate-policy" "${{ inputs.gate-policy }}")
+        args+=("--mode" "${{ inputs.mode }}")
+        args+=("--max-iterations" "${{ inputs.max-iterations }}")
+        args+=("--ci-summary")
+        args+=("--verbose")
 
         if [ -n "${{ inputs.config }}" ]; then
-          ARGS="$ARGS --config ${{ inputs.config }}"
+          args+=("--config" "${{ inputs.config }}")
         fi
         if [ -n "${{ inputs.llm-model }}" ]; then
-          ARGS="$ARGS --llm-model ${{ inputs.llm-model }}"
+          args+=("--llm-model" "${{ inputs.llm-model }}")
         fi
         if [ -n "${{ inputs.llm-url }}" ]; then
-          ARGS="$ARGS --llm-url ${{ inputs.llm-url }}"
+          args+=("--llm-url" "${{ inputs.llm-url }}")
         fi
         if [ -n "${{ inputs.prometheus }}" ]; then
-          ARGS="$ARGS --prometheus ${{ inputs.prometheus }}"
+          args+=("--prometheus" "${{ inputs.prometheus }}")
         fi
         if [ -n "${{ inputs.loki }}" ]; then
-          ARGS="$ARGS --loki ${{ inputs.loki }}"
+          args+=("--loki" "${{ inputs.loki }}")
         fi
         if [ -n "${{ inputs.tempo }}" ]; then
-          ARGS="$ARGS --tempo ${{ inputs.tempo }}"
+          args+=("--tempo" "${{ inputs.tempo }}")
         fi
 
         # Parse comma-separated fail conditions
         if [ -n "${{ inputs.fail-conditions }}" ]; then
           IFS=',' read -ra CONDITIONS <<< "${{ inputs.fail-conditions }}"
           for cond in "${CONDITIONS[@]}"; do
-            ARGS="$ARGS --fail-condition \"$(echo $cond | xargs)\""
+            trimmed_cond="$(echo "$cond" | xargs)"
+            [ -n "$trimmed_cond" ] && args+=("--fail-condition" "$trimmed_cond")
           done
         fi
 
-        heimr agent $ARGS
+        heimr agent "${args[@]}"

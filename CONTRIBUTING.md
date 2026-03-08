@@ -54,11 +54,13 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ### 2. Install Dependencies
 
 ```bash
-# Install Heimr in development mode
-pip install -e .
+# Install Heimr with development dependencies
+pip install -e .[dev]
 
-# Install development dependencies
-pip install -r requirements_dev.txt
+# Add optional feature sets only when needed
+pip install -e .[reports]
+pip install -e .[mcp]
+pip install -e .[web]
 ```
 
 ### 3. Install Pre-commit Hooks (Optional)
@@ -86,6 +88,8 @@ ollama pull qwen3.5:9b
 ```
 Heimr.ai/
 ├── heimr/                     # Main package
+│   ├── agent/                 # ReAct loop, gate logic, MCP server
+│   ├── commands/              # CLI command handlers and config helpers
 │   ├── parsers/               # Load test result parsers
 │   │   ├── base.py            # Base parser class
 │   │   ├── jtl.py             # JMeter parser
@@ -93,29 +97,36 @@ Heimr.ai/
 │   │   ├── gatling.py         # Gatling parser
 │   │   ├── locust.py          # Locust parser
 │   │   └── har.py             # HAR (HTTP Archive) parser
-│   ├── reporters/             # Output formatters
-│   │   ├── github.py          # GitHub Actions summary
-│   │   └── junit.py           # JUnit XML for CI/CD
-│   ├── cli.py                 # CLI interface & orchestration
+│   ├── reporting/             # HTML/Markdown/PDF/JUnit/GitHub reporting
+│   ├── services/              # Shared analysis/report orchestration
+│   ├── cli.py                 # Thin CLI entrypoint
+│   ├── analyzer.py            # Core analysis pipeline
 │   ├── detector.py            # Statistical anomaly detection
 │   ├── kpi.py                 # KPI calculations
-│   ├── llm.py                 # LLM integration (Ollama, OpenAI, Anthropic)
+│   ├── llm.py                 # LLM integration
 │   ├── comparator.py          # Baseline comparison engine
-│   ├── pdf_generator.py       # PDF report generation
-│   ├── setup_llm.py           # LLM setup wizard
 │   ├── prometheus.py          # Prometheus metrics client
 │   ├── loki.py                # Loki logs client
-│   └── tempo.py               # Tempo traces client
+│   ├── tempo.py               # Tempo traces client
+│   └── web.py                 # Optional FastAPI app
 ├── docs/                      # Documentation
 │   ├── WIKI.md                # Wiki index
-│   └── wiki/                  # Wiki pages (10 pages)
+│   └── wiki/                  # Wiki pages
 ├── tests/                     # Test suite
-├── load-tests/                # Load test scripts (k6, JMeter, Gatling, Locust)
+├── load-tests/                # Benchmark tooling and sample outputs
 ├── demos/                     # Demo scripts and examples
-├── website/                   # Landing page (heimr.ai)
-├── setup.py                   # Package configuration
+├── website/                   # Landing page assets
+├── pyproject.toml             # Package metadata and dependency groups
+├── setup.py                   # Compatibility shim for setuptools
 └── heimr.yaml.example         # Example configuration file
 ```
+
+### Repository Zones
+
+- `heimr/`, `tests/`, and `docs/` are the main maintained source areas.
+- `demos/`, `load-tests/`, and `website/` are support surfaces and should not drive core package design.
+- `.venv/`, `LOCAL/`, `config/`, `build/`, and generated report folders are local-only and should stay untracked.
+- Use `bash scripts/clean_local_artifacts.sh` to clear generated artifacts from the working tree.
 
 ---
 

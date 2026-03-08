@@ -39,10 +39,27 @@ The agent decides which tools to call, correlates signals across sources, and pr
 ```bash
 pip install heimr-ai
 
+# Add reporting dependencies for HTML/Markdown/PDF outputs
+pip install heimr-ai[reports]
+
+# Add web or MCP support only when you need it
+pip install heimr-ai[web]
+pip install heimr-ai[mcp]
+
 # For local AI analysis (recommended — your data stays on your machine)
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen3.5:9b
 ```
+
+### Optional Extras
+
+| Feature | Install |
+|---|---|
+| Core CLI + agent analysis | `pip install heimr-ai` |
+| HTML/Markdown/PDF reports | `pip install heimr-ai[reports]` |
+| Web API | `pip install heimr-ai[web]` |
+| MCP server | `pip install heimr-ai[mcp]` |
+| All optional features | `pip install heimr-ai[all]` |
 
 ### Agent Mode — Deployment Gating
 
@@ -81,6 +98,8 @@ heimr analyze results.json \
 ```
 
 Generates interactive HTML reports with Plotly charts, per-endpoint breakdowns, and AI root cause analysis.
+
+Note: report generation requires `heimr-ai[reports]`.
 
 ### MCP Server — Claude Integration
 

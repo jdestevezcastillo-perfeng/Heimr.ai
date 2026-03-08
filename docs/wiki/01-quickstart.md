@@ -17,6 +17,12 @@ Get up and running with Heimr in under 5 minutes.
 ```bash
 pip install heimr-ai
 
+# Optional: report generation dependencies
+pip install heimr-ai[reports]
+
+# Optional: web API support
+pip install heimr-ai[web]
+
 # Install local LLM (recommended — your data stays on your machine)
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen3.5:9b
@@ -98,6 +104,8 @@ Generates:
 - **HTML report** — Interactive Plotly charts, per-endpoint breakdowns, AI root cause analysis
 - **Markdown report** — GitHub/GitLab-friendly with static charts
 - **PDF report** — Professional formatting for sharing
+
+Install `heimr-ai[reports]` first to enable report generation.
 
 See [Performance Reports](04-performance-reports.md) for details.
 

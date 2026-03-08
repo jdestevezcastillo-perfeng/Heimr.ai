@@ -4,6 +4,17 @@
 
 Heimr provides a robust Command Line Interface (CLI) for analyzing load tests, managing configuration, and setting up the AI environment.
 
+## Install Extras
+
+Some commands require optional extras:
+
+| Feature | Install |
+|---|---|
+| Core CLI, `agent`, and basic `analyze` | `pip install heimr-ai` |
+| Charted and PDF reports from `analyze --output` | `pip install heimr-ai[reports]` |
+| `mcp` command | `pip install heimr-ai[mcp]` |
+| Web API module | `pip install heimr-ai[web]` |
+
 ## Global Flags
 
 The following flags work with all commands:
@@ -72,6 +83,8 @@ heimr agent results.json --gate-policy advisory --ci-summary
 ## 2. `analyze`
 
 Generates detailed performance reports with charts, per-endpoint breakdowns, and AI root cause analysis.
+
+If you use `--output`, install `heimr-ai[reports]` first.
 
 ```bash
 heimr analyze [FILE] [OPTIONS]

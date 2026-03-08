@@ -77,6 +77,21 @@ python scripts/validate_mock_reports.py
 
 ---
 
+### `clean_local_artifacts.sh`
+Removes generated build/test outputs and optional local-only runtime directories.
+
+```bash
+# Safe cleanup of generated artifacts only
+bash scripts/clean_local_artifacts.sh
+
+# Also remove local runtime directories like .venv/ and LOCAL/
+bash scripts/clean_local_artifacts.sh --include-local
+```
+
+Use this when the repository accumulates local state from validation runs, packaging, or demo workflows.
+
+---
+
 ## Prerequisites
 
 1. Generate mock data first:

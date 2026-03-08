@@ -42,15 +42,21 @@ def _error(msg: str) -> Dict[str, Any]:
 # Tool implementations
 # ---------------------------------------------------------------------------
 
-def _parse_load_test(file_path: str, **kwargs) -> Dict[str, Any]:
-    """Parse load test results, return KPIs and basic stats."""
+def _load_results_dataframe(file_path: str):
+    """Load and parse a supported load test results file."""
     from heimr.analyzer import Analyzer
 
+    file_format = Analyzer.detect_file_format(file_path)
+    analyzer = Analyzer(file_path, no_llm=True)
+    parser = analyzer._get_parser(file_format)
+    df = parser.parse()
+    return file_format, df
+
+
+def _parse_load_test(file_path: str, **kwargs) -> Dict[str, Any]:
+    """Parse load test results, return KPIs and basic stats."""
     try:
-        file_format = Analyzer.detect_file_format(file_path)
-        analyzer = Analyzer(file_path, no_llm=True)
-        parser = analyzer._get_parser(file_format)
-        df = parser.parse()
+        file_format, df = _load_results_dataframe(file_path)
 
         if df.empty:
             return _error(f"Parsed file {file_path} but got empty DataFrame")
@@ -73,14 +79,10 @@ def _parse_load_test(file_path: str, **kwargs) -> Dict[str, Any]:
 
 def _compute_kpis(file_path: str, **kwargs) -> Dict[str, Any]:
     """Compute KPIs from a load test results file."""
-    from heimr.analyzer import Analyzer
     from heimr.kpi import KPIEngine
 
     try:
-        file_format = Analyzer.detect_file_format(file_path)
-        analyzer = Analyzer(file_path, no_llm=True)
-        parser = analyzer._get_parser(file_format)
-        df = parser.parse()
+        _, df = _load_results_dataframe(file_path)
 
         kpi_engine = KPIEngine(df)
         kpi_data = kpi_engine.get_kpi_dict()
@@ -92,14 +94,10 @@ def _compute_kpis(file_path: str, **kwargs) -> Dict[str, Any]:
 
 def _detect_anomalies(file_path: str, detector_mode: str = "simple", **kwargs) -> Dict[str, Any]:
     """Run anomaly detection on load test results."""
-    from heimr.analyzer import Analyzer
     from heimr.detector import AnomalyDetector
 
     try:
-        file_format = Analyzer.detect_file_format(file_path)
-        analyzer = Analyzer(file_path, no_llm=True)
-        parser = analyzer._get_parser(file_format)
-        df = parser.parse()
+        _, df = _load_results_dataframe(file_path)
 
         detector = AnomalyDetector(df, mode=detector_mode)
         anomalies = detector.detect_latency_anomalies()
@@ -245,16 +243,15 @@ def _evaluate_gate(
     **kwargs,
 ) -> Dict[str, Any]:
     """Run full analysis and evaluate deployment gate."""
-    from heimr.analyzer import Analyzer
     from heimr.agent.gate import evaluate_gate
+    from heimr.services.analysis import run_analysis
 
     try:
-        analyzer = Analyzer(
-            file_path,
+        result = run_analysis(
+            file_path=file_path,
             config=config or {},
             no_llm=True,
         )
-        result = analyzer.analyze()
         decision = evaluate_gate(result, fail_conditions, gate_policy)
 
         return _ok(decision.to_dict())
@@ -271,18 +268,17 @@ def _run_full_analysis(
     **kwargs,
 ) -> Dict[str, Any]:
     """Run the complete Heimr analysis pipeline (parse + KPIs + anomalies + observability + LLM)."""
-    from heimr.analyzer import Analyzer
+    from heimr.services.analysis import run_analysis
 
     try:
         cfg = config or {}
-        analyzer = Analyzer(
-            file_path,
+        result = run_analysis(
             config=cfg,
+            file_path=file_path,
             llm_url=llm_url,
             llm_model=llm_model,
             no_llm=no_llm,
         )
-        result = analyzer.analyze()
 
         return _ok({
             "status": result.status,
